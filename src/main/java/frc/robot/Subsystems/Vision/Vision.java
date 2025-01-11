@@ -1,10 +1,14 @@
 package frc.robot.Subsystems.Vision;
+import java.util.ArrayList;
+
+import org.opencv.core.Point;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -13,18 +17,21 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 // limelight lib
 import frc.robot.LimelightHelpers.PoseEstimate;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.LimelightResults;
 
 public class Vision extends SubsystemBase {
-        private static final AprilTagFieldLayout AprilTagFieldLayout = null;
         private static Vision m_instance;
         public Pose3d m_pose;
-        // public DriveTrain m_drive;
+        public DriveTrain m_drive;
 
         public int count;
     
@@ -54,7 +61,8 @@ public class Vision extends SubsystemBase {
     
             m_pose = new Pose3d(12.5, 0, 0, new Rotation3d());
     
-            AprilTagFieldLayout aprilTagFieldLayout = AprilTagFields.k2025.loadAprilTagLayoutField();
+            AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+
             m_photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(0.15 * 0.0254, 0.10 * 0.0254, 0.1), new Rotation3d(0, 20.0 * Math.PI / 180, 0)));
             m_photonPoseEstimator.setReferencePose(m_pose);
         }
@@ -63,13 +71,13 @@ public class Vision extends SubsystemBase {
     public void periodic() {
         count++;
 
-        var photonResult = m_photonTagCamera.getLatestResult();
+        var photonResult = m_photonTagCamera.getAllUnreadResults().get(0);
         if (photonResult.hasTargets()){
         var update = m_photonPoseEstimator.update(photonResult);
         if (update.isPresent()){
             m_pose = update.get().estimatedPose;
             if (Math.abs(m_pose.getZ()) < 1){
-            m_photonPoseEstimator.setReferencePose(m_pose);
+                m_photonPoseEstimator.setReferencePose(m_pose);
             }
             // if (m_drive != null){
             //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
@@ -100,6 +108,58 @@ public class Vision extends SubsystemBase {
             LimelightHelpers.setPipelineIndex("", 6);
             count = 0;
         }
+        if(!limelightResult.valid && count >=25){
+            LimelightHelpers.setPipelineIndex("", 0);
+        }
 
+
+        // if (limelightResult != null && limelightResult.valid){
+        //     if (DriverStation.getAlliance().get() == Alliance.Red){
+        //         m_pose = LimelightHelpers.getBotPose3d_wpiRed("");
+        //     }else{
+        //         m_pose = LimelightHelpers.getBotPose3d_wpiBlue("");
+        //     }
+
+        //     System.out.println(m_pose.getX());
+
+        //     // if (m_drive != null){
+        //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
+        //     // }
+        // }
+
+        adv_posePub.set(m_pose);
+
+        // double min_dist = 99;
+
+        // if (m_drive.odomPose != null && noteCenters != null){
+        //     Pose2d odomPose = m_drive.odomPose;
+        //     double rot = odomPose.getRotation().getRadians();
+        //     ArrayList<Pose3d> poses3d = new ArrayList<Pose3d>();
+        //     for (Point p : noteCenters){
+        //         double f = 0.76 / (Math.tan(38 / 2 * Math.PI/180) * (p.y - 60)/60);
+        //         double h = -f * Math.tan(63 / 2 * Math.PI/180) * (p.x - 80)/80;
+        //         double x = f * Math.cos(rot) - h * Math.sin(rot);
+        //         double y = f * Math.sin(rot) + h * Math.cos(rot);
+        //         double dist = Math.sqrt(f*f + h*h);
+        //         Pose3d pose = new Pose3d(
+        //         x + odomPose.getX(),
+        //         y + odomPose.getY(),
+        //         0.04,
+        //         new Rotation3d()
+        //         );
+        //         poses3d.add(pose);
+        //         if (dist < min_dist){
+        //         min_dist = dist;
+        //         tracked_note = pose;
+        //         tracking_timeout.reset();
+        //         }
+        //     }
+        //     adv_targetPub.set(poses3d.toArray(new Pose3d[0]));
+        //     adv_trackedPub.set(tracked_note);
+        //     } else {
+        //     if (tracking_timeout.hasElapsed(0.5)){
+        //         tracked_note = null;
+        //     }
+        // }
     }
 }
