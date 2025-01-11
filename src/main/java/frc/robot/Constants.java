@@ -3,7 +3,6 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
-
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -124,6 +123,7 @@ public final class Constants {
       public static final double kS = 0.10;
       public static final double kV = 0.12; 
       public static final double kA = 0;
+      public static final double kG = 0;
     }
 
     public static class SteerMotorConfigs {
@@ -133,7 +133,7 @@ public final class Constants {
       public static final double kS = 0;
       public static final double kV = 0;
       public static final double kA = 0;
-
+      public static final double kG = 0;
     }
   }
 
