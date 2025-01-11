@@ -35,22 +35,24 @@ public class SwerveModuleRealIO extends SwerveModule{
     steer_motor = new TalonFX(steer_port, "CANivore");
     steer_sensor = new CANcoder(sensor_port, "CANivore");
 
-    Slot0Configs driveConfigs = new Slot0Configs();
-    driveConfigs.kP = DriveMotorConfigs.kP;
-    driveConfigs.kI = DriveMotorConfigs.kI;
-    driveConfigs.kD = DriveMotorConfigs.kD;
-    driveConfigs.kS = DriveMotorConfigs.kS;
-    driveConfigs.kV = DriveMotorConfigs.kV;
-    driveConfigs.kA = DriveMotorConfigs.kA;
+    Slot0Configs driveConfigs = new Slot0Configs()
+      .withKP(DriveMotorConfigs.kP)
+      .withKI(DriveMotorConfigs.kI)
+      .withKD(DriveMotorConfigs.kD)
+      .withKS(DriveMotorConfigs.kS)
+      .withKV(DriveMotorConfigs.kV)
+      .withKA(DriveMotorConfigs.kA)
+      .withKG(DriveMotorConfigs.kG);
     drive_motor.getConfigurator().apply(driveConfigs);
 
-    Slot0Configs steerConfigs = new Slot0Configs();
-    steerConfigs.kP = SteerMotorConfigs.kP;
-    steerConfigs.kI = SteerMotorConfigs.kI;
-    steerConfigs.kD = SteerMotorConfigs.kD;
-    steerConfigs.kS = SteerMotorConfigs.kS;
-    steerConfigs.kV = SteerMotorConfigs.kV;
-    steerConfigs.kA = SteerMotorConfigs.kA;
+    Slot0Configs steerConfigs = new Slot0Configs()
+      .withKP(SteerMotorConfigs.kP)
+      .withKI(SteerMotorConfigs.kI)
+      .withKD(SteerMotorConfigs.kD)
+      .withKS(SteerMotorConfigs.kS)
+      .withKV(SteerMotorConfigs.kV)
+      .withKA(SteerMotorConfigs.kA)
+      .withKG(SteerMotorConfigs.kG);
     steer_motor.getConfigurator().apply(steerConfigs);
 
   }
