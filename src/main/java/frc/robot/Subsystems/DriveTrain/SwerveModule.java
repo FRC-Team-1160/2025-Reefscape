@@ -35,18 +35,11 @@ public abstract class SwerveModule {
 
   public void setState(SwerveModuleState state){
     target_state = state;
-    setDrive(state.speedMetersPerSecond);
   }
 
   public void update(){
-    double target_angle = target_state.angle.getRadians();
-    double a = angle_pid.calculate(getAngle().getRadians(), target_angle);
-    if (Math.abs(getAngle().getRadians() - target_angle) > 0.005){
-      SmartDashboard.putNumber("voltage", a);
-        // setSteer(-a);
-    } else {
-        setSteer(0);
-    }
+    setSpeed(target_state.speedMetersPerSecond);
+    setAngle(target_state.angle);
   }
 
   abstract double getSpeed();
@@ -59,7 +52,7 @@ public abstract class SwerveModule {
 
   abstract SwerveModulePosition getModulePosition();
 
-  abstract void setDrive(double speedMetersPerSecond);
+  abstract void setSpeed(double speedMetersPerSecond);
 
-  abstract void setSteer(double volts);
+  abstract void setAngle(Rotation2d angle);
 }

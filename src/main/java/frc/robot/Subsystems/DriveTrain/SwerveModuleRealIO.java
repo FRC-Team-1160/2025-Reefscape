@@ -84,13 +84,13 @@ public class SwerveModuleRealIO extends SwerveModule{
     return new SwerveModulePosition(getPosition(), getAngle());
   }
 
-  public void setDrive(double speedMetersPerSecond){
+  public void setSpeed(double speedMetersPerSecond){
     SmartDashboard.putNumber("in_speed", speedMetersPerSecond / SwerveConstants.DRIVE_ROTOR_METERS);
     // drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / SwerveConstants.WHEEL_ROTOR_TO_METERS));
   }
 
-  public void setSteer(double angle){
-    steer_motor.set(0.0);
+  public void setAngle(Rotation2d angle){
+    steer_motor.setControl(new VelocityVoltage(0));
     // steer_motor.setVoltage(volts);
   }
 

@@ -40,6 +40,7 @@ public class DriveTrainRealIO extends DriveTrain {
 
   @Override
   public void periodic() {
+    //the child periodic() method overrides the parent class periodic(), which has to be explicitly called
     super.periodic();
   }
 

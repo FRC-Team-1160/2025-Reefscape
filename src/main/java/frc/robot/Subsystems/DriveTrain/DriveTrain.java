@@ -2,7 +2,7 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems.DriveTrain;
+package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
@@ -52,7 +52,7 @@ public abstract class DriveTrain extends SubsystemBase {
       new Translation2d(-offset, -offset) //back right
     );
 
-    m_modules = new SwerveModule[4]; // FIX PORTS
+    m_modules = new SwerveModule[4];
     m_modules[0] = initializeModule(Port.FRONT_LEFT_DRIVE_MOTOR, Port.FRONT_LEFT_STEER_MOTOR, Port.FRONT_LEFT_CODER); //fl
     m_modules[1] = initializeModule(Port.FRONT_RIGHT_DRIVE_MOTOR, Port.FRONT_RIGHT_STEER_MOTOR, Port.FRONT_RIGHT_CODER); //fr
     m_modules[2] = initializeModule(Port.BACK_LEFT_DRIVE_MOTOR, Port.BACK_LEFT_STEER_MOTOR, Port.BACK_LEFT_CODER); //bl
@@ -110,7 +110,7 @@ public abstract class DriveTrain extends SubsystemBase {
 
     //change target wheel directions if the wheel has to rotate more than 90*
     for (int i = 0; i < m_module_states.length; i++){
-      m_module_states[i] = SwerveModuleState.optimize(m_module_states[i], m_modules[i].getAngle());
+      m_module_states[i].optimize(m_modules[i].getAngle());
     }
 
     //normalize wheel speeds of any are greater than max speed
@@ -131,7 +131,7 @@ public abstract class DriveTrain extends SubsystemBase {
     }
   }
 
-  //Thanks to Team 4738 for modified discretize code
+  //Thanks to Team 4738 for modified discretization code
 
   /**
    * Accounts for drift while simultaneously translating and rotating by discretizing.
@@ -221,7 +221,7 @@ public abstract class DriveTrain extends SubsystemBase {
         builder.addDoubleProperty("Robot Angle", () -> getGyroAngle().getDegrees(), null);
       }
     });
-
+    //same here
     SmartDashboard.putData("Swerve Real States", new Sendable(){
       @Override
       public void initSendable(SendableBuilder builder){
