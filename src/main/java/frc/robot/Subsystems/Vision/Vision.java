@@ -19,6 +19,7 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -57,9 +58,9 @@ public class Vision extends SubsystemBase {
             adv_targetPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
             adv_trackedPub = adv_vision.getStructTopic("Tracked", Pose3d.struct).publish();
     
-            m_photonTagCamera = new PhotonCamera("OV9281");
+            m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera");
     
-            m_pose = new Pose3d(12.5, 0, 0, new Rotation3d());
+            m_pose = new Pose3d(0, 0, 0, new Rotation3d());
     
             AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
@@ -70,11 +71,12 @@ public class Vision extends SubsystemBase {
     @Override 
     public void periodic() {
         count++;
-
+        SmartDashboard.putNumber("vibe check", Math.random());
         var photonResult = m_photonTagCamera.getAllUnreadResults().get(0);
         if (photonResult.hasTargets()){
         var update = m_photonPoseEstimator.update(photonResult);
         if (update.isPresent()){
+            SmartDashboard.putNumber("vibe check 2", Math.random());
             m_pose = update.get().estimatedPose;
             if (Math.abs(m_pose.getZ()) < 1){
                 m_photonPoseEstimator.setReferencePose(m_pose);
@@ -86,31 +88,31 @@ public class Vision extends SubsystemBase {
         }
         }
         
-        // smart cropping:
-        LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
-        if(limelightResult.valid){
-            double tag_x = LimelightHelpers.getTX("");
-            double tag_y = LimelightHelpers.getTY("");
-            // dynamic cropping
-            // if(tag_x >=-0.83 && tag_x <=0.07){
-            //   LimelightHelpers.setPipelineIndex("", 1);
-            // }else if (tag_x >=-0.63 && tag_x <=0.27) {
-            //   LimelightHelpers.setPipelineIndex("", 2);
-            // }else if (tag_x >=-0.43 && tag_x <=0.47) {
-            //   LimelightHelpers.setPipelineIndex("", 3);
-            // }else if (tag_x >=-0.23 && tag_x <=0.67) {
-            //   LimelightHelpers.setPipelineIndex("", 4);
-            // }else if (tag_x >=-0.03 && tag_x <=0.87) {
-            //   LimelightHelpers.setPipelineIndex("", 5);
-            // }
+        // // smart cropping:
+        // LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
+        // if(limelightResult.valid){
+        //     double tag_x = LimelightHelpers.getTX("");
+        //     double tag_y = LimelightHelpers.getTY("");
+        //     // dynamic cropping
+        //     // if(tag_x >=-0.83 && tag_x <=0.07){
+        //     //   LimelightHelpers.setPipelineIndex("", 1);
+        //     // }else if (tag_x >=-0.63 && tag_x <=0.27) {
+        //     //   LimelightHelpers.setPipelineIndex("", 2);
+        //     // }else if (tag_x >=-0.43 && tag_x <=0.47) {
+        //     //   LimelightHelpers.setPipelineIndex("", 3);
+        //     // }else if (tag_x >=-0.23 && tag_x <=0.67) {
+        //     //   LimelightHelpers.setPipelineIndex("", 4);
+        //     // }else if (tag_x >=-0.03 && tag_x <=0.87) {
+        //     //   LimelightHelpers.setPipelineIndex("", 5);
+        //     // }
 
-            // non-dynamic
-            LimelightHelpers.setPipelineIndex("", 6);
-            count = 0;
-        }
-        if(!limelightResult.valid && count >=25){
-            LimelightHelpers.setPipelineIndex("", 0);
-        }
+        //     // non-dynamic
+        //     LimelightHelpers.setPipelineIndex("", 6);
+        //     count = 0;
+        // }
+        // if(!limelightResult.valid && count >=25){
+        //     LimelightHelpers.setPipelineIndex("", 0);
+        // }
 
 
         // if (limelightResult != null && limelightResult.valid){
