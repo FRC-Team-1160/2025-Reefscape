@@ -57,7 +57,7 @@ public class Vision extends SubsystemBase {
             adv_targetPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
             adv_trackedPub = adv_vision.getStructTopic("Tracked", Pose3d.struct).publish();
     
-            m_photonTagCamera = new PhotonCamera("OV9281");
+            m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera");
     
             m_pose = new Pose3d(12.5, 0, 0, new Rotation3d());
     
