@@ -134,6 +134,10 @@ public final class Constants {
       public static final double kV = 0;
       public static final double kA = 0;
       public static final double kG = 0;
+
+      public static final double mm_cruise_velocity = 0.5;
+      public static final double mm_acceleration = 1.0;
+      public static final double mm_jerk = 0;
     }
   }
 

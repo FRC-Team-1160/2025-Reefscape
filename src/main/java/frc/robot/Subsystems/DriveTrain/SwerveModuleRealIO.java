@@ -4,7 +4,10 @@
 
 package frc.robot.Subsystems.DriveTrain;
 
+import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -34,7 +37,7 @@ public class SwerveModuleRealIO extends SwerveModule{
     drive_motor = new TalonFX(drive_port, "CANivore");
     steer_motor = new TalonFX(steer_port, "CANivore");
     steer_sensor = new CANcoder(sensor_port, "CANivore");
-
+    
     Slot0Configs driveConfigs = new Slot0Configs()
       .withKP(DriveMotorConfigs.kP)
       .withKI(DriveMotorConfigs.kI)
@@ -43,9 +46,12 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKV(DriveMotorConfigs.kV)
       .withKA(DriveMotorConfigs.kA)
       .withKG(DriveMotorConfigs.kG);
+
     drive_motor.getConfigurator().apply(driveConfigs);
 
-    Slot0Configs steerConfigs = new Slot0Configs()
+    TalonFXConfiguration steerConfigs = new TalonFXConfiguration();
+
+    steerConfigs.Slot0 = new Slot0Configs()
       .withKP(SteerMotorConfigs.kP)
       .withKI(SteerMotorConfigs.kI)
       .withKD(SteerMotorConfigs.kD)
@@ -53,6 +59,12 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKV(SteerMotorConfigs.kV)
       .withKA(SteerMotorConfigs.kA)
       .withKG(SteerMotorConfigs.kG);
+
+    steerConfigs.MotionMagic = new MotionMagicConfigs()
+      .withMotionMagicCruiseVelocity(SteerMotorConfigs.mm_cruise_velocity)
+      .withMotionMagicAcceleration(SteerMotorConfigs.mm_acceleration)
+      .withMotionMagicJerk(SteerMotorConfigs.mm_jerk);
+
     steer_motor.getConfigurator().apply(steerConfigs);
 
   }
@@ -91,7 +103,7 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public void setAngle(Rotation2d angle){
     steer_motor.setControl(new VelocityVoltage(0));
-    // steer_motor.setVoltage(volts);
+    // steer_motor.setControl(new MotionMagicVoltage(angle.getRotations()));
   }
 
 }
