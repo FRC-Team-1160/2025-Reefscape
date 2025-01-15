@@ -94,20 +94,35 @@ public class Vision extends SubsystemBase {
     public void periodic() {
         count++;
 
-        var photonResult1 = m_photonTagCamera.getAllUnreadResults();
-        if (photonResult1.size() != 0){
-            var photonResult = photonResult1.get(0);
-            var update = m_photonPoseEstimator.update(photonResult);
+        // var photonResult1 = m_photonTagCamera.getLatestResult();
+        //     var photonResult = photonResult1.get(0);
+        //     var update = m_photonPoseEstimator.update(photonResult);
+        //     if (update.isPresent()){
+        //         SmartDashboard.putNumber("vibe check 2", Math.random());
+        //         m_photonPose = update.get().estimatedPose;
+        //         m_photonPoseEstimator.setReferencePose(m_photonPose);
+        //         // if (m_drive != null){
+        //         //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
+        //         //     // System.out.println(m_pose.getX());
+        //         // }
+        //     }
+        // }
+
+        var photonResult = m_photonTagCamera.getLatestResult();
+        if (photonResult.hasTargets()){
+            var update = m_photonPoseEstimator.update();
             if (update.isPresent()){
-                SmartDashboard.putNumber("vibe check 2", Math.random());
                 m_photonPose = update.get().estimatedPose;
+                if (Math.abs(m_pose.getZ()) < 1){
                 m_photonPoseEstimator.setReferencePose(m_photonPose);
+                }
                 // if (m_drive != null){
                 //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
                 //     // System.out.println(m_pose.getX());
                 // }
             }
         }
+
         
         // smart cropping:
         LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
@@ -154,8 +169,9 @@ public class Vision extends SubsystemBase {
             m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
         }else if(limelightResult.valid){
             m_pose = m_limelightPose;
-        }else if(photonResult1.size() != 0){
+        }else if(photonResult.hasTargets()){
             m_pose = m_photonPose;
+            System.out.println("HELSDLASKJDLKDJ");
         }
         
         adv_posePub.set(m_pose);
