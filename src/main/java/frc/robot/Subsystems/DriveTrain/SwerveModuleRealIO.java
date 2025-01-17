@@ -8,6 +8,7 @@ import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -81,7 +82,7 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public Rotation2d getAngle(){
     //getAbsolutePosition() returns StatusSignal<Angle> with base unit rotations
-    double a = steer_sensor.getAbsolutePosition().getValue().baseUnitMagnitude();
+    double a = steer_sensor.getAbsolutePosition().getValue().baseUnitMagnitude() / 20.0;
     //wrap from -pi to pi radians
     a = MathUtil.inputModulus(a, -0.5, 0.5);
     
@@ -98,12 +99,12 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public void setSpeed(double speedMetersPerSecond){
     SmartDashboard.putNumber("in_speed", speedMetersPerSecond / SwerveConstants.DRIVE_ROTOR_METERS);
-    // drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / SwerveConstants.WHEEL_ROTOR_TO_METERS));
+    drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / SwerveConstants.DRIVE_ROTOR_METERS));
   }
 
   public void setAngle(Rotation2d angle){
-    steer_motor.setControl(new VelocityVoltage(0));
-    // steer_motor.setControl(new MotionMagicVoltage(angle.getRotations()));
+    SmartDashboard.putNumber("in_angle", angle.getRotations() * 20);
+    // steer_motor.setControl(new PositionVoltage(angle.getRotations() * 20));
   }
 
 }
