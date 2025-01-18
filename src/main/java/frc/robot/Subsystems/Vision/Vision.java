@@ -92,6 +92,7 @@ public class Vision extends SubsystemBase {
     public void periodic() {
         count++;
 
+
         var photonResult = m_photonTagCamera.getLatestResult();
         if (photonResult.hasTargets()){
             var update = m_photonPoseEstimator.update(photonResult);
@@ -149,6 +150,7 @@ public class Vision extends SubsystemBase {
         //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
         //     // }
         // }
+
         // if (m_limelightPose != null && m_photonPose != null){
         //     m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
         // }else if(limelightResult.valid){
