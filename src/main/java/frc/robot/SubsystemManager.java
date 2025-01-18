@@ -45,12 +45,12 @@ public class SubsystemManager {
             m_vision = new Vision();
         }
 
-        robot_pose = new Pose2d();
-        m_pose_estimator = new SwerveDrivePoseEstimator(
-            m_drive.m_kinematics, 
-            m_drive.getGyroAngle(), 
-            m_drive.getModulePositions(), 
-            robot_pose);
+        // robot_pose = new Pose2d();
+        // m_pose_estimator = new SwerveDrivePoseEstimator(
+        //     m_drive.m_kinematics, 
+        //     m_drive.getGyroAngle(), 
+        //     m_drive.getModulePositions(), 
+        //     robot_pose);
 
         commands = new Commands();
 
@@ -66,7 +66,7 @@ public class SubsystemManager {
 
     public void periodic(double stick_x, double stick_y, double stick_a){
 
-        robot_pose = m_pose_estimator.update(m_drive.getGyroAngle(), m_drive.getModulePositions());
+        // robot_pose = m_pose_estimator.update(m_drive.getGyroAngle(), m_drive.getModulePositions());
 
         // LimelightHelpers.SetRobotOrientation("", m_drive.getGyroAngle().getDegrees(), 0.0, 0.0, 0.0, 0.0, 0.0);
         // LimelightHelpers.PoseEstimate vision_estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
@@ -76,8 +76,8 @@ public class SubsystemManager {
         stick_y = (Math.abs(stick_y) < 0.1) ? 0 : stick_y;
         stick_a = (Math.abs(stick_a) < 0.1) ? 0 : stick_a;
 
-        double drive_x = stick_x; //* SwerveConstants.MAX_SPEED;
-        double drive_y = stick_y; //* SwerveConstants.MAX_SPEED;
+        double drive_x = stick_x * 0.25;//* SwerveConstants.MAX_SPEED;
+        double drive_y = stick_y * 0.25; //* SwerveConstants.MAX_SPEED;
         double drive_a = stick_a * 0.25;
 
         m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
@@ -86,7 +86,7 @@ public class SubsystemManager {
     }
 
     public void publishAdv(){
-        adv_pose_pub.set(robot_pose);
+        adv_pose_pub.set(m_drive.m_odom_pose);
     }
 
     class Commands {

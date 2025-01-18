@@ -63,7 +63,7 @@ public class Vision extends SubsystemBase {
         adv_targetPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
         adv_trackedPub = adv_vision.getStructTopic("Tracked", Pose3d.struct).publish();
 
-        m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera");
+        // m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera");
 
         m_pose = new Pose3d(0.12, 0, 0, new Rotation3d());
 
@@ -92,15 +92,30 @@ public class Vision extends SubsystemBase {
 
     @Override 
     public void periodic() {
-        count++;
 
-        // var photonResult1 = m_photonTagCamera.getLatestResult();
-        //     var photonResult = photonResult1.get(0);
-        //     var update = m_photonPoseEstimator.update(photonResult);
+        // count++;
+
+        // // var photonResult1 = m_photonTagCamera.getLatestResult();
+        // //     var photonResult = photonResult1.get(0);
+        // //     var update = m_photonPoseEstimator.update(photonResult);
+        // //     if (update.isPresent()){
+        // //         m_photonPose = update.get().estimatedPose;
+        // //         m_photonPoseEstimator.setReferencePose(m_photonPose);
+        // //         // if (m_drive != null){
+        // //         //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
+        // //         //     // System.out.println(m_pose.getX());
+        // //         // }
+        // //     }
+        // // }
+
+        // var photonResult = m_photonTagCamera.getLatestResult();
+        // if (photonResult.hasTargets()){
+        //     var update = m_photonPoseEstimator.update();
         //     if (update.isPresent()){
-        //         SmartDashboard.putNumber("vibe check 2", Math.random());
         //         m_photonPose = update.get().estimatedPose;
+        //         if (Math.abs(m_pose.getZ()) < 1){
         //         m_photonPoseEstimator.setReferencePose(m_photonPose);
+        //         }
         //         // if (m_drive != null){
         //         //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
         //         //     // System.out.println(m_pose.getX());
@@ -108,71 +123,56 @@ public class Vision extends SubsystemBase {
         //     }
         // }
 
-        var photonResult = m_photonTagCamera.getLatestResult();
-        if (photonResult.hasTargets()){
-            var update = m_photonPoseEstimator.update();
-            if (update.isPresent()){
-                m_photonPose = update.get().estimatedPose;
-                if (Math.abs(m_pose.getZ()) < 1){
-                m_photonPoseEstimator.setReferencePose(m_photonPose);
-                }
-                // if (m_drive != null){
-                //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
-                //     // System.out.println(m_pose.getX());
-                // }
-            }
-        }
-
         
-        // smart cropping:
-        LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
-        if(limelightResult.valid){
-            double tag_x = LimelightHelpers.getTX("");
-            double tag_y = LimelightHelpers.getTY("");
-            // dynamic cropping
-            // if(tag_x >=-0.83 && tag_x <=0.07){
-            //   LimelightHelpers.setPipelineIndex("", 1);
-            // }else if (tag_x >=-0.63 && tag_x <=0.27) {
-            //   LimelightHelpers.setPipelineIndex("", 2);
-            // }else if (tag_x >=-0.43 && tag_x <=0.47) {
-            //   LimelightHelpers.setPipelineIndex("", 3);
-            // }else if (tag_x >=-0.23 && tag_x <=0.67) {
-            //   LimelightHelpers.setPipelineIndex("", 4);
-            // }else if (tag_x >=-0.03 && tag_x <=0.87) {
-            //   LimelightHelpers.setPipelineIndex("", 5);
-            // }
-
-            // non-dynamic
-            LimelightHelpers.setPipelineIndex("", 6);
-            count = 0;
-        }
-        if(!limelightResult.valid && count >=25){
-            LimelightHelpers.setPipelineIndex("", 0);
-        }
-
-
-        if (limelightResult != null && limelightResult.valid){
-            if (DriverStation.getAlliance().get() == Alliance.Red){
-                m_limelightPose = LimelightHelpers.getBotPose3d_wpiRed("");
-            }else{
-                m_limelightPose = LimelightHelpers.getBotPose3d_wpiBlue("");
-            }
-        }
-
-        //     System.out.println(m_pose.getX());
-
-        //     // if (m_drive != null){
-        //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
+        // // smart cropping:
+        // LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
+        // if(limelightResult.valid){
+        //     double tag_x = LimelightHelpers.getTX("");
+        //     double tag_y = LimelightHelpers.getTY("");
+        //     // dynamic cropping
+        //     // if(tag_x >=-0.83 && tag_x <=0.07){
+        //     //   LimelightHelpers.setPipelineIndex("", 1);
+        //     // }else if (tag_x >=-0.63 && tag_x <=0.27) {
+        //     //   LimelightHelpers.setPipelineIndex("", 2);
+        //     // }else if (tag_x >=-0.43 && tag_x <=0.47) {
+        //     //   LimelightHelpers.setPipelineIndex("", 3);
+        //     // }else if (tag_x >=-0.23 && tag_x <=0.67) {
+        //     //   LimelightHelpers.setPipelineIndex("", 4);
+        //     // }else if (tag_x >=-0.03 && tag_x <=0.87) {
+        //     //   LimelightHelpers.setPipelineIndex("", 5);
         //     // }
+
+        //     // non-dynamic
+        //     LimelightHelpers.setPipelineIndex("", 6);
+        //     count = 0;
         // }
-        if (m_limelightPose != null && m_photonPose != null){
-            m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
-        }else if(limelightResult.valid){
-            m_pose = m_limelightPose;
-        }else if(photonResult.hasTargets()){
-            m_pose = m_photonPose;
-            System.out.println("HELSDLASKJDLKDJ");
-        }
+        // if(!limelightResult.valid && count >=25){
+        //     LimelightHelpers.setPipelineIndex("", 0);
+        // }
+
+
+        // if (limelightResult != null && limelightResult.valid){
+        //     if (DriverStation.getAlliance().get() == Alliance.Red){
+        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiRed("");
+        //     }else{
+        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiBlue("");
+        //     }
+        // }
+
+        // //     System.out.println(m_pose.getX());
+
+        // //     // if (m_drive != null){
+        // //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
+        // //     // }
+        // // }
+        // if (m_limelightPose != null && m_photonPose != null){
+        //     m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
+        // }else if(limelightResult.valid){
+        //     m_pose = m_limelightPose;
+        // }else if(photonResult.hasTargets()){
+        //     m_pose = m_photonPose;
+        //     System.out.println("HELSDLASKJDLKDJ");
+        // }
         
         adv_posePub.set(m_pose);
 
