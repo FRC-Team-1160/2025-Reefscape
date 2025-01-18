@@ -27,6 +27,7 @@ public class SubsystemManager {
 
     DriveTrain m_drive;
     Vision m_vision;
+    ObjectDetection m_ObjectDetection;
 
     Pose2d robot_pose;
     SwerveDrivePoseEstimator m_pose_estimator;
@@ -43,6 +44,7 @@ public class SubsystemManager {
         } else {
             this.m_drive = new DriveTrainRealIO();
             m_vision = new Vision();
+            m_ObjectDetection = new ObjectDetection();
         }
 
         robot_pose = new Pose2d();

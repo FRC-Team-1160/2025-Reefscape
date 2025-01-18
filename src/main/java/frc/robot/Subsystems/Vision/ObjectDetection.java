@@ -156,7 +156,7 @@ public class ObjectDetection extends SubsystemBase {
         double tempWidthPixel = maxX - minX;
 
         double[] tempDistance = getDistance(tempWidthPixel, tempMidpoint);
-        double distance = tempDistance[0] + 0.3;
+        double distance = tempDistance[0] + 0.35;
         double offset = - tempDistance[1] + 0.24;
         // double distance = 230 / tempWidthPixel;
         // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
