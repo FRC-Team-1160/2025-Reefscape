@@ -4,8 +4,6 @@
 
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -19,15 +17,11 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
 import frc.robot.Constants.Port;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.Constants.TransportConstants;
 
 public abstract class DriveTrain extends SubsystemBase {
 
@@ -93,7 +87,6 @@ public abstract class DriveTrain extends SubsystemBase {
       y_metersPerSecond, 
       a_radiansPerSecond, 
       getGyroAngle());
-
     setSwerveDrive(chassis_speeds);
   }
 
@@ -105,7 +98,7 @@ public abstract class DriveTrain extends SubsystemBase {
   public void setSwerveDrive(ChassisSpeeds chassis_speeds){
     //fix weird change over time shenanigans
     chassis_speeds = discretize_chassis_speeds(chassis_speeds);
-
+    SmartDashboard.putNumber("rad per sec1", chassis_speeds.omegaRadiansPerSecond);
     m_module_states = m_kinematics.toSwerveModuleStates(chassis_speeds);
 
     //change target wheel directions if the wheel has to rotate more than 90*
@@ -131,7 +124,7 @@ public abstract class DriveTrain extends SubsystemBase {
     }
   }
 
-  //Thanks to Team 4738 for modified discretization code
+  // Thanks to Team 4738 for modified discretization code
 
   /**
    * Accounts for drift while simultaneously translating and rotating by discretizing.

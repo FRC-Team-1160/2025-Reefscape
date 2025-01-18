@@ -74,7 +74,7 @@ public class SubsystemManager {
 
         stick_x = (Math.abs(stick_x) < 0.1) ? 0 : stick_x;
         stick_y = (Math.abs(stick_y) < 0.1) ? 0 : stick_y;
-
+        stick_a = (Math.abs(stick_a) < 0.1) ? 0 : stick_a;
 
         double drive_x = stick_x; //* SwerveConstants.MAX_SPEED;
         double drive_y = stick_y; //* SwerveConstants.MAX_SPEED;

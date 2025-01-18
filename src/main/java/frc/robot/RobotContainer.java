@@ -24,7 +24,7 @@ public class RobotContainer {
   public void updateSubsystemManager(){
     m_subsystem_manager.periodic(
       m_mainStick.getRawAxis(1),
-      m_mainStick.getRawAxis(0), 
+      m_mainStick.getRawAxis(0),
       m_codriverStick.getRawAxis(0));
   }
 
