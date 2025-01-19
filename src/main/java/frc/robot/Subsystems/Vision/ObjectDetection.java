@@ -47,6 +47,7 @@ public class ObjectDetection extends SubsystemBase {
   int minX;
   int maxX;
   int minY;
+  int maxY;
   int midpoint;
   double closestDistance;
 
@@ -73,7 +74,7 @@ public class ObjectDetection extends SubsystemBase {
 
         // If you don't know the object's actual heading, just store globalAngle or 0.
         // We'll just store the object's "facing" as globalAngle here for demonstration.
-        return new Pose3d(x, y, 0, new Rotation3d(0, 0, globalAngle));
+        return new Pose3d(x, y, 0.21, new Rotation3d(0, 0, globalAngle));
   }
 
   // public static double[] getDistance(double targetWidthPixel, double targetXPixel){
@@ -151,12 +152,16 @@ public class ObjectDetection extends SubsystemBase {
             if (corner.y < minY) {
                 minY = (int) corner.y;
             }
+            if (corner.y > maxY) {
+                maxY = (int) corner.y;
+            }
         }
         int tempMidpoint = (maxX + minX) / 2;
         double tempWidthPixel = maxX - minX;
+        double tempHeightPixel = maxY - minY;
 
-        double[] tempDistance = getDistance(tempWidthPixel, tempMidpoint);
-        double distance = tempDistance[0] + 0.35;
+        double[] tempDistance = getDistance(tempHeightPixel, tempMidpoint);
+        double distance = tempDistance[0] + 0.55;
         double offset = - tempDistance[1] + 0.24;
         // double distance = 230 / tempWidthPixel;
         // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;

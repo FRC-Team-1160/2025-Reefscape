@@ -40,25 +40,6 @@ public final class Constants {
     public static final int BACK_LEFT_CODER = 5;
     public static final int BACK_RIGHT_CODER = 7;
 
-    public static final int SHOOTER_TOP_MOTOR = 10;
-    public static final int SHOOTER_BOTTOM_MOTOR = 9;
-    public static final int SHOOTER_PITCH_MOTOR = 7;
-
-    public static final int INTAKE_MOTOR = 4;
-
-    public static final int TRANSPORT_LEFT_MOTOR = 10;
-    public static final int TRANSPORT_RIGHT_MOTOR = 6;
-    public static final int TRANSPORT_BELT_MOTOR = 5;
-    
-    public static final int TRANSPORT_ULTRASONIC = 0;
-    
-    public static final int CLIMBER_LEFT_MOTOR = 8;
-    public static final int CLIMBER_RIGHT_MOTOR = 3;
-    
-    public static final int LEFT_CLIMB_LIMIT = 0;
-    public static final int RIGHT_CLIMB_LIMIT = 1;
-    public static final int TRANSPORT_LIMIT = 2;
-
   }
 
   public static class IO {
@@ -111,33 +92,27 @@ public final class Constants {
 
   public static class SwerveConstants {
     public static final double WHEEL_DIAMETER = 4 * 0.0254 * Math.PI;
-    public static final double GEAR_RATIO = 6.75;
-    public static final double MAX_SPEED = 4.5;
-
-    public static final double DRIVE_ROTOR_METERS = WHEEL_DIAMETER / GEAR_RATIO;
+    public static final double GEAR_RATIO = 5.01;
+    public static final double MAX_SPEED = 3;
 
     public static class DriveMotorConfigs {
-      public static final double kP = 0.05; 
+      public static final double kP = 0.3;
       public static final double kI = 0;
       public static final double kD = 0;
-      public static final double kS = 0.10;
-      public static final double kV = 0.12; 
+      public static final double kS = 0.11;
+      public static final double kV = 0.5; 
       public static final double kA = 0;
       public static final double kG = 0;
     }
 
     public static class SteerMotorConfigs {
-      public static final double kP = 1;
+      public static final double kP = 10;
       public static final double kI = 0;
-      public static final double kD = 0;
-      public static final double kS = 0.1;
+      public static final double kD = 0.7;
+      public static final double kS = 0; //doesnt work?
       public static final double kV = 0;
       public static final double kA = 0;
       public static final double kG = 0;
-
-      public static final double mm_cruise_velocity = 0.5;
-      public static final double mm_acceleration = 1.0;
-      public static final double mm_jerk = 0;
     }
   }
 

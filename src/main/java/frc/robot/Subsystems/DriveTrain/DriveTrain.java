@@ -4,6 +4,7 @@
 
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -31,6 +32,12 @@ public abstract class DriveTrain extends SubsystemBase {
   public SwerveDriveKinematics m_kinematics;
   /**The desired module states. */
   public SwerveModuleState[] m_module_states;
+  /**Module positions for SwerveDrivePoseEstimator. */
+  public SwerveModulePosition[] m_module_positions;
+  /**Pose estimator. */
+  public SwerveDrivePoseEstimator m_pose_estimator;
+  /**Odometry-based 2d pose. */
+  public Pose2d m_odom_pose;
   /**State publisher for AdvantageScope. */
   protected StructArrayPublisher<SwerveModuleState> adv_real_states_pub, adv_target_states_pub;
   /**State publisher for AdvantageScope. */
@@ -58,6 +65,17 @@ public abstract class DriveTrain extends SubsystemBase {
       new SwerveModuleState(),
       new SwerveModuleState()
     };
+
+    m_module_positions = new SwerveModulePosition[] {
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+      new SwerveModulePosition(),
+    };
+
+    m_odom_pose = new Pose2d();
+
+    m_pose_estimator = new SwerveDrivePoseEstimator(m_kinematics, getGyroAngle(), m_module_positions, m_odom_pose);
 
     setupDashboard();
   }
@@ -110,7 +128,10 @@ public abstract class DriveTrain extends SubsystemBase {
     SwerveDriveKinematics.desaturateWheelSpeeds(m_module_states, SwerveConstants.MAX_SPEED); 
 
     setModules(m_module_states);
-    
+
+    for (int i = 0; i < m_modules.length; i++){
+      m_module_positions[i] = m_modules[i].getModulePosition();
+    }
   }
 
   /**
@@ -253,9 +274,11 @@ public abstract class DriveTrain extends SubsystemBase {
     for (SwerveModule module : m_modules){
       module.update();
     }
+
+    m_odom_pose = m_pose_estimator.update(getGyroAngle(), getModulePositions());
+
     publishAdv();
 
-    SmartDashboard.putNumber("vibe check", Math.random());
   }
 
   @Override

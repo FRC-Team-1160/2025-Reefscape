@@ -5,15 +5,8 @@
 package frc.robot.Subsystems.DriveTrain;
 
 import com.studica.frc.AHRS;
-
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Robot;
-import frc.robot.Constants.ClimberConstants;
-import frc.robot.Constants.TransportConstants;
 
 public class DriveTrainRealIO extends DriveTrain {
 
@@ -21,8 +14,8 @@ public class DriveTrainRealIO extends DriveTrain {
 
   public DriveTrainRealIO(){
 
-    m_gyro = new AHRS(AHRS.NavXComType.kI2C);
-    m_gyro.zeroYaw();
+    // m_gyro = new AHRS(AHRS.NavXComType.kI2C);
+    // m_gyro.zeroYaw();
   
   }
 
@@ -33,7 +26,11 @@ public class DriveTrainRealIO extends DriveTrain {
   public Rotation2d getGyroAngle(){
     if (m_gyro != null){
       return Rotation2d.fromDegrees(-m_gyro.getAngle()); //gyro reports CW positive, negate to return CCW positive
+    } else if (m_odom_pose != null) {
+      SmartDashboard.putNumber("vibe check", Math.random());
+      return m_odom_pose.getRotation();
     } else {
+      SmartDashboard.putNumber("vibe check 2", Math.random());
       return new Rotation2d();
     }
   }
