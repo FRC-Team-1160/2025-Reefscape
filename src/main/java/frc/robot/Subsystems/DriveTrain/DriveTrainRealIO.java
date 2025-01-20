@@ -29,7 +29,7 @@ public class DriveTrainRealIO extends DriveTrain {
 
   public void resetGyroAngle() {
     if (m_gyro != null) m_gyro.zeroYaw();
-    if (m_pose_estimator != null) m_pose_estimator.resetPose(new Pose2d());
+    if (m_pose_estimator != null) m_pose_estimator.resetPose(new Pose2d(m_odom_pose.getX(), m_odom_pose.getY(), new Rotation2d()));
   }
 
   @Override

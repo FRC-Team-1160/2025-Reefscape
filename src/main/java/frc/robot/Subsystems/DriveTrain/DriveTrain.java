@@ -112,7 +112,7 @@ public abstract class DriveTrain extends SubsystemBase {
           }
           return false;
         },
-        this // Reference to this subsystem to set requirements)
+        this // Reference to this subsystem to set requirements
     );
 
     setupDashboard();

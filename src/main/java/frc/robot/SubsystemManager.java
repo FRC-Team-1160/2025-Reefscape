@@ -5,7 +5,11 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import frc.robot.Subsystems.DriveTrain.*;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
+import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
+import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
+
 import frc.robot.Subsystems.Vision.*;
 
 public class SubsystemManager {
@@ -21,6 +25,7 @@ public class SubsystemManager {
     public SubsystemManager(){
 
         if (Robot.isSimulation()){
+            this.m_drive = new DriveTrainSimIO();
             
         } else {
             this.m_drive = new DriveTrainRealIO();
@@ -56,9 +61,13 @@ public class SubsystemManager {
         stick_y = (Math.abs(stick_y) < 0.1) ? 0 : stick_y;
         stick_a = (Math.abs(stick_a) < 0.1) ? 0 : stick_a;
 
-        double drive_x = stick_x * 0.5; //* SwerveConstants.MAX_SPEED;
-        double drive_y = stick_y * 0.5; //* SwerveConstants.MAX_SPEED;
-        double drive_a = stick_a * 0.5;
+        double drive_x = -stick_x * 0.5; //* SwerveConstants.MAX_SPEED;
+        double drive_y = -stick_y * 0.5; //* SwerveConstants.MAX_SPEED;
+        double drive_a = -stick_a * 0.5;
+
+        SmartDashboard.putNumber("in_x", drive_x);
+        SmartDashboard.putNumber("in_y", drive_y);
+        SmartDashboard.putNumber("in_a", drive_a);
 
         m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
 
