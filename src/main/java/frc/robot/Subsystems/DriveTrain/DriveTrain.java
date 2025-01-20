@@ -156,8 +156,12 @@ public abstract class DriveTrain extends SubsystemBase {
 
   public void setSwerveDrive(ChassisSpeeds chassis_speeds) {
     // fix weird change over time shenanigans
+
+    SmartDashboard.putNumber("in_x", chassis_speeds.vxMetersPerSecond);
+    SmartDashboard.putNumber("in_y", chassis_speeds.vyMetersPerSecond);
+    SmartDashboard.putNumber("in_a", chassis_speeds.omegaRadiansPerSecond);
+
     chassis_speeds = discretize_chassis_speeds(chassis_speeds);
-    SmartDashboard.putNumber("rad per sec1", chassis_speeds.omegaRadiansPerSecond);
     m_module_states = m_kinematics.toSwerveModuleStates(chassis_speeds);
 
     // change target wheel directions if the wheel has to rotate more than 90*

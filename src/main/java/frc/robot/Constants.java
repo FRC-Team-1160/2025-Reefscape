@@ -97,11 +97,11 @@ public final class Constants {
   }
 
   public static class Auto {
-    public static final double translation_kP = 0d;
+    public static final double translation_kP = 1;
     public static final double translation_kI = 0d;
     public static final double translation_kD = 0d;
     
-    public static final double rotation_kP = 0d;
+    public static final double rotation_kP = 1;
     public static final double rotation_kI = 0d;
     public static final double rotation_kD = 0d;
   }

@@ -49,6 +49,10 @@ public class SubsystemManager {
         adv_pose_pub = adv_swerve.getStructTopic("Pose", Pose2d.struct).publish();
     }
 
+    public void periodic() {
+        publishAdv();
+    }
+
     public void periodic(double stick_x, double stick_y, double stick_a){
 
         // robot_pose = m_pose_estimator.update(m_drive.getGyroAngle(), m_drive.getModulePositions());
@@ -65,13 +69,9 @@ public class SubsystemManager {
         double drive_y = -stick_y * 0.5; //* SwerveConstants.MAX_SPEED;
         double drive_a = -stick_a * 0.5;
 
-        SmartDashboard.putNumber("in_x", drive_x);
-        SmartDashboard.putNumber("in_y", drive_y);
-        SmartDashboard.putNumber("in_a", drive_a);
-
         m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
-
-        publishAdv();
+    
+        periodic();
     }
 
     public void publishAdv(){

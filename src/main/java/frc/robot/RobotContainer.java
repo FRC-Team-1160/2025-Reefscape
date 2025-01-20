@@ -11,6 +11,8 @@ import com.pathplanner.lib.auto.AutoBuilder;
 import com.revrobotics.jni.CANSparkJNI;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -34,10 +36,14 @@ public class RobotContainer {
   }
 
   public void updateSubsystemManager() {
-    m_subsystem_manager.periodic(
-      m_mainStick.getRawAxis(1),
-      m_mainStick.getRawAxis(0),
-      m_secondStick.getRawAxis(0));
+    if (RobotState.isEnabled()) {
+      m_subsystem_manager.periodic(
+        m_mainStick.getRawAxis(1),
+        m_mainStick.getRawAxis(0),
+        m_secondStick.getRawAxis(0));
+    } else if (RobotState.isAutonomous()) {
+      m_subsystem_manager.periodic();
+    }
   }
 
   private void configureBindings() {

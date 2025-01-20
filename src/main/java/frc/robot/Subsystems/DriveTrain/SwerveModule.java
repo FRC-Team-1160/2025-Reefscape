@@ -8,6 +8,7 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.wpilibj.RobotState;
 
 public abstract class SwerveModule {
 
@@ -23,8 +24,10 @@ public abstract class SwerveModule {
   }
 
   public void update() {
-    setSpeed(target_state.speedMetersPerSecond);
-    setAngle(target_state.angle);
+    if (!RobotState.isDisabled()) { //just in case, idk
+      setSpeed(target_state.speedMetersPerSecond);
+      setAngle(target_state.angle);
+    }
   }
 
   abstract double getSpeed();
