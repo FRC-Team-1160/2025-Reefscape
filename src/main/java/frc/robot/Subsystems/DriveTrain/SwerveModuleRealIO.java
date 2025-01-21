@@ -4,28 +4,22 @@
 
 package frc.robot.Subsystems.DriveTrain;
 
-import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
-import frc.robot.Robot;
-import frc.robot.Constants.SwerveConstants;
-import frc.robot.Constants.SwerveConstants.DriveMotorConfigs;
-import frc.robot.Constants.SwerveConstants.SteerMotorConfigs;
+import frc.robot.Constants.Swerve;
+import frc.robot.Constants.Swerve.DriveMotorConfigs;
+import frc.robot.Constants.Swerve.SteerMotorConfigs;
 
 
 public class SwerveModuleRealIO extends SwerveModule{
@@ -35,11 +29,13 @@ public class SwerveModuleRealIO extends SwerveModule{
   public CANcoder steer_sensor;
 
   public SwerveModuleRealIO(int drive_port, int steer_port, int sensor_port){
-    drive_motor = new TalonFX(drive_port, "CANivore");
-    steer_motor = new TalonFX(steer_port, "CANivore");
-    steer_sensor = new CANcoder(sensor_port, "CANivore");
+    drive_motor = new TalonFX(drive_port);
+    steer_motor = new TalonFX(steer_port);
+    steer_sensor = new CANcoder(sensor_port);
     
-    Slot0Configs driveConfigs = new Slot0Configs()
+    TalonFXConfiguration driveConfigs = new TalonFXConfiguration();
+
+    driveConfigs.Slot0 = new Slot0Configs()
       .withKP(DriveMotorConfigs.kP)
       .withKI(DriveMotorConfigs.kI)
       .withKD(DriveMotorConfigs.kD)
@@ -47,6 +43,8 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKV(DriveMotorConfigs.kV)
       .withKA(DriveMotorConfigs.kA)
       .withKG(DriveMotorConfigs.kG);
+
+    driveConfigs.Feedback.SensorToMechanismRatio = 5.01;
 
     drive_motor.getConfigurator().apply(driveConfigs);
 
@@ -61,10 +59,15 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKA(SteerMotorConfigs.kA)
       .withKG(SteerMotorConfigs.kG);
 
-    steerConfigs.MotionMagic = new MotionMagicConfigs()
-      .withMotionMagicCruiseVelocity(SteerMotorConfigs.mm_cruise_velocity)
-      .withMotionMagicAcceleration(SteerMotorConfigs.mm_acceleration)
-      .withMotionMagicJerk(SteerMotorConfigs.mm_jerk);
+    steerConfigs.Feedback.FeedbackRemoteSensorID = sensor_port;
+    steerConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    steerConfigs.Feedback.SensorToMechanismRatio = -1; //motors reversed?
+
+    steerConfigs.Voltage.PeakForwardVoltage = 2;
+    steerConfigs.Voltage.PeakReverseVoltage = -2;
+
+    steerConfigs.ClosedLoopGeneral.ContinuousWrap = true;
+
 
     steer_motor.getConfigurator().apply(steerConfigs);
 
@@ -72,20 +75,19 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public double getSpeed(){
     //getRotorVelocity() returns StatusSignal<AngularVelocity> with base unit rps
-    return drive_motor.getRotorVelocity().getValue().baseUnitMagnitude() * SwerveConstants.DRIVE_ROTOR_METERS;
+    return drive_motor.getRotorVelocity().getValueAsDouble() * Swerve.WHEEL_DIAMETER;
   }
 
   public double getPosition(){
     //getRotorPosition() returns StatusSignal<Angle> with base unit rotations
-    return drive_motor.getRotorPosition().getValue().baseUnitMagnitude() * SwerveConstants.DRIVE_ROTOR_METERS;
+    return drive_motor.getRotorPosition().getValueAsDouble() * Swerve.WHEEL_DIAMETER;
   }
 
   public Rotation2d getAngle(){
-    //getAbsolutePosition() returns StatusSignal<Angle> with base unit rotations
-    double a = steer_sensor.getAbsolutePosition().getValue().baseUnitMagnitude() / 20.0;
-    //wrap from -pi to pi radians
+    //getPosition() returns StatusSignal<Angle> with base unit rotations
+    double a = steer_sensor.getAbsolutePosition().getValueAsDouble();
     a = MathUtil.inputModulus(a, -0.5, 0.5);
-    
+    SmartDashboard.putNumber("out_angle", a);
     return Rotation2d.fromRotations(a);
   }
 
@@ -94,17 +96,19 @@ public class SwerveModuleRealIO extends SwerveModule{
   }
 
   public SwerveModulePosition getModulePosition(){
+    SmartDashboard.putNumber("rotor_position", getPosition());
     return new SwerveModulePosition(getPosition(), getAngle());
   }
 
   public void setSpeed(double speedMetersPerSecond){
-    SmartDashboard.putNumber("in_speed", speedMetersPerSecond / SwerveConstants.DRIVE_ROTOR_METERS);
-    drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / SwerveConstants.DRIVE_ROTOR_METERS));
+    SmartDashboard.putNumber("in_speed", speedMetersPerSecond / Swerve.WHEEL_DIAMETER);
+    drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / Swerve.WHEEL_DIAMETER));
+
   }
 
   public void setAngle(Rotation2d angle){
-    SmartDashboard.putNumber("in_angle", angle.getRotations() * 20);
-    // steer_motor.setControl(new PositionVoltage(angle.getRotations() * 20));
+    SmartDashboard.putNumber("in_angle", angle.getRotations());
+    steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
   }
 
 }
