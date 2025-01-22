@@ -4,35 +4,32 @@
 
 package frc.robot.Subsystems.DriveTrain;
 
+
 import com.studica.frc.AHRS;
+
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class DriveTrainRealIO extends DriveTrain {
 
   private AHRS m_gyro;
 
   public DriveTrainRealIO(){
-
-    // m_gyro = new AHRS(AHRS.NavXComType.kI2C);
-    // m_gyro.zeroYaw();
-  
+    m_gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
   }
 
   public SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port){
     return new SwerveModuleRealIO(drive_port, steer_port, sensor_port);
   }
 
-  public Rotation2d getGyroAngle(){
-    if (m_gyro != null){
-      return Rotation2d.fromDegrees(-m_gyro.getAngle()); //gyro reports CW positive, negate to return CCW positive
-    } else if (m_odom_pose != null) {
-      SmartDashboard.putNumber("vibe check", Math.random());
-      return m_odom_pose.getRotation();
-    } else {
-      SmartDashboard.putNumber("vibe check 2", Math.random());
-      return new Rotation2d();
-    }
+  public Rotation2d getGyroAngle() {
+    if (m_gyro != null) return Rotation2d.fromDegrees(-m_gyro.getAngle()); //gyro reports CW positive, negate to return CCW positive
+    return new Rotation2d();
+  }
+
+  public void resetGyroAngle() {
+    if (m_gyro != null) m_gyro.zeroYaw();
+    if (m_pose_estimator != null) m_pose_estimator.resetPose(new Pose2d(m_odom_pose.getX(), m_odom_pose.getY(), new Rotation2d()));
   }
 
   @Override

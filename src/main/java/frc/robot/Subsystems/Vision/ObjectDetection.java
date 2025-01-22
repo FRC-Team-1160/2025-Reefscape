@@ -33,12 +33,12 @@ public class ObjectDetection extends SubsystemBase {
   private ArrayList<Pose3d> targetPoses = new ArrayList<>();
   private ArrayList<Target> targetDistances = new ArrayList<>();
 
-  private Pose3d robotPose;
+  private Pose2d robotPose;
 
 
   StructPublisher<Pose3d> adv_closestPub;
   StructArrayPublisher<Pose3d> adv_targetsPub;
-  StructSubscriber<Pose3d> adv_robotPoseSub;
+  StructSubscriber<Pose2d> adv_robotPoseSub;
 
   final int horizontalScreenPixel = 640;
   final static double cameraHFOV = Math.toRadians(70);
@@ -51,20 +51,20 @@ public class ObjectDetection extends SubsystemBase {
   int midpoint;
   double closestDistance;
 
-  boolean sim = true;
+  boolean sim = false;
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
     if (!sim){
       detector = new PhotonCamera("OV9782");
-
-      NetworkTableInstance inst = NetworkTableInstance.getDefault();
-      NetworkTable adv_vision = inst.getTable("adv_vision");
-      adv_targetsPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
-      adv_closestPub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
-
-      adv_robotPoseSub = adv_vision.getStructTopic("Pose", Pose3d.struct).subscribe(new Pose3d(), PubSubOption.keepDuplicates(true));
     }
+    NetworkTableInstance inst = NetworkTableInstance.getDefault();
+    NetworkTable adv_vision = inst.getTable("adv_vision");
+    NetworkTable adv_swerve = inst.getTable("adv_swerve");
+    adv_targetsPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
+    adv_closestPub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
+
+    adv_robotPoseSub = adv_swerve.getStructTopic("Pose", Pose2d.struct).subscribe(new Pose2d(), PubSubOption.keepDuplicates(true));
   }
 
   public Pose3d getObjectPose3D(Pose2d robotPose, double distance, double angleToTarget) {
@@ -128,7 +128,7 @@ public class ObjectDetection extends SubsystemBase {
       }
     }
     double angleToTarget = Math.atan(result1.offset/result1.distance);
-    return getObjectPose3D(robotPose.toPose2d(), result1.distance, angleToTarget);
+    return getObjectPose3D(robotPose, result1.distance, angleToTarget);
   }
 
 
@@ -186,7 +186,7 @@ public class ObjectDetection extends SubsystemBase {
         SmartDashboard.putNumber("tempHeight2", tempHeightPixel);
         System.out.println(tempHeightPixel);
         
-        targetPoses.add(getObjectPose3D(robotPose.toPose2d(), distance, angleToTarget));
+        targetPoses.add(getObjectPose3D(robotPose, distance, angleToTarget));
         targetDistances.add(new Target(distance, offset, directDistance));
       }
 
@@ -200,7 +200,8 @@ public class ObjectDetection extends SubsystemBase {
     }
 
     if (sim == true){
-      closestPose = new Pose3d(12, 10, 0, new Rotation3d(0.0, 0.0, Math.PI));
+      closestPose = new Pose3d(10, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
+      adv_closestPub.set(closestPose);
     }
   
   }

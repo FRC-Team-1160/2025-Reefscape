@@ -28,7 +28,7 @@ public class AlgaeAlignmentPID extends Command {
   TrapezoidProfile.Constraints X_CONSTRAINTS = 
       new TrapezoidProfile.Constraints(0.5, 1);
   TrapezoidProfile.Constraints Y_CONSTRAINTS = 
-      new TrapezoidProfile.Constraints(0.5, 1);
+      new TrapezoidProfile.Constraints(0.5,1);
   TrapezoidProfile.Constraints OMEGA_CONSTRAINTS = 
       new TrapezoidProfile.Constraints(Math.toRadians(90), Math.toRadians(180));
 
@@ -44,7 +44,7 @@ public class AlgaeAlignmentPID extends Command {
 
   Transform3d OBJECT_TO_GOAL = new Transform3d(
       // 0.5 m behind
-      new Translation3d(-0.5, 0.0, 0.0),
+      new Translation3d(0.8, 0.0, 0.0),
 
       new Rotation3d(0.0, 0.0, Math.PI)
   );
@@ -112,6 +112,7 @@ public class AlgaeAlignmentPID extends Command {
       if (omegaController.atGoal()) {
         omegaSpeed = 0;
       }
+      System.out.println(xSpeed);
 
       
       m_DriveTrain.setSwerveDrive(xSpeed, ySpeed, omegaSpeed);

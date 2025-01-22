@@ -3,6 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -12,17 +13,10 @@ package frc.robot;
  * constants are needed, to reduce verbosity.
  */
 public final class Constants {
-
-  public static class FieldConstants {
-    public static final double SPEAKER_Y = 0.0;
-    public static final double SPEAKER_X = 0.0;
-  }
-
-  public static class RobotConstants {
+  public static class Robot {
     public static final double LOOP_TIME_SECONDS = 0.02;
   }
 
-  
   public static final class Port {
     // CAN IDs 
     public static final int FRONT_LEFT_STEER_MOTOR = 1;
@@ -75,31 +69,17 @@ public final class Constants {
     }
   }
 
-  public static class ClimberConstants {
-    public static final double MOTOR_SPEED_VOLTS = 8.0;
-  }
-
-  public static class IntakeConstants {
-    public static final double INTAKE_VOLTS = 8.0;
-    public static final double OUTTAKE_VOLTS = -6.0;
-  }
-
-  public static class TransportConstants {
-    public static final double PROX_THRESHOLD = 200.0;
-    public static final double BELT_SPEED_VOLTS = 6.0;
-    public static final double WHEEL_SPEED_VOLTS = 2.0;
-  }
-
-  public static class SwerveConstants {
+  public static class Swerve {
     public static final double WHEEL_DIAMETER = 4 * 0.0254 * Math.PI;
     public static final double GEAR_RATIO = 5.01;
     public static final double MAX_SPEED = 3;
+    public static final double OFFSET = 23.75 * 0.0254;
 
     public static class DriveMotorConfigs {
       public static final double kP = 0.3;
       public static final double kI = 0;
       public static final double kD = 0;
-      public static final double kS = 0.11;
+      public static final double kS = 0;
       public static final double kV = 0.5; 
       public static final double kA = 0;
       public static final double kG = 0;
@@ -114,6 +94,16 @@ public final class Constants {
       public static final double kA = 0;
       public static final double kG = 0;
     }
+  }
+
+  public static class Auto {
+    public static final double translation_kP = 1;
+    public static final double translation_kI = 0d;
+    public static final double translation_kD = 0d;
+    
+    public static final double rotation_kP = 1;
+    public static final double rotation_kI = 0d;
+    public static final double rotation_kD = 0d;
   }
 
 }
