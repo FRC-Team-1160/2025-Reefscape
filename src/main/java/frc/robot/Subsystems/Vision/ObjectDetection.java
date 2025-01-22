@@ -55,28 +55,30 @@ public class ObjectDetection extends SubsystemBase {
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
-    detector = new PhotonCamera("OV9782");
+    if (!sim){
+      detector = new PhotonCamera("OV9782");
 
-    NetworkTableInstance inst = NetworkTableInstance.getDefault();
-    NetworkTable adv_vision = inst.getTable("adv_vision");
-    adv_targetsPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
-    adv_closestPub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
+      NetworkTableInstance inst = NetworkTableInstance.getDefault();
+      NetworkTable adv_vision = inst.getTable("adv_vision");
+      adv_targetsPub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
+      adv_closestPub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
 
-    adv_robotPoseSub = adv_vision.getStructTopic("Pose", Pose3d.struct).subscribe(new Pose3d(), PubSubOption.keepDuplicates(true));
+      adv_robotPoseSub = adv_vision.getStructTopic("Pose", Pose3d.struct).subscribe(new Pose3d(), PubSubOption.keepDuplicates(true));
+    }
   }
 
   public Pose3d getObjectPose3D(Pose2d robotPose, double distance, double angleToTarget) {
-        // Robot's global heading
-        double robotTheta = robotPose.getRotation().getRadians();
+    // Robot's global heading
+    double robotTheta = robotPose.getRotation().getRadians();
 
-        // Convert distance + angle to object coords in the field frame:
-        double globalAngle = robotTheta + angleToTarget; // field heading to the target
-        double x = robotPose.getX() + (distance * Math.cos(globalAngle));
-        double y = robotPose.getY() + (distance * Math.sin(globalAngle));
+    // Convert distance + angle to object coords in the field frame:
+    double globalAngle = robotTheta + angleToTarget; // field heading to the target
+    double x = robotPose.getX() + (distance * Math.cos(globalAngle));
+    double y = robotPose.getY() + (distance * Math.sin(globalAngle));
 
-        // If you don't know the object's actual heading, just store globalAngle or 0.
-        // We'll just store the object's "facing" as globalAngle here for demonstration.
-        return new Pose3d(x, y, 0.21, new Rotation3d(0, 0, globalAngle));
+    // If you don't know the object's actual heading, just store globalAngle or 0.
+    // We'll just store the object's "facing" as globalAngle here for demonstration.
+    return new Pose3d(x, y, 0.21, new Rotation3d(0, 0, globalAngle));
   }
 
   // public static double[] getDistance(double targetWidthPixel, double targetXPixel){
@@ -132,16 +134,18 @@ public class ObjectDetection extends SubsystemBase {
 
   @Override
   public void periodic() {
+
     // This method will be called once per scheduler run
-    robotPose = adv_robotPoseSub.get();
     // closestDistance = getDistance(413.0, 2.4, 413.0);
     targetDistances.clear();
     targetPoses.clear();
+    if (!sim){
+      robotPose = adv_robotPoseSub.get();
+      hasTarget = detector.getLatestResult().hasTargets();
+      SmartDashboard.putBoolean("hasTarget", hasTarget);
+    }
 
-    hasTarget = detector.getLatestResult().hasTargets();
-    SmartDashboard.putBoolean("hasTarget", hasTarget);
-
-    if (robotPose != null){
+    if (robotPose != null && !sim){
       var result = detector.getLatestResult();
       List<PhotonTrackedTarget> targets = result.getTargets();
       for (int i = 0; i < targets.size(); i++) {

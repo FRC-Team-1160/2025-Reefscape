@@ -49,6 +49,8 @@ public class Vision extends SubsystemBase {
 
     PhotonPoseEstimator m_photonPoseEstimator;
 
+    boolean sim = false;
+
     public static Vision getInstance(){
         if (m_instance == null){
             m_instance = new Vision();
@@ -57,18 +59,20 @@ public class Vision extends SubsystemBase {
     }
 
     public Vision() {
-        NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        NetworkTable adv_vision = inst.getTable("adv_vision");
-        adv_posePub = adv_vision.getStructTopic("Pose", Pose3d.struct).publish();
+        if (!sim){
+            NetworkTableInstance inst = NetworkTableInstance.getDefault();
+            NetworkTable adv_vision = inst.getTable("adv_vision");
+            adv_posePub = adv_vision.getStructTopic("Pose", Pose3d.struct).publish();
 
-        m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera (1)");
+            m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera (1)");
 
-        m_pose = new Pose3d(0.12, 0, 0, new Rotation3d());
+            m_pose = new Pose3d(0.12, 0, 0, new Rotation3d());
 
-        AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+            AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-        m_photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(-0.15 * 0.0254, 0.10 * 0.0254, 0.2), new Rotation3d(0, 20.0 * Math.PI / 180, 0)));
-        m_photonPoseEstimator.setReferencePose(m_pose);
+            m_photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(-0.15 * 0.0254, 0.10 * 0.0254, 0.2), new Rotation3d(0, 20.0 * Math.PI / 180, 0)));
+            m_photonPoseEstimator.setReferencePose(m_pose);
+        }
     }
 
     public Pose3d combinePoses(Pose3d photonPose, double photonWeight, Pose3d limelightPose, double limelightWeight){
@@ -90,22 +94,24 @@ public class Vision extends SubsystemBase {
 
     @Override 
     public void periodic() {
-
-
-        var photonResult = m_photonTagCamera.getLatestResult();
-        if (photonResult.hasTargets()){
-            var update = m_photonPoseEstimator.update(photonResult);
-            if (update.isPresent()){
-                m_photonPose = update.get().estimatedPose;
-                if (Math.abs(m_pose.getZ()) < 1){
-                m_photonPoseEstimator.setReferencePose(m_photonPose);
+        if (!sim){
+            var photonResult = m_photonTagCamera.getLatestResult();
+            if (photonResult.hasTargets()){
+                var update = m_photonPoseEstimator.update(photonResult);
+                if (update.isPresent()){
+                    m_photonPose = update.get().estimatedPose;
+                    if (Math.abs(m_pose.getZ()) < 1){
+                    m_photonPoseEstimator.setReferencePose(m_photonPose);
+                    }
+                    // if (m_drive != null){
+                    //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
+                    //     // System.out.println(m_pose.getX());
+                    // }
                 }
-                // if (m_drive != null){
-                //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
-                //     // System.out.println(m_pose.getX());
-                // }
             }
         }
+
+        
 
         
         // smart cropping:
@@ -189,9 +195,9 @@ public class Vision extends SubsystemBase {
         //     m_pose = m_photonPose;
         //     System.out.println("HELSDLASKJDLKDJ");
         // }
-        if (photonResult.hasTargets()){
-            // m_pose = m_photonPose;
-        }
+        // if (photonResult.hasTargets()){
+        //     // m_pose = m_photonPose;
+        // }
 
 
         // testing object detection

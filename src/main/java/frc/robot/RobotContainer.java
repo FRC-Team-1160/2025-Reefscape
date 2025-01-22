@@ -27,9 +27,9 @@ public class RobotContainer {
   DriveTrain m_DriveTrain;
   
   public RobotContainer() {
-    configureBindings();
     m_ObjectDetection = new ObjectDetection();
     m_DriveTrain = m_subsystem_manager.m_drive;
+    configureBindings();
   }
 
   public void updateSubsystemManager(){
@@ -40,6 +40,7 @@ public class RobotContainer {
   }
 
   private void configureBindings() {
+    System.out.println(m_ObjectDetection);
     new JoystickButton(m_mainStick, 3)
       .whileTrue(new AlgaeAlignmentPID(m_ObjectDetection, m_DriveTrain));
   }
