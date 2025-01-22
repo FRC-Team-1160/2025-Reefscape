@@ -7,6 +7,12 @@ package frc.robot;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.RunCommand;
+import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Commands.AlgaeAlignment;
+import frc.robot.Commands.AlgaeAlignmentPID;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
+import frc.robot.Subsystems.Vision.ObjectDetection;
 
 public class RobotContainer {
 
@@ -17,8 +23,13 @@ public class RobotContainer {
   private Joystick m_leftBoard = new Joystick(Constants.IO.LEFT_BOARD_PORT);
   private Joystick m_rightBoard = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
 
+  ObjectDetection m_ObjectDetection;
+  DriveTrain m_DriveTrain;
+  
   public RobotContainer() {
     configureBindings();
+    m_ObjectDetection = new ObjectDetection();
+    m_DriveTrain = m_subsystem_manager.m_drive;
   }
 
   public void updateSubsystemManager(){
@@ -28,7 +39,10 @@ public class RobotContainer {
       m_codriverStick.getRawAxis(0));
   }
 
-  private void configureBindings() {}
+  private void configureBindings() {
+    new JoystickButton(m_mainStick, 3)
+      .whileTrue(new AlgaeAlignmentPID(m_ObjectDetection, m_DriveTrain));
+  }
 
   public Command getAutonomousCommand() {
     return Commands.print("No autonomous command configured");

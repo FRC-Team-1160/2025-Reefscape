@@ -198,38 +198,5 @@ public class Vision extends SubsystemBase {
         m_pose = new Pose3d(13, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
         
         adv_posePub.set(m_pose);
-
-        // double min_dist = 99;
-
-        // if (m_drive.odomPose != null && noteCenters != null){
-        //     Pose2d odomPose = m_drive.odomPose;
-        //     double rot = odomPose.getRotation().getRadians();
-        //     ArrayList<Pose3d> poses3d = new ArrayList<Pose3d>();
-        //     for (Point p : noteCenters){
-        //         double f = 0.76 / (Math.tan(38 / 2 * Math.PI/180) * (p.y - 60)/60);
-        //         double h = -f * Math.tan(63 / 2 * Math.PI/180) * (p.x - 80)/80;
-        //         double x = f * Math.cos(rot) - h * Math.sin(rot);
-        //         double y = f * Math.sin(rot) + h * Math.cos(rot);
-        //         double dist = Math.sqrt(f*f + h*h);
-        //         Pose3d pose = new Pose3d(
-        //         x + odomPose.getX(),
-        //         y + odomPose.getY(),
-        //         0.04,
-        //         new Rotation3d()
-        //         );
-        //         poses3d.add(pose);
-        //         if (dist < min_dist){
-        //         min_dist = dist;
-        //         tracked_note = pose;
-        //         tracking_timeout.reset();
-        //         }
-        //     }
-        //     adv_targetPub.set(poses3d.toArray(new Pose3d[0]));
-        //     adv_trackedPub.set(tracked_note);
-        //     } else {
-        //     if (tracking_timeout.hasElapsed(0.5)){
-        //         tracked_note = null;
-        //     }
-        // }
     }
 }

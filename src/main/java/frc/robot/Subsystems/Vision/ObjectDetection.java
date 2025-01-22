@@ -29,7 +29,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ObjectDetection extends SubsystemBase {
   private PhotonCamera detector;
   public boolean hasTarget;
-  private Pose3d closestPose;
+  public Pose3d closestPose;
   private ArrayList<Pose3d> targetPoses = new ArrayList<>();
   private ArrayList<Target> targetDistances = new ArrayList<>();
 
@@ -50,6 +50,8 @@ public class ObjectDetection extends SubsystemBase {
   int maxY;
   int midpoint;
   double closestDistance;
+
+  boolean sim = true;
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
@@ -135,6 +137,10 @@ public class ObjectDetection extends SubsystemBase {
     // closestDistance = getDistance(413.0, 2.4, 413.0);
     targetDistances.clear();
     targetPoses.clear();
+
+    hasTarget = detector.getLatestResult().hasTargets();
+    SmartDashboard.putBoolean("hasTarget", hasTarget);
+
     if (robotPose != null){
       var result = detector.getLatestResult();
       List<PhotonTrackedTarget> targets = result.getTargets();
@@ -142,6 +148,7 @@ public class ObjectDetection extends SubsystemBase {
         minX = (int) targets.get(i).getMinAreaRectCorners().get(0).x;
         maxX = (int) targets.get(i).getMinAreaRectCorners().get(0).x;
         minY = (int) targets.get(i).getMinAreaRectCorners().get(0).y;
+        maxY = (int) targets.get(i).getMinAreaRectCorners().get(0).y;
         for (TargetCorner corner : targets.get(i).getMinAreaRectCorners()) {
             if (corner.x < minX) {
                 minX = (int) corner.x;
@@ -160,6 +167,11 @@ public class ObjectDetection extends SubsystemBase {
         double tempWidthPixel = maxX - minX;
         double tempHeightPixel = maxY - minY;
 
+        SmartDashboard.putNumber("minY", minY);
+        SmartDashboard.putNumber("maxY", maxY);
+        SmartDashboard.putNumber("tempHeight", tempHeightPixel);
+
+
         double[] tempDistance = getDistance(tempHeightPixel, tempMidpoint);
         double distance = tempDistance[0] + 0.55;
         double offset = - tempDistance[1] + 0.24;
@@ -167,7 +179,8 @@ public class ObjectDetection extends SubsystemBase {
         // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
         double angleToTarget = Math.atan(offset/distance);
         double directDistance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
-        System.out.println(distance);
+        SmartDashboard.putNumber("tempHeight2", tempHeightPixel);
+        System.out.println(tempHeightPixel);
         
         targetPoses.add(getObjectPose3D(robotPose.toPose2d(), distance, angleToTarget));
         targetDistances.add(new Target(distance, offset, directDistance));
@@ -175,11 +188,16 @@ public class ObjectDetection extends SubsystemBase {
 
       if (targetPoses.size() == 1){
         // adv_targetsPub.set(targetPoses); 
+        closestPose = targetPoses.get(0);
         adv_closestPub.set(targetPoses.get(0));
       }else if (targetPoses.size() > 1){
         closestPose = getClosestTarget(targetDistances);
       }
     }
-  }
+
+    if (sim == true){
+      closestPose = new Pose3d(12, 10, 0, new Rotation3d(0.0, 0.0, Math.PI));
+    }
   
+  }
 }
