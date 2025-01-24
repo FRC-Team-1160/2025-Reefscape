@@ -96,7 +96,8 @@ public class AlgaeAlignmentPID extends Command {
 
       xController.setGoal(goalPose.getX());
       yController.setGoal(goalPose.getY());
-      omegaController.setGoal(goalPose.getRotation().getRadians());
+      // omegaController.setGoal(goalPose.getRotation().getRadians());
+      omegaController.setGoal(Math.atan2((objectPose.getY()-robotPose.getY()),(objectPose.getX() - robotPose.getX())));
 
       double xSpeed = xController.calculate(currentRobotPose3d.getX());
       if (xController.atGoal()) {

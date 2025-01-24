@@ -51,7 +51,7 @@ public class ObjectDetection extends SubsystemBase {
   int midpoint;
   double closestDistance;
 
-  boolean sim = false;
+  boolean sim = true;
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
