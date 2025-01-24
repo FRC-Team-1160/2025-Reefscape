@@ -69,6 +69,29 @@ public final class Constants {
     }
   }
 
+  public static class Vision {
+    public static final double RESOLUTION_WIDTH = 640.0;
+    public static final double RESOLUTION_HEIGHT = 480.0;
+
+    public static class CameraIntrinsics {
+      public static final double f_x = 552.4060255333238;
+      public static final double c_x = 353.4277563553747;
+      public static final double f_y = 551.742860296023;
+      public static final double c_y = 211.14820439067003;
+    }
+
+    public static class CameraDistortion {
+      public static final double k1 = 0.01909844064431134;
+      public static final double k2 = -0.06833877284448357;
+      public static final double k3 = 0.004054963702231638;
+      public static final double k4 = 0.00043824638804727323;
+      public static final double k5 = 0.14324891388740463;
+      public static final double k6 = -0.002369416441714424;
+      public static final double k7 = 0.002236617101813135;
+      public static final double k8 = -0.006014121063178925;
+    }
+  }
+
   public static class Swerve {
     public static final double WHEEL_DIAMETER = 4 * 0.0254 * Math.PI;
     public static final double GEAR_RATIO = 5.01;

@@ -25,6 +25,9 @@ public class RobotContainer {
 
   private Joystick m_mainStick = new Joystick(Constants.IO.MAIN_PORT);
   private Joystick m_secondStick = new Joystick(Constants.IO.COPILOT_PORT);
+
+  private Joystick m_simpJoystick = new Joystick(2);
+
   // private Joystick m_leftBoard = new Joystick(Constants.IO.LEFT_BOARD_PORT);
   // private Joystick m_rightBoard = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
   private final SendableChooser<Command> autoChooser;
@@ -55,15 +58,30 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
-    TalonFX motor1 = new TalonFX(10);
-    TalonFX motor2 = new TalonFX(11);
+    TalonFX motor1 = new TalonFX(10, "CANivore");
+    TalonFX motor2 = new TalonFX(11, "CANivore");
 
-    double speed = 2.5;
+    double speed = 3;
 
-    new JoystickButton(m_secondStick, 1).onTrue(
+    new JoystickButton(m_simpJoystick, 1).onTrue(
       new InstantCommand(() -> {
+        SmartDashboard.putNumber("vibe check", Math.random());
         motor1.setControl(new VoltageOut(-speed));
         motor2.setControl(new VoltageOut(speed));
+      })
+    ).onFalse(
+      new InstantCommand(() -> {
+        motor1.setControl(new VoltageOut(0));
+        motor2.setControl(new VoltageOut(0));
+      })
+    );
+
+
+    new JoystickButton(m_simpJoystick, 2).onTrue(
+      new InstantCommand(() -> {
+        SmartDashboard.putNumber("vibe check", Math.random());
+        motor1.setControl(new VoltageOut(speed));
+        motor2.setControl(new VoltageOut(-speed));
       })
     ).onFalse(
       new InstantCommand(() -> {
