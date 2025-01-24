@@ -15,6 +15,7 @@ import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Vision.ObjectDetection;
@@ -25,10 +26,17 @@ public class AlgaeAlignmentPID extends Command {
   Pose2d targetPose;
   Pose2d robotPose;
 
+  // TrapezoidProfile.Constraints X_CONSTRAINTS = 
+  //     new TrapezoidProfile.Constraints(0.5, 1);
+  // TrapezoidProfile.Constraints Y_CONSTRAINTS = 
+  //     new TrapezoidProfile.Constraints(0.5,1);
+  // TrapezoidProfile.Constraints OMEGA_CONSTRAINTS = 
+  //     new TrapezoidProfile.Constraints(Math.toRadians(90), Math.toRadians(180));
+
   TrapezoidProfile.Constraints X_CONSTRAINTS = 
-      new TrapezoidProfile.Constraints(0.5, 1);
+      new TrapezoidProfile.Constraints(2, 2);
   TrapezoidProfile.Constraints Y_CONSTRAINTS = 
-      new TrapezoidProfile.Constraints(0.5,1);
+      new TrapezoidProfile.Constraints(2, 2);
   TrapezoidProfile.Constraints OMEGA_CONSTRAINTS = 
       new TrapezoidProfile.Constraints(Math.toRadians(90), Math.toRadians(180));
 
@@ -44,10 +52,12 @@ public class AlgaeAlignmentPID extends Command {
 
   Transform3d OBJECT_TO_GOAL = new Transform3d(
       // 0.5 m behind
-      new Translation3d(0.8, 0.0, 0.0),
+      new Translation3d(0.5, 0.0, 0.0),
 
       new Rotation3d(0.0, 0.0, Math.PI)
   );
+
+  public static boolean running = false;
   
 
   public AlgaeAlignmentPID(
@@ -60,7 +70,7 @@ public class AlgaeAlignmentPID extends Command {
 
     xController.setTolerance(0.2);
     yController.setTolerance(0.2);
-    omegaController.setTolerance(Units.degreesToRadians(3));
+    omegaController.setTolerance(Units.degreesToRadians(10));
     
     omegaController.enableContinuousInput(-Math.PI, Math.PI);
 
@@ -79,6 +89,7 @@ public class AlgaeAlignmentPID extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
+    running = true;
     robotPose = m_DriveTrain.m_odom_pose;
 
     Pose3d currentRobotPose3d = new Pose3d(
@@ -98,6 +109,7 @@ public class AlgaeAlignmentPID extends Command {
       yController.setGoal(goalPose.getY());
       // omegaController.setGoal(goalPose.getRotation().getRadians());
       omegaController.setGoal(Math.atan2((objectPose.getY()-robotPose.getY()),(objectPose.getX() - robotPose.getX())));
+      SmartDashboard.putNumber("targetAngle", omegaController.getSetpoint().position);
 
       double xSpeed = xController.calculate(currentRobotPose3d.getX());
       if (xController.atGoal()) {
@@ -110,6 +122,7 @@ public class AlgaeAlignmentPID extends Command {
       }
 
       double omegaSpeed = omegaController.calculate(robotPose.getRotation().getRadians());
+      SmartDashboard.putNumber("givenAngle", robotPose.getRotation().getRadians());
       if (omegaController.atGoal()) {
         omegaSpeed = 0;
       }
@@ -126,6 +139,7 @@ public class AlgaeAlignmentPID extends Command {
   @Override
   public void end(boolean interrupted) {
     m_DriveTrain.setSwerveDrive(0,0,0);
+    running = false;
   }
 
   // Returns true when the command should end.

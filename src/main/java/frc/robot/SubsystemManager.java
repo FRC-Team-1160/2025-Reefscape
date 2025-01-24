@@ -6,6 +6,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Commands.AlgaeAlignmentPID;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
@@ -30,7 +31,7 @@ public class SubsystemManager {
             
         } else {
             this.m_drive = new DriveTrainRealIO();
-            m_vision = new Vision();
+            // m_vision = new Vision();
             m_ObjectDetection = new ObjectDetection();
         }
 
@@ -71,7 +72,9 @@ public class SubsystemManager {
         double drive_y = -stick_y * 0.5; //* SwerveConstants.MAX_SPEED;
         double drive_a = -stick_a * 0.5;
 
-        // m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
+        if (!AlgaeAlignmentPID.running){
+            m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
+        }
     
         periodic();
     }

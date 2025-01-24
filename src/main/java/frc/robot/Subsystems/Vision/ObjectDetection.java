@@ -51,7 +51,7 @@ public class ObjectDetection extends SubsystemBase {
   int midpoint;
   double closestDistance;
 
-  boolean sim = true;
+  boolean sim = false;
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
@@ -200,7 +200,7 @@ public class ObjectDetection extends SubsystemBase {
     }
 
     if (sim == true){
-      closestPose = new Pose3d(10, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
+      closestPose = new Pose3d(1, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
       adv_closestPub.set(closestPose);
     }
   
