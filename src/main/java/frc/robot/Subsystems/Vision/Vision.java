@@ -13,8 +13,11 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
+import frc.robot.LimelightHelpers;
+import frc.robot.LimelightHelpers.LimelightResults;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 
 public class Vision extends SubsystemBase {
@@ -99,8 +102,6 @@ public class Vision extends SubsystemBase {
         }
 
         
-
-        
         // smart cropping:
         // LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
         // if(limelightResult.valid){
@@ -119,13 +120,6 @@ public class Vision extends SubsystemBase {
         //     //   LimelightHelpers.setPipelineIndex("", 5);
         //     // }
 
-        //     // non-dynamic
-        //     LimelightHelpers.setPipelineIndex("", 6);
-        //     count = 0;
-        // }
-        // if(!limelightResult.valid && count >=25){
-        //     LimelightHelpers.setPipelineIndex("", 0);
-        // }
 
 
         // if (limelightResult != null && limelightResult.valid){
@@ -135,6 +129,8 @@ public class Vision extends SubsystemBase {
         //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiBlue("");
         //     }
         // }
+
+        //     System.out.println(m_pose.getX());
 
         //     System.out.println(m_pose.getX());
 
@@ -161,10 +157,6 @@ public class Vision extends SubsystemBase {
 
         // //     System.out.println(m_pose.getX());
 
-        // //     // if (m_drive != null){
-        // //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
-        // //     // }
-        // // }
         // if (m_limelightPose != null && m_photonPose != null){
         //     m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
         // }else if(limelightResult.valid){

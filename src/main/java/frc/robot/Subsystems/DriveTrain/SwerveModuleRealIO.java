@@ -68,7 +68,6 @@ public class SwerveModuleRealIO extends SwerveModule{
 
     steerConfigs.ClosedLoopGeneral.ContinuousWrap = true;
 
-
     steer_motor.getConfigurator().apply(steerConfigs);
 
   }
@@ -102,13 +101,13 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public void setSpeed(double speedMetersPerSecond){
     SmartDashboard.putNumber("in_speed", speedMetersPerSecond / Swerve.WHEEL_DIAMETER);
-    drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / Swerve.WHEEL_DIAMETER));
+    // drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / Swerve.WHEEL_DIAMETER));
 
   }
 
   public void setAngle(Rotation2d angle){
     SmartDashboard.putNumber("in_angle", angle.getRotations());
-    steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
+    // steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
   }
 
 }

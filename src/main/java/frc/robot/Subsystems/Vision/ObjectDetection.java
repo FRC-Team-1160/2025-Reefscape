@@ -3,9 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.Subsystems.Vision;
-import frc.robot.Subsystems.Vision.Target;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +13,6 @@ import org.photonvision.targeting.TargetCorner;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -100,7 +97,9 @@ public class ObjectDetection extends SubsystemBase {
     double distance;
     double focalLengthPx = getFocalLength(horizontalScreenPixel, cameraHFOV);
     if (targetWidthPixel > 0) {
-        distance = (focalLengthPx * targetWidthM) / targetWidthPixel;
+        distance = 250 / targetWidthPixel; //(focalLengthPx * targetWidthM) / targetWidthPixel;
+        SmartDashboard.putNumber("Vison Distance", distance);
+
     } else {
         distance = Double.POSITIVE_INFINITY;
     }
@@ -165,7 +164,7 @@ public class ObjectDetection extends SubsystemBase {
                 maxY = (int) corner.y;
             }
         }
-        int tempMidpoint = (maxX + minX) / 2;
+        int tempMidpoint = (maxY + minY) / 2;
         double tempWidthPixel = maxX - minX;
         double tempHeightPixel = maxY - minY;
 
@@ -204,6 +203,6 @@ public class ObjectDetection extends SubsystemBase {
       closestPose = new Pose3d(1, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
       adv_closestPub.set(closestPose);
     }
-  
   }
+  
 }

@@ -4,43 +4,35 @@
 
 package frc.robot;
 
-import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.revrobotics.jni.CANSparkJNI;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import edu.wpi.first.wpilibj2.command.RunCommand;
-import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Commands.AlgaeAlignment;
 import frc.robot.Commands.AlgaeAlignmentPID;
-import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 
 public class RobotContainer {
-
   public final SubsystemManager m_subsystem_manager = new SubsystemManager();
 
   private Joystick m_mainStick = new Joystick(Constants.IO.MAIN_PORT);
   private Joystick m_secondStick = new Joystick(Constants.IO.COPILOT_PORT);
+
+  private Joystick m_simpJoystick = new Joystick(2);
+
   // private Joystick m_leftBoard = new Joystick(Constants.IO.LEFT_BOARD_PORT);
-  // private Joystick m_rightBoard = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
+  private Joystick m_rightBoard = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
 
   ObjectDetection m_ObjectDetection;
-  DriveTrain m_DriveTrain;
-    private final SendableChooser<Command> autoChooser;
+  private final SendableChooser<Command> autoChooser;
 
   public RobotContainer() {
     m_ObjectDetection = new ObjectDetection();
-    m_DriveTrain = m_subsystem_manager.m_drive;
     autoChooser = AutoBuilder.buildAutoChooser();
     SmartDashboard.putData("Auto Chooser", autoChooser);
     configureBindings();
@@ -51,7 +43,8 @@ public class RobotContainer {
       m_subsystem_manager.periodic(
         m_mainStick.getRawAxis(1),
         m_mainStick.getRawAxis(0),
-        m_secondStick.getRawAxis(0));
+        m_secondStick.getRawAxis(0),
+        m_rightBoard.getRawAxis(0));
     } else if (RobotState.isAutonomous()) {
       m_subsystem_manager.periodic();
     }
@@ -66,6 +59,7 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
+<<<<<<< HEAD
     TalonFX motor1 = new TalonFX(10, "*");
     TalonFX motor2 = new TalonFX(11,"*");
 
@@ -95,9 +89,16 @@ public class RobotContainer {
       })
     );
 
+=======
+>>>>>>> 3430bbd78e1368b015050e22bea6a71d73b2832b
     new JoystickButton(m_mainStick, 3)
-      .whileTrue(new AlgaeAlignmentPID(m_ObjectDetection, m_DriveTrain));
-}
+      .whileTrue(new AlgaeAlignmentPID(m_ObjectDetection, m_subsystem_manager.m_drive));
+  
+    
+    // new JoystickButton(m_rightBoard, 9)
+    //   .whileTrue(new StartEndCommand(() -> , null, null))
+  
+    }
 
   public Command getAutonomousCommand() {
     return autoChooser.getSelected();
