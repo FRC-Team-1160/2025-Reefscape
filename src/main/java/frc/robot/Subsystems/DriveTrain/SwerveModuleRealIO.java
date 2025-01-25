@@ -68,7 +68,6 @@ public class SwerveModuleRealIO extends SwerveModule{
 
     steerConfigs.ClosedLoopGeneral.ContinuousWrap = true;
 
-
     steer_motor.getConfigurator().apply(steerConfigs);
 
   }

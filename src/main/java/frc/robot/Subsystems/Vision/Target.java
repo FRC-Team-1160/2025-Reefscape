@@ -17,6 +17,6 @@ public class Target {
     }
 
     public Target(){
-        int a = 1 + 1;
+
     }
 }

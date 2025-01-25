@@ -3,9 +3,7 @@
 // the WPILib BSD license file in the root directory of this project.
 
 package frc.robot.Subsystems.Vision;
-import frc.robot.Subsystems.Vision.Target;
 
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +13,6 @@ import org.photonvision.targeting.TargetCorner;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -99,7 +96,9 @@ public class ObjectDetection extends SubsystemBase {
     double distance;
     double focalLengthPx = getFocalLength(horizontalScreenPixel, cameraHFOV);
     if (targetWidthPixel > 0) {
-        distance = (focalLengthPx * targetWidthM) / targetWidthPixel;
+        distance = 250 / targetWidthPixel; //(focalLengthPx * targetWidthM) / targetWidthPixel;
+        SmartDashboard.putNumber("Vison Distance", distance);
+
     } else {
         distance = Double.POSITIVE_INFINITY;
     }
@@ -167,7 +166,7 @@ public class ObjectDetection extends SubsystemBase {
                 maxY = (int) corner.y;
             }
         }
-        int tempMidpoint = (maxX + minX) / 2;
+        int tempMidpoint = (maxY + minY) / 2;
         double tempWidthPixel = maxX - minX;
         double tempHeightPixel = maxY - minY;
 
@@ -177,8 +176,8 @@ public class ObjectDetection extends SubsystemBase {
 
 
         double[] tempDistance = getDistance(tempHeightPixel, tempMidpoint);
-        double distance = tempDistance[0] + 0.55;
-        double offset = - tempDistance[1] + 0.24;
+        double distance = tempDistance[0];// + 0.55;
+        double offset = - tempDistance[1];// + 0.24;
         // double distance = 230 / tempWidthPixel;
         // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
         double angleToTarget = Math.atan(offset/distance);

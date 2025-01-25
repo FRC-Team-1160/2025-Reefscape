@@ -63,13 +63,13 @@ public abstract class DriveTrain extends SubsystemBase {
 
     m_modules = new SwerveModule[4];
     m_modules[0] = initializeModule(Constants.Port.FRONT_LEFT_DRIVE_MOTOR, Constants.Port.FRONT_LEFT_STEER_MOTOR,
-        Constants.Port.FRONT_LEFT_CODER); // fl
+        Constants.Port.FRONT_LEFT_CODER);
     m_modules[1] = initializeModule(Constants.Port.FRONT_RIGHT_DRIVE_MOTOR, Constants.Port.FRONT_RIGHT_STEER_MOTOR,
-        Constants.Port.FRONT_RIGHT_CODER); // fr
+        Constants.Port.FRONT_RIGHT_CODER);
     m_modules[2] = initializeModule(Constants.Port.BACK_LEFT_DRIVE_MOTOR, Constants.Port.BACK_LEFT_STEER_MOTOR,
-        Constants.Port.BACK_LEFT_CODER); // bl
+        Constants.Port.BACK_LEFT_CODER);
     m_modules[3] = initializeModule(Constants.Port.BACK_RIGHT_DRIVE_MOTOR, Constants.Port.BACK_RIGHT_STEER_MOTOR,
-        Constants.Port.BACK_RIGHT_CODER); // br
+        Constants.Port.BACK_RIGHT_CODER);
 
     m_module_states = new SwerveModuleState[] {
         new SwerveModuleState(),
@@ -175,7 +175,7 @@ public abstract class DriveTrain extends SubsystemBase {
 
     // normalize wheel speeds of any are greater than max speed
     SwerveDriveKinematics.desaturateWheelSpeeds(m_module_states, Constants.Swerve.MAX_SPEED);
-
+    
     setModules(m_module_states);
 
     for (int i = 0; i < m_modules.length; i++) {
