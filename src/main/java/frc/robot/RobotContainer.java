@@ -22,6 +22,9 @@ public class RobotContainer {
 
   private Joystick m_mainStick = new Joystick(Constants.IO.MAIN_PORT);
   private Joystick m_secondStick = new Joystick(Constants.IO.COPILOT_PORT);
+
+  private Joystick m_simpJoystick = new Joystick(2);
+
   // private Joystick m_leftBoard = new Joystick(Constants.IO.LEFT_BOARD_PORT);
   private Joystick m_rightBoard = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
 
