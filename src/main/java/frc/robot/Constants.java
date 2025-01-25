@@ -36,6 +36,8 @@ public final class Constants {
 
     public static final int LEFT_ELEVATOR_MOTOR = 10;
     public static final int RIGHT_ELEVATOR_MOTOR = 11;
+
+    public static final int SHOOTER_MOTOR = 12;
   }
 
   public static class IO {
@@ -71,8 +73,14 @@ public final class Constants {
   }
 
   public static class Vision {
-    public static final double RESOLUTION_WIDTH = 640.0;
-    public static final double RESOLUTION_HEIGHT = 480.0;
+    /**in pixels */
+    public static final int SCREEN_WIDTH = 640;
+    /**in pixels */
+    public static final int SCREEN_HEIGHT = 480;
+    /**in radians */
+    public final static double CAMERA_X_FOV = Math.toRadians(70);
+    /**width of ball in meters */
+    public final static double TARGET_WIDTH = 0.413;
 
     public static class CameraIntrinsics {
       public static final double f_x = 552.4060255333238;
@@ -101,7 +109,6 @@ public final class Constants {
     public static final double MAX_SPEED = 3;
     public static final double DRIVE_SPEED = 0.5;
     public static final double TURN_SPEED = 0.5;
-
 
     public static class DriveMotorConfigs {
       public static final double kP = 0.3;

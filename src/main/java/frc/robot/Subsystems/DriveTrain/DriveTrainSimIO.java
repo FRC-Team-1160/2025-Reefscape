@@ -26,6 +26,6 @@ public class DriveTrainSimIO extends DriveTrain {
     @Override
     public void periodic() {
         super.periodic();
-        angle = angle.plus(Rotation2d.fromRadians(m_kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond * 0.02));
+        angle = angle.plus(Rotation2d.fromRadians(kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond * 0.02));
     }
 }

@@ -6,8 +6,6 @@ package frc.robot.Subsystems.DriveTrain;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.PositionVoltage;
-import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -33,9 +31,9 @@ public class SwerveModuleRealIO extends SwerveModule{
     steer_motor = new TalonFX(steer_port, "CANivore");
     steer_sensor = new CANcoder(sensor_port, "CANivore");
     
-    TalonFXConfiguration driveConfigs = new TalonFXConfiguration();
+    TalonFXConfiguration drive_configs = new TalonFXConfiguration();
 
-    driveConfigs.Slot0 = new Slot0Configs()
+    drive_configs.Slot0 = new Slot0Configs()
       .withKP(DriveMotorConfigs.kP)
       .withKI(DriveMotorConfigs.kI)
       .withKD(DriveMotorConfigs.kD)
@@ -44,13 +42,13 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKA(DriveMotorConfigs.kA)
       .withKG(DriveMotorConfigs.kG);
 
-    driveConfigs.Feedback.SensorToMechanismRatio = 5.01;
+    drive_configs.Feedback.SensorToMechanismRatio = 5.01;
 
-    drive_motor.getConfigurator().apply(driveConfigs);
+    drive_motor.getConfigurator().apply(drive_configs);
 
-    TalonFXConfiguration steerConfigs = new TalonFXConfiguration();
+    TalonFXConfiguration steer_configs = new TalonFXConfiguration();
 
-    steerConfigs.Slot0 = new Slot0Configs()
+    steer_configs.Slot0 = new Slot0Configs()
       .withKP(SteerMotorConfigs.kP)
       .withKI(SteerMotorConfigs.kI)
       .withKD(SteerMotorConfigs.kD)
@@ -59,16 +57,16 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKA(SteerMotorConfigs.kA)
       .withKG(SteerMotorConfigs.kG);
 
-    steerConfigs.Feedback.FeedbackRemoteSensorID = sensor_port;
-    steerConfigs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
-    steerConfigs.Feedback.SensorToMechanismRatio = -1; //motors reversed?
+    steer_configs.Feedback.FeedbackRemoteSensorID = sensor_port;
+    steer_configs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
+    steer_configs.Feedback.SensorToMechanismRatio = -1; //motors reversed?
 
-    steerConfigs.Voltage.PeakForwardVoltage = 2;
-    steerConfigs.Voltage.PeakReverseVoltage = -2;
+    steer_configs.Voltage.PeakForwardVoltage = 2;
+    steer_configs.Voltage.PeakReverseVoltage = -2;
 
-    steerConfigs.ClosedLoopGeneral.ContinuousWrap = true;
+    steer_configs.ClosedLoopGeneral.ContinuousWrap = true;
 
-    steer_motor.getConfigurator().apply(steerConfigs);
+    steer_motor.getConfigurator().apply(steer_configs);
 
   }
 
@@ -99,8 +97,11 @@ public class SwerveModuleRealIO extends SwerveModule{
     return new SwerveModulePosition(getPosition(), getAngle());
   }
 
-  public void setSpeed(double speedMetersPerSecond){
-    SmartDashboard.putNumber("in_speed", speedMetersPerSecond / Swerve.WHEEL_DIAMETER);
+  /**
+   * @param speed the speed to go at, in meters per second.
+   */
+  public void setSpeed(double speed){
+    SmartDashboard.putNumber("in_speed", speed / Swerve.WHEEL_DIAMETER);
     // drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / Swerve.WHEEL_DIAMETER));
 
   }

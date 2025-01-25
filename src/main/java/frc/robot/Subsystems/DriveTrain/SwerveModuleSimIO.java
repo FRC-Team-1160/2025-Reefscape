@@ -7,16 +7,16 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 
 public class SwerveModuleSimIO extends SwerveModule {
 
-    public Rotation2d m_angle;
-    public double m_speed;
+    public Rotation2d angle;
+    public double speed;
     public double position;
 
     public PIDController sim_angle_pid;
     public PIDController sim_velocity_pid;
 
     public SwerveModuleSimIO() {
-        m_angle = new Rotation2d();
-        m_speed = 0;
+        angle = new Rotation2d();
+        speed = 0;
 
         sim_angle_pid = new PIDController(0.1, 0, 0); //tune to actual swerve
         sim_angle_pid.enableContinuousInput(-0.5, 0.5);
@@ -34,14 +34,14 @@ public class SwerveModuleSimIO extends SwerveModule {
     @Override
     public void update() {
         super.update();
-        m_angle = m_angle.plus(Rotation2d.fromRotations(sim_angle_pid.calculate(m_angle.getRotations())));
-        m_speed += sim_velocity_pid.calculate(m_speed);
-        position += m_speed * 0.02;
+        angle = angle.plus(Rotation2d.fromRotations(sim_angle_pid.calculate(angle.getRotations())));
+        speed += sim_velocity_pid.calculate(speed);
+        position += speed * 0.02;
     }
 
-    public Rotation2d getAngle() { return m_angle; }
+    public Rotation2d getAngle() { return angle; }
 
-    public double getSpeed() { return m_speed; }
+    public double getSpeed() { return speed; }
 
     public double getPosition() { return position; }
 
