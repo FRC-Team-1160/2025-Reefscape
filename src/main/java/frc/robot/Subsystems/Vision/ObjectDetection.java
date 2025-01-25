@@ -32,6 +32,7 @@ public class ObjectDetection extends SubsystemBase {
   public Pose3d closestPose;
   private ArrayList<Pose3d> targetPoses = new ArrayList<>();
   private ArrayList<Target> targetDistances = new ArrayList<>();
+  public Target closestTarget = new Target();
 
   private Pose2d robotPose;
 
@@ -94,7 +95,7 @@ public class ObjectDetection extends SubsystemBase {
     return (imageWidthPx / 2.0) / Math.tan(hfovRadians / 2.0);
   }
 
-  public double[] getDistance(double targetWidthPixel, double targetXPixel) {
+  public double[] getDistance(double targetWidthPixel, double targetHeightPixel, double targetXPixel) {
     // 1) Distance: d = (focalLengthPx * realWidthMeters) / boundingBoxWidthPx
     double distance;
     double focalLengthPx = getFocalLength(horizontalScreenPixel, cameraHFOV);
@@ -104,11 +105,8 @@ public class ObjectDetection extends SubsystemBase {
         distance = Double.POSITIVE_INFINITY;
     }
 
-    // 2) Horizontal Offset:
-    //    - First compute angle from camera centerline:
-    //      fractionOffCenter = (targetXPixel - imageCenter) / (imageCenter)
-    //      offsetAngleRad    = fractionOffCenter * (CAMERA_HFOV_RAD / 2)
-    //    - Then horizontal = distance * sin(offsetAngleRad)
+    distance = 261/(Math.max(targetWidthPixel, targetHeightPixel)) - 0.04 + 0.35;
+
     double imageCenter = horizontalScreenPixel / 2.0;
     double fractionOffCenter = (targetXPixel - imageCenter) / imageCenter;
     double offsetAngleRad = fractionOffCenter * (cameraHFOV / 2.0);
@@ -176,16 +174,18 @@ public class ObjectDetection extends SubsystemBase {
         SmartDashboard.putNumber("tempHeight", tempHeightPixel);
 
 
-        double[] tempDistance = getDistance(tempHeightPixel, tempMidpoint);
-        double distance = tempDistance[0] + 0.55;
+        double[] tempDistance = getDistance(tempWidthPixel, tempHeightPixel, tempMidpoint);
+        // double distance = tempDistance[0] + 0.55;
+        double distance = tempDistance[0];
+
         double offset = - tempDistance[1] + 0.24;
         // double distance = 230 / tempWidthPixel;
         // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
         double angleToTarget = Math.atan(offset/distance);
         double directDistance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
         SmartDashboard.putNumber("tempHeight2", tempHeightPixel);
-        System.out.println(tempHeightPixel);
-        
+        System.out.println(distance);
+
         targetPoses.add(getObjectPose3D(robotPose, distance, angleToTarget));
         targetDistances.add(new Target(distance, offset, directDistance));
       }
@@ -193,6 +193,7 @@ public class ObjectDetection extends SubsystemBase {
       if (targetPoses.size() == 1){
         // adv_targetsPub.set(targetPoses); 
         closestPose = targetPoses.get(0);
+        closestTarget = targetDistances.get(0);
         adv_closestPub.set(targetPoses.get(0));
       }else if (targetPoses.size() > 1){
         closestPose = getClosestTarget(targetDistances);

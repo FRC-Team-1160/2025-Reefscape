@@ -66,10 +66,10 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
-    TalonFX motor1 = new TalonFX(10);
-    TalonFX motor2 = new TalonFX(11);
+    TalonFX motor1 = new TalonFX(10, "*");
+    TalonFX motor2 = new TalonFX(11,"*");
 
-    double speed = 2.5;
+    double speed = 6;
 
     new JoystickButton(m_secondStick, 1).onTrue(
       new InstantCommand(() -> {
