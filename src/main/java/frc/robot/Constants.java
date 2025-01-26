@@ -103,7 +103,7 @@ public final class Constants {
 
   public static class Swerve {
     public static final double WHEEL_DIAMETER = 4 * 0.0254 * Math.PI;
-    public static final double GEAR_RATIO = 6.75;
+    public static final double GEAR_RATIO = 5.01;
     public static final double OFFSET = 23.75 * 0.0254;
 
     public static final double MAX_SPEED = 3;
