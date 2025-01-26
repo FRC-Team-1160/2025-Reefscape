@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.Joystick;
@@ -59,7 +61,6 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
-<<<<<<< HEAD
     TalonFX motor1 = new TalonFX(10, "*");
     TalonFX motor2 = new TalonFX(11,"*");
 
@@ -89,8 +90,6 @@ public class RobotContainer {
       })
     );
 
-=======
->>>>>>> 3430bbd78e1368b015050e22bea6a71d73b2832b
     new JoystickButton(m_mainStick, 3)
       .whileTrue(new AlgaeAlignmentPID(m_ObjectDetection, m_subsystem_manager.m_drive));
   
