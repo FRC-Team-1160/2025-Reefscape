@@ -8,11 +8,6 @@ import java.io.IOException;
 
 import org.json.simple.parser.ParseException;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -87,34 +82,6 @@ public abstract class DriveTrain extends SubsystemBase {
 
     odom_pose = new Pose2d();
     pose_estimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), module_positions, odom_pose);
-
-    RobotConfig config;
-    try {
-      config = RobotConfig.fromGUISettings();
-    } catch (IOException | ParseException e) {
-      e.printStackTrace();
-      return;
-    }
-    AutoBuilder.configure(
-        () -> odom_pose,
-        pose_estimator::resetPose,
-        () -> kinematics.toChassisSpeeds(module_states),
-        (speeds, feedforwards) -> setSwerveDrive(speeds),
-        new PPHolonomicDriveController(
-            new PIDConstants(Constants.Auto.translation_kP, Constants.Auto.translation_kI,
-                Constants.Auto.translation_kD),
-            new PIDConstants(Constants.Auto.rotation_kP, Constants.Auto.rotation_kI, Constants.Auto.rotation_kD)),
-        config,
-        () -> {
-          var alliance = DriverStation.getAlliance();
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-        },
-        this // Reference to this subsystem to set requirements
-    );
-
     setupDashboard();
   }
 
@@ -337,6 +304,19 @@ public abstract class DriveTrain extends SubsystemBase {
     odom_pose = pose_estimator.update(getGyroAngle(), getModulePositions());
 
     publishAdv();
+
+  }
+
+  public void setInputs(double stick_x, double stick_y, double stick_a) {
+    stick_x = (Math.abs(stick_x) < 0.1) ? 0 : stick_x;
+    stick_y = (Math.abs(stick_y) < 0.1) ? 0 : stick_y;
+    stick_a = (Math.abs(stick_a) < 0.1) ? 0 : stick_a;
+
+    double drive_x = -stick_x * 0.5;
+    double drive_y = -stick_y * 0.5;
+    double drive_a = -stick_a * 0.5;
+
+    setSwerveDrive(drive_x, drive_y, drive_a);
 
   }
 
