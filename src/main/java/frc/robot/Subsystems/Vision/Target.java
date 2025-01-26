@@ -8,15 +8,17 @@ package frc.robot.Subsystems.Vision;
 public class Target {
     public double distance;
     public double offset;
-    public double directDistance;
+    public double direct_distance;
 
-    public Target(double distance, double offset, double directDistance){
+    public Target(double distance, double offset, double direct_distance){
         distance = this.distance;
         offset = this.offset;
-        directDistance = this.directDistance;
+        direct_distance = this.direct_distance;
     }
 
     public Target(){
-        int a = 1 + 1;
+        this.distance = 0;
+        this.offset = 0;
+        this.direct_distance = 0;
     }
 }

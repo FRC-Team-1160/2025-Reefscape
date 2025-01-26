@@ -14,92 +14,79 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-
-import frc.robot.Subsystems.DriveTrain.DriveTrain;
+import frc.robot.Robot;
 
 public class Vision extends SubsystemBase {
-    private static Vision m_instance;
-
-    public Pose3d m_pose;
-    public Pose3d m_photonPose;
-    public Pose3d m_limelightPose;
-
-    public DriveTrain m_drive;
+    public Pose3d pose;
+    public Pose3d photon_pose;
+    public Pose3d limelight_pose;
 
     public int count;
 
-    StructPublisher<Pose3d> adv_posePub;
-    StructArrayPublisher<Pose3d> adv_targetPub;
-    StructPublisher<Pose3d> adv_trackedPub;
+    StructPublisher<Pose3d> adv_pose_pub;
+    StructArrayPublisher<Pose3d> adv_target_pub;
+    StructPublisher<Pose3d> adv_tracked_pub;
 
-    PhotonCamera m_photonTagCamera;
-
-    PhotonPoseEstimator m_photonPoseEstimator;
-
-    boolean sim = false;
-
-    public static Vision getInstance(){
-        if (m_instance == null){
-            m_instance = new Vision();
-        }
-        return m_instance;
-    }
+    PhotonCamera photon_tag_camera;
+    PhotonPoseEstimator photon_pose_estimator;
 
     public Vision() {
-        if (!sim){
+        if (Robot.isReal()){
             NetworkTableInstance inst = NetworkTableInstance.getDefault();
             NetworkTable adv_vision = inst.getTable("adv_vision");
-            adv_posePub = adv_vision.getStructTopic("Pose", Pose3d.struct).publish();
+            adv_pose_pub = adv_vision.getStructTopic("Pose", Pose3d.struct).publish();
 
-            m_photonTagCamera = new PhotonCamera("Arducam_OV9281_USB_Camera (1)");
+            photon_tag_camera = new PhotonCamera("Arducam_OV9281_USB_Camera (1)");
 
-            m_pose = new Pose3d(0.12, 0, 0, new Rotation3d());
+            pose = new Pose3d(0.12, 0, 0, new Rotation3d());
 
-            AprilTagFieldLayout aprilTagFieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+            AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-            m_photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldLayout, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(-0.15 * 0.0254, 0.10 * 0.0254, 0.2), new Rotation3d(0, 20.0 * Math.PI / 180, 0)));
-            m_photonPoseEstimator.setReferencePose(m_pose);
+            photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(-0.15 * 0.0254, 0.10 * 0.0254, 0.2), new Rotation3d(0, 20.0 * Math.PI / 180, 0)));
+            photon_pose_estimator.setReferencePose(pose);
         }
     }
 
-    public Pose3d combinePoses(Pose3d photonPose, double photonWeight, Pose3d limelightPose, double limelightWeight){
-        double totalWeight = photonWeight + limelightWeight;
-        photonWeight /= totalWeight;
-        limelightWeight /= totalWeight;
+    public Pose3d combinePoses(Pose3d photon_pose, double photon_weight, Pose3d limelight_pose, double limelight_weight) {
+        double total_weight = photon_weight + limelight_weight;
+        photon_weight /= total_weight;
+        limelight_weight /= total_weight;
 
         // combine xy
-        double combinedX = photonPose.getX() * photonWeight + limelightPose.getX() * limelightWeight;
-        double combinedY = photonPose.getY() * photonWeight + limelightPose.getY() * limelightWeight;
+        double combinedX = photon_pose.getX() * photon_weight + limelight_pose.getX() * limelight_weight;
+        double combinedY = photon_pose.getY() * photon_weight + limelight_pose.getY() * limelight_weight;
         // combine rotation
-        double photonTheta = photonPose.getRotation().getZ();
-        double limelightTheta = limelightPose.getRotation().getZ();
-        double combinedTheta = photonTheta * photonWeight + limelightTheta * limelightWeight;
+        double photon_theta = photon_pose.getRotation().getZ();
+        double limelight_theta = limelight_pose.getRotation().getZ();
+        double combined_theta = photon_theta * photon_weight + limelight_theta * limelight_weight;
 
-        return new Pose3d(combinedX, combinedY, photonPose.getZ(), new Rotation3d(0.0,0.0,combinedTheta));
+        return new Pose3d(combinedX, combinedY, photon_pose.getZ(), new Rotation3d(0, 0, combined_theta));
     }
 
 
     @Override 
     public void periodic() {
-        if (!sim){
-            var photonResult = m_photonTagCamera.getLatestResult();
-            if (photonResult.hasTargets()){
-                var update = m_photonPoseEstimator.update(photonResult);
+        if (Robot.isReal()) {
+            var photon_result = photon_tag_camera.getLatestResult();
+            if (photon_result.hasTargets()){
+                var update = photon_pose_estimator.update(photon_result);
                 if (update.isPresent()){
-                    m_photonPose = update.get().estimatedPose;
-                    if (Math.abs(m_pose.getZ()) < 1){
-                    m_photonPoseEstimator.setReferencePose(m_photonPose);
+                    photon_pose = update.get().estimatedPose;
+                    if (Math.abs(pose.getZ()) < 1){
+                    photon_pose_estimator.setReferencePose(photon_pose);
                     }
-                    // if (m_drive != null){
-                    //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
-                    //     // System.out.println(m_pose.getX());
-                    // }
                 }
             }
         }
 
-        
-
+        var photon_result = photon_tag_camera.getLatestResult();
+        if (photon_result.hasTargets()) {
+            var update = photon_pose_estimator.update();
+            if (update.isPresent()) {
+                photon_pose = update.get().estimatedPose;
+                if (Math.abs(pose.getZ()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
+            }
+        }
         
         // smart cropping:
         // LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
@@ -118,7 +105,17 @@ public class Vision extends SubsystemBase {
         //     // }else if (tag_x >=-0.03 && tag_x <=0.87) {
         //     //   LimelightHelpers.setPipelineIndex("", 5);
         //     // }
-
+        // 
+        // 
+        // 
+        // if (limelightResult != null && limelightResult.valid){
+        //     if (DriverStation.getAlliance().get() == Alliance.Red){
+        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiRed("");
+        //     } else {
+        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiBlue("");
+        //     }
+        // }
+        //
         //     // non-dynamic
         //     LimelightHelpers.setPipelineIndex("", 6);
         //     count = 0;
@@ -126,54 +123,8 @@ public class Vision extends SubsystemBase {
         // if(!limelightResult.valid && count >=25){
         //     LimelightHelpers.setPipelineIndex("", 0);
         // }
-
-
-        // if (limelightResult != null && limelightResult.valid){
-        //     if (DriverStation.getAlliance().get() == Alliance.Red){
-        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiRed("");
-        //     }else{
-        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiBlue("");
-        //     }
-        // }
-
-        //     System.out.println(m_pose.getX());
-
-        //     // if (m_drive != null){
-        //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
-        //     // }
-
-        //     // non-dynamic
-        //     LimelightHelpers.setPipelineIndex("", 6);
-        //     count = 0;
-        // }
-        // if(!limelightResult.valid && count >=25){
-        //     LimelightHelpers.setPipelineIndex("", 0);
-        // }
-
-
-        // if (limelightResult != null && limelightResult.valid){
-        //     if (DriverStation.getAlliance().get() == Alliance.Red){
-        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiRed("");
-        //     }else{
-        //         m_limelightPose = LimelightHelpers.getBotPose3d_wpiBlue("");
-        //     }
-        // }
-
-        // //     System.out.println(m_pose.getX());
-
-        // //     // if (m_drive != null){
-        // //     //     m_drive.m_poseEstimator.addVisionMeasurement(m_pose.toPose2d(), Timer.getFPGATimestamp());
-        // //     // }
-        // // }
-        // if (m_limelightPose != null && m_photonPose != null){
-        //     m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
-        // }else if(limelightResult.valid){
-        //     m_pose = m_limelightPose;
-        // }else if(photonResult.hasTargets()){
-        //     m_pose = m_photonPose;
-        //     System.out.println("HELSDLASKJDLKDJ");
-        // }
-
+        // 
+        //
         // if (m_limelightPose != null && m_photonPose != null){
         //     m_pose = combinePoses(m_photonPose, 0.5, m_limelightPose, 0.5);
         // }else if(limelightResult.valid){
@@ -186,10 +137,8 @@ public class Vision extends SubsystemBase {
         //     // m_pose = m_photonPose;
         // }
 
-
         // testing object detection
-        m_pose = new Pose3d(13, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
-        
-        adv_posePub.set(m_pose);
+        pose = new Pose3d(13, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
+        adv_pose_pub.set(pose);
     }
 }
