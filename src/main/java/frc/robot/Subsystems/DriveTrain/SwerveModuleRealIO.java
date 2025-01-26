@@ -72,12 +72,12 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public double getSpeed(){
     //getRotorVelocity() returns StatusSignal<AngularVelocity> with base unit rps
-    return drive_motor.getRotorVelocity().getValueAsDouble() * Swerve.WHEEL_DIAMETER;
+    return drive_motor.getRotorVelocity().getValueAsDouble() * Swerve.WHEEL_DIAMETER / Swerve.GEAR_RATIO;
   }
 
   public double getPosition(){
     //getRotorPosition() returns StatusSignal<Angle> with base unit rotations
-    return drive_motor.getRotorPosition().getValueAsDouble() * Swerve.WHEEL_DIAMETER;
+    return drive_motor.getRotorPosition().getValueAsDouble() * Swerve.WHEEL_DIAMETER / Swerve.GEAR_RATIO;
   }
 
   public Rotation2d getAngle(){

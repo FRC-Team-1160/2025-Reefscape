@@ -29,10 +29,12 @@ import frc.robot.Robot;
 
 public class ObjectDetection extends SubsystemBase {
   private PhotonCamera detector;
+  
   public boolean has_target;
   public Pose3d closest_pose;
   private ArrayList<Pose3d> target_poses = new ArrayList<>();
   private ArrayList<Target> target_distances = new ArrayList<>();
+  public Target closest_target = new Target();
 
   private Pose2d robot_pose;
 
@@ -96,12 +98,14 @@ public class ObjectDetection extends SubsystemBase {
     return (image_width / 2.0d) / Math.tan(x_fov / 2.0d);
   }
 
+  
   /**
    * @param target_width in pixels
+   * @param target_height in pixels
    * @param target_x in pixels
    * @return [distance, offset] in meters
    */
-  public double[] getDistance(double target_width, double target_x) {
+  public double[] getDistance(double target_width, double target_height, double target_x) {
     // 1) Distance: d = (focalLengthPx * realWidthMeters) / boundingBoxWidthPx
     double distance;
     // in pixels
@@ -114,14 +118,11 @@ public class ObjectDetection extends SubsystemBase {
       distance = Double.POSITIVE_INFINITY;
     }
 
-    // 2) Horizontal Offset:
-    // First compute angle from camera centerline:
-    //    fractionOffCenter = (targetXPixel - imageCenter) / (imageCenter)
-    //    offsetAngleRad = fractionOffCenter * (CAMERA_HFOV_RAD / 2)
-    // Then horizontal = distance * sin(offsetAngleRad)
-    double image_center = Vision.SCREEN_WIDTH / 2.0d;
+    distance = 261/(Math.max(target_width, target_height)) - 0.04 + 0.35;
+
+    double image_center = Vision.SCREEN_WIDTH / 2.0;
     double fraction_off_center = (target_x - image_center) / image_center;
-    double offset_angle = fraction_off_center * (Vision.CAMERA_X_FOV / 2.0d); // in radians
+    double offset_angle = fraction_off_center * (Vision.CAMERA_X_FOV / 2.0); // in radians
     double horizontal_offset = distance * Math.sin(offset_angle);
 
     return new double[] { distance, horizontal_offset };
@@ -151,63 +152,49 @@ public class ObjectDetection extends SubsystemBase {
       return;
     }
 
-    target_distances.clear();
-    target_poses.clear();
-    robot_pose = adv_robot_pose_sub.get();
-    has_target = detector.getLatestResult().hasTargets();
-    SmartDashboard.putBoolean("hasTarget", has_target);
-    
-    if (robot_pose == null) return;
-
-    PhotonPipelineResult result = detector.getLatestResult();
-    List<PhotonTrackedTarget> targets = result.getTargets();
-    
-    for (PhotonTrackedTarget target : targets) {
-      double minX = Double.MIN_VALUE; double minY = Double.MIN_VALUE;
-      double maxX = Double.MAX_VALUE; double maxY = Double.MAX_VALUE;
-
-      // debug stuff
-      int inc = 0;
-      Translation2d[] pub_corners = new Translation2d[4];
-
-      for (TargetCorner corner : target.getMinAreaRectCorners()) {
-        minX = Math.min(minX, corner.x);
-        maxX = Math.max(maxX, corner.x);
-        minY = Math.min(minY, corner.y);
-        maxY = Math.max(maxY, corner.y);
+      var result = detector.getLatestResult();
+      List<PhotonTrackedTarget> targets = result.getTargets();
+      for (PhotonTrackedTarget target : targets) {
+        double minX = Double.MIN_VALUE; double minY = Double.MIN_VALUE;
+        double maxX = Double.MAX_VALUE; double maxY = Double.MAX_VALUE;
         
-        // debug stuff
-        pub_corners[inc] = new Translation2d(corner.x, corner.y);
-        inc++;
+        for (TargetCorner corner : target.getMinAreaRectCorners()) {
+          minX = Math.min(minX, corner.x);
+          maxX = Math.max(maxX, corner.x);
+          minY = Math.min(minY, corner.y);
+          maxY = Math.max(maxY, corner.y);
+        }
+        
+        int midpoint = (maxX + minX) / 2;
+        double width = maxX - minX;
+        double height = maxY - minY;
+
+        SmartDashboard.putNumber("minY", minY);
+        SmartDashboard.putNumber("maxY", maxY);
+        SmartDashboard.putNumber("tempHeight", height);
+
+
+        double[] temp_dist = getDistance(width, height, midpoint);
+        // double distance = tempDistance[0] + 0.55;
+        double distance = test_dist[0];
+
+        double offset = - temp_dist[1] + 0.24;
+        // double distance = 230 / tempWidthPixel;
+        // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
+        double angle_to_target = Math.atan(offset/distance);
+        double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
+        SmartDashboard.putNumber("tempHeight2", height);
+        System.out.println(distance);
+
+        target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
+        target_distances.add(new Target(distance, offset, direct_distance));
       }
 
-      double midpoint = (maxY + minY)/2;
-      double width = maxX - minX;
-      double height = maxY - minY;
-
-      SmartDashboard.putNumber("minY", minY);
-      SmartDashboard.putNumber("maxY", maxY);
-      SmartDashboard.putNumber("height", height);
-      adv_corners_pub.set(pub_corners);
-
-      double[] tempDistance = getDistance(height, midpoint);
-      double distance = tempDistance[0];      // + 0.55;
-      double offset = -tempDistance[1];       // + 0.24;
-      // double distance = 230 / tempWidthPixel;
-      // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
-      double angle_to_target = Math.atan(offset / distance);
-      double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
-      SmartDashboard.putNumber("tempHeight2", height);
-      System.out.println(height);
-
-      target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
-      target_distances.add(new Target(distance, offset, direct_distance));
-    }
-
-    if (target_poses.size() >= 1) {
-      // adv_targetsPub.set(targetPoses);
-      adv_closest_pub.set(target_poses.get(0));
-      closest_pose = getClosestTarget(target_distances);
+      if (target_poses.size() >= 1) {
+        // adv_targetsPub.set(targetPoses);
+        adv_closest_pub.set(target_poses.get(0));
+        closest_pose = getClosestTarget(target_distances);
+      }
     }
   }
 }
