@@ -12,8 +12,12 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import frc.robot.Commands.SpeedController;
 import frc.robot.Commands.AlgaeAlignmentPID;
+import frc.robot.Commands.Controller;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 
 public class RobotContainer {
@@ -55,7 +59,10 @@ public class RobotContainer {
     );
 
     new JoystickButton(main_stick, 3)
-      .whileTrue(new AlgaeAlignmentPID(m_subsystem_manager.m_object_detection, m_subsystem_manager.m_drive));
+      .whileTrue(new StartEndCommand(
+        () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.PID_CONTROL;},
+        () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.FULL_CONTROL;}
+      ));
     }
 
   public Command getAutonomousCommand() {

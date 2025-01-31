@@ -157,13 +157,12 @@ public abstract class DriveTrain extends SubsystemBase {
   public void setSwerveDrive(ChassisSpeeds chassis_speeds) {
     // fix weird change over time shenanigans
 
-    SmartDashboard.putNumber("in_x", chassis_speeds.vxMetersPerSecond);
-    SmartDashboard.putNumber("in_y", chassis_speeds.vyMetersPerSecond);
-
     chassis_speeds.omegaRadiansPerSecond *= -1;
 
     chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
+    SmartDashboard.putNumber("in_x", chassis_speeds.vxMetersPerSecond);
+    SmartDashboard.putNumber("in_y", chassis_speeds.vyMetersPerSecond);
     SmartDashboard.putNumber("in_a", chassis_speeds.omegaRadiansPerSecond);
 
     module_states = kinematics.toSwerveModuleStates(chassis_speeds);
