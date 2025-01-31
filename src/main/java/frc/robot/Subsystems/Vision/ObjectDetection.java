@@ -22,13 +22,13 @@ import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.networktables.StructSubscriber;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Vision;
 import frc.robot.Robot;
 
 public class ObjectDetection extends SubsystemBase {
   private PhotonCamera detector;
+
 
   public boolean has_target;
   public Pose3d closest_pose;
@@ -92,15 +92,19 @@ public class ObjectDetection extends SubsystemBase {
    * 
    * @param image_width in pixels
    * @param x_fov       in radians
+   * @param x_fov       in radians
    * @return
    */
   private double getFocalLength(int image_width, double x_fov) {
     return (image_width / 2.0d) / Math.tan(x_fov / 2.0d);
   }
 
+
   /**
    * @param target_width  in pixels
+   * @param target_width  in pixels
    * @param target_height in pixels
+   * @param target_x      in pixels
    * @param target_x      in pixels
    * @return [distance, offset] in meters
    */
@@ -111,12 +115,12 @@ public class ObjectDetection extends SubsystemBase {
     double focal_length = getFocalLength(Vision.SCREEN_WIDTH, Vision.CAMERA_X_FOV);
     if (target_width > 0) {
       distance = 250.0d / target_width; // (focalLengthPx * targetWidthM) / targetWidthPixel;
-      SmartDashboard.putNumber("Vison Distance", distance);
 
     } else {
       distance = Double.POSITIVE_INFINITY;
     }
 
+    distance = 261 / (Math.max(target_width, target_height)) - 0.04 + 0.35;
     distance = 261 / (Math.max(target_width, target_height)) - 0.04 + 0.35;
 
     double image_center = Vision.SCREEN_WIDTH / 2.0;
@@ -166,30 +170,31 @@ public class ObjectDetection extends SubsystemBase {
         maxY = Math.max(maxY, corner.y);
       }
 
-      double midpoint = (maxX + minX) / 2;
+      double midpoint = (maxX + minX)/2;
       double width = maxX - minX;
       double height = maxY - minY;
 
-      SmartDashboard.putNumber("minY", minY);
-      SmartDashboard.putNumber("maxY", maxY);
-      SmartDashboard.putNumber("tempHeight", height);
-
       double[] temp_dist = getDistance(width, height, midpoint);
-      // double distance = tempDistance[0] + 0.55;
       double distance = temp_dist[0];
-
       double offset = -temp_dist[1] + 0.24;
-      // double distance = 230 / tempWidthPixel;
-      // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
+
       double angle_to_target = Math.atan(offset / distance);
       double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
-      SmartDashboard.putNumber("tempHeight2", height);
-      System.out.println(distance);
 
       target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
       target_distances.add(new Target(distance, offset, direct_distance));
     }
+      target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
+      target_distances.add(new Target(distance, offset, direct_distance));
+    }
 
+    if (target_poses.size() >= 1) {
+      // adv_targetsPub.set(targetPoses);
+      adv_closest_pub.set(target_poses.get(0));
+      closest_pose = getClosestTarget(target_distances);
+    }
+  }
+}
     if (target_poses.size() >= 1) {
       // adv_targetsPub.set(targetPoses);
       adv_closest_pub.set(target_poses.get(0));

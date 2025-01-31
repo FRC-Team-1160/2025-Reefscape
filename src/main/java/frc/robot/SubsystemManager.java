@@ -7,8 +7,10 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import frc.robot.Commands.AlgaeAlignmentPID;
-import frc.robot.Subsystems.Elevator;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import frc.robot.Commands.Controller;
+import frc.robot.Subsystems.Claw.Claw;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
@@ -17,10 +19,29 @@ import frc.robot.Subsystems.Vision.ObjectDetection;
 
 public class SubsystemManager {
 
+    public class RobotState {
+        enum DriveStates {
+            FULL_CONTROL,
+            PID_CONTROL
+        }
+
+        enum ElevatorStates {
+            FULL_CONTROL // control via setpoint
+        }
+    
+        public DriveStates drive_state = DriveStates.FULL_CONTROL;
+        public ElevatorStates elevator_state = ElevatorStates.FULL_CONTROL;
+    }
+
     public DriveTrain m_drive;
     public Elevator m_elevator;
     public Vision m_vision;
     public ObjectDetection m_object_detection;
+    public Claw m_claw;
+
+
+
+    public RobotState robot_state = new RobotState();
 
     public Supplier<Double> getStickX, getStickY, getStickA, getStickEl;
 
@@ -35,8 +56,9 @@ public class SubsystemManager {
             this.m_drive = new DriveTrainSimIO();
         } else {
             this.m_drive = new DriveTrainRealIO();
+            this.m_claw = new Claw();
             this.m_elevator = new Elevator();
-            // m_vision = new Vision();
+            m_vision = new Vision();
             m_object_detection = new ObjectDetection();
         }
 
@@ -47,10 +69,10 @@ public class SubsystemManager {
 
         // robot_pose = new Pose2d();
         // m_pose_estimator = new SwerveDrivePoseEstimator(
-        //     m_drive.m_kinematics,
-        //     m_drive.getGyroAngle(),
-        //     m_drive.getModulePositions(),
-        //     robot_pose);
+        // m_drive.m_kinematics,
+        // m_drive.getGyroAngle(),
+        // m_drive.getModulePositions(),
+        // robot_pose);
 
         setupDashboard();
 
@@ -72,21 +94,23 @@ public class SubsystemManager {
         double stick_a = getStickA.get();
         double stick_el = getStickEl.get();
 
+
         stick_x = (Math.abs(stick_x) < 0.1) ? 0 : stick_x;
         stick_y = (Math.abs(stick_y) < 0.1) ? 0 : stick_y;
         stick_a = (Math.abs(stick_a) < 0.1) ? 0 : stick_a;
 
-        double drive_x = -stick_x * 0.5 * Constants.Swerve.DRIVE_SPEED;
-        double drive_y = -stick_y * 0.5 * Constants.Swerve.DRIVE_SPEED;
-        double drive_a = -stick_a * 0.5 * Constants.Swerve.TURN_SPEED;
+        // stick_x = stick_x/Math.sqrt(stick_x*stick_x + stick_y*stick_y);
+        // stick_y = stick_y/Math.sqrt(stick_x*stick_x + stick_y*stick_y);
 
-        if (!AlgaeAlignmentPID.running) {
+        double drive_x = -stick_x * Constants.Swerve.DRIVE_SPEED;
+        double drive_y = -stick_y * Constants.Swerve.DRIVE_SPEED;
+        double drive_a = -stick_a * Constants.Swerve.TURN_SPEED;
+
+        // if (robot_state.drive_state == RobotState.DriveStates.FULL_CONTROL) {
             m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
-        }
+        // }
 
-        m_elevator.setpoint += Constants.Elevator.MAX_SPEED*stick_el;
-        
-        publishAdv();
+        // m_elevator.setpoint += Constants.Elevator.MAX_SPEED * stick_el;
     }
 
     public void publishAdv() {

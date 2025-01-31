@@ -38,6 +38,8 @@ public final class Constants {
     public static final int RIGHT_ELEVATOR_MOTOR = 11;
 
     public static final int SHOOTER_MOTOR = 12;
+
+    public static final int WRIST_MOTOR = 15;
   }
 
   public static class IO {
@@ -107,8 +109,8 @@ public final class Constants {
     public static final double OFFSET = 23.75 * 0.0254;
 
     public static final double MAX_SPEED = 3;
-    public static final double DRIVE_SPEED = 1.0;
-    public static final double TURN_SPEED = 1.0;
+    public static final double DRIVE_SPEED = 0.8;
+    public static final double TURN_SPEED = 0.8;
 
     public static class DriveMotorConfigs {
       public static final double kP = 0.3;

@@ -9,7 +9,6 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -30,10 +29,12 @@ public class AlgaeAlignmentPID extends Command {
 
   StructPublisher<Pose2d> adv_pose_pub;
 
-  public static boolean running = false;
-
   // final??? maybe
   // edge case to be added to style guide
+  TrapezoidProfile.Constraints X_CONSTRAINTS = new TrapezoidProfile.Constraints(3, 3);
+  TrapezoidProfile.Constraints Y_CONSTRAINTS = new TrapezoidProfile.Constraints(3, 3);
+  TrapezoidProfile.Constraints OMEGA_CONSTRAINTS = new TrapezoidProfile.Constraints(Math.toRadians(40),
+      Math.toRadians(20));
   TrapezoidProfile.Constraints X_CONSTRAINTS = new TrapezoidProfile.Constraints(3, 3);
   TrapezoidProfile.Constraints Y_CONSTRAINTS = new TrapezoidProfile.Constraints(3, 3);
   TrapezoidProfile.Constraints OMEGA_CONSTRAINTS = new TrapezoidProfile.Constraints(Math.toRadians(40),
@@ -46,15 +47,23 @@ public class AlgaeAlignmentPID extends Command {
   ProfiledPIDController y_controller = new ProfiledPIDController(1, 0, 0, Y_CONSTRAINTS);
   ProfiledPIDController omega_controller = new ProfiledPIDController(1, 0, 0, OMEGA_CONSTRAINTS);
 
+  ProfiledPIDController x_controller = new ProfiledPIDController(1, 0, 0, X_CONSTRAINTS);
+  ProfiledPIDController y_controller = new ProfiledPIDController(1, 0, 0, Y_CONSTRAINTS);
+  ProfiledPIDController omega_controller = new ProfiledPIDController(1, 0, 0, OMEGA_CONSTRAINTS);
+
   Transform3d OBJECT_TO_GOAL = new Transform3d(
       // 0.5 m behind
       new Translation3d(-0.5, 0.0, 0.0),
+      new Rotation3d(0.0, 0.0, -Math.PI));
       new Rotation3d(0.0, 0.0, -Math.PI));
 
   public AlgaeAlignmentPID(ObjectDetection m_object_detection, DriveTrain m_drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.
     this.m_object_detection = m_object_detection;
-    this.m_drivetrain = m_drivetrain;
+
+    x_controller.setTolerance(0.1);
+    y_controller.setTolerance(0.1);
+    omega_controller.setTolerance(Units.degreesToRadians(5));
 
     x_controller.setTolerance(0.1);
     y_controller.setTolerance(0.1);
@@ -62,7 +71,9 @@ public class AlgaeAlignmentPID extends Command {
 
     omega_controller.enableContinuousInput(-Math.PI, Math.PI);
 
+
     addRequirements(m_object_detection, m_drivetrain);
+
 
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable adv_vision = inst.getTable("adv_vision");
@@ -81,65 +92,69 @@ public class AlgaeAlignmentPID extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    if (m_object_detection.closest_pose != null) {
-      Pose3d object_pose = m_object_detection.closest_pose;
-      double x_dist = object_pose.getX() - robot_pose.getX();
-      double y_dist = object_pose.getY() - robot_pose.getY();
-
-      double target_angle = Math.atan2(y_dist, x_dist);
-
-      double dist = Math.sqrt(Math.pow(x_dist, 2) + Math.pow(y_dist, 2));
-
-      SmartDashboard.putNumber("x_dist", x_dist);
-      SmartDashboard.putNumber("y_dist", y_dist);
-      SmartDashboard.putNumber("dist", dist);
-      SmartDashboard.putNumber("t_ang", target_angle);
-      // offset from the algae
-      // Pose2d goalPose = objectPose.toPose2d().transformBy(new Transform2d(
-      // -x_dist,
-      // -y_dist,
-      // new Rotation2d()
-      // ));
-
-      Pose2d goal_pose = new Pose2d( // no likey transform2d
-          object_pose.getX() - 0.8 * x_dist / dist,
-          object_pose.getY() - 0.8 * y_dist / dist,
-          Rotation2d.fromRadians(target_angle));
-
-      adv_pose_pub.set(goal_pose);
-
-      x_controller.setGoal(goal_pose.getX());
-      y_controller.setGoal(goal_pose.getY());
-      // omegaController.setGoal(goalPose.getRotation().getRadians());
-      omega_controller.setGoal(goal_pose.getRotation().getRadians());
-
-      double x_speed = x_controller.calculate(m_drivetrain.odom_pose.getX());
-      if (x_controller.atSetpoint()) {
-        x_speed = 0;
-      }
-
-      double y_speed = y_controller.calculate(m_drivetrain.odom_pose.getY());
-      if (y_controller.atSetpoint()) {
-        y_speed = 0;
-      }
-
-      double omega_speed = omega_controller.calculate(robot_pose.getRotation().getRadians());
-      if (omega_controller.atSetpoint()) {
-        omega_speed = 0;
-      }
-      // System.out.println(xSpeed);
-
-      m_drivetrain.setSwerveDrive(x_speed, y_speed, omega_speed);
-    } else {
+    if (m_object_detection.closest_pose == null) {
       m_drivetrain.setSwerveDrive(0, 0, 0);
+      return;
     }
+
+    robot_pose = m_drivetrain.odom_pose;
+
+    Pose3d current_robot_pose = new Pose3d(
+        robot_pose.getX(),
+        robot_pose.getY(),
+        0.0,
+        new Rotation3d(0, 0, robot_pose.getRotation().getRadians()));
+
+    Pose3d object_pose = m_object_detection.closest_pose;
+    double x_dist = object_pose.getX() - robot_pose.getX();
+    double y_dist = object_pose.getY() - robot_pose.getY();
+
+    double target_angle = Math.atan2(y_dist, x_dist);
+
+    double dist = Math.sqrt(Math.pow(x_dist, 2) + Math.pow(y_dist, 2));
+    
+    // offset from the algae
+    // Pose2d goalPose = objectPose.toPose2d().transformBy(new Transform2d(
+    // -x_dist;
+    // -y_dist,
+    // new Rotation2d()
+    // ));
+
+    Pose2d goal_pose = new Pose2d( // no likey transform2d
+        object_pose.getX() - 0.8 * x_dist / dist,
+        object_pose.getY() - 0.8 * y_dist / dist,
+        Rotation2d.fromRadians(target_angle));
+
+    adv_pose_pub.set(goal_pose);
+
+    x_controller.setGoal(goal_pose.getX());
+    y_controller.setGoal(goal_pose.getY());
+    // omegaController.setGoal(goalPose.getRotation().getRadians());
+    omega_controller.setGoal(goal_pose.getRotation().getRadians());
+
+    double x_speed = x_controller.calculate(current_robot_pose.getX());
+    if (x_controller.atSetpoint()) {
+      x_speed = 0;
+    }
+
+    double y_speed = y_controller.calculate(current_robot_pose.getY());
+    if (y_controller.atSetpoint()) {
+      y_speed = 0;
+    }
+
+    double omega_speed = omega_controller.calculate(robot_pose.getRotation().getRadians());
+    if (omega_controller.atSetpoint()) {
+      omega_speed = 0;
+    }
+    // System.out.println(xSpeed);
+
+    m_drivetrain.setSwerveDrive(x_speed, y_speed, omega_speed);
   }
 
   // Called once the command ends or is interrupted.
   @Override
   public void end(boolean interrupted) {
     m_drivetrain.setSwerveDrive(0, 0, 0);
-    running = false;
   }
 
   // Returns true when the command should end.

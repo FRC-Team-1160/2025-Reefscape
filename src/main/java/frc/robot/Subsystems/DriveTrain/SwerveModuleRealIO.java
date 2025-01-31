@@ -16,7 +16,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.Swerve;
 import frc.robot.Constants.Swerve.DriveMotorConfigs;
 import frc.robot.Constants.Swerve.SteerMotorConfigs;
@@ -44,7 +43,7 @@ public class SwerveModuleRealIO extends SwerveModule{
       .withKA(DriveMotorConfigs.kA)
       .withKG(DriveMotorConfigs.kG);
 
-    drive_configs.Feedback.SensorToMechanismRatio = 5.01;
+    drive_configs.Feedback.SensorToMechanismRatio = 4.75; // 5.01;
 
     drive_motor.getConfigurator().apply(drive_configs);
 
@@ -63,8 +62,8 @@ public class SwerveModuleRealIO extends SwerveModule{
     steer_configs.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RemoteCANcoder;
     steer_configs.Feedback.SensorToMechanismRatio = -1; //motors reversed?
 
-    steer_configs.Voltage.PeakForwardVoltage = 2;
-    steer_configs.Voltage.PeakReverseVoltage = -2;
+    // steer_configs.Voltage.PeakForwardVoltage = 2;
+    // steer_configs.Voltage.PeakReverseVoltage = -2;
 
     steer_configs.ClosedLoopGeneral.ContinuousWrap = true;
 
@@ -86,7 +85,6 @@ public class SwerveModuleRealIO extends SwerveModule{
     //getPosition() returns StatusSignal<Angle> with base unit rotations
     double a = steer_sensor.getAbsolutePosition().getValueAsDouble();
     a = MathUtil.inputModulus(a, -0.5, 0.5);
-    SmartDashboard.putNumber("out_angle", a);
     return Rotation2d.fromRotations(a);
   }
 
@@ -95,7 +93,6 @@ public class SwerveModuleRealIO extends SwerveModule{
   }
 
   public SwerveModulePosition getModulePosition(){
-    SmartDashboard.putNumber("rotor_position", getPosition());
     return new SwerveModulePosition(getPosition(), getAngle());
   }
 
@@ -103,12 +100,11 @@ public class SwerveModuleRealIO extends SwerveModule{
    * @param speed the speed to go at, in meters per second.
    */
   public void setSpeed(double speed){
-    SmartDashboard.putNumber("in_speed", speed / Swerve.WHEEL_DIAMETER);
     drive_motor.setControl(new VelocityVoltage(speed / Swerve.WHEEL_DIAMETER));
+
   }
 
   public void setAngle(Rotation2d angle){
-    SmartDashboard.putNumber("in_angle", angle.getRotations());
     steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
   }
 
