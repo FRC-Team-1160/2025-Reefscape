@@ -12,10 +12,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 
 public class DriveTrainRealIO extends DriveTrain {
 
-  private AHRS m_gyro;
+  private AHRS gyro;
 
   public DriveTrainRealIO(){
-    m_gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
+    gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
   }
 
   public SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port){
@@ -23,13 +23,13 @@ public class DriveTrainRealIO extends DriveTrain {
   }
 
   public Rotation2d getGyroAngle() {
-    if (m_gyro != null) return Rotation2d.fromDegrees(-m_gyro.getAngle()); //gyro reports CW positive, negate to return CCW positive
+    if (gyro != null) return Rotation2d.fromDegrees(-gyro.getAngle()); //gyro reports CW positive, negate to return CCW positive
     return new Rotation2d();
   }
 
   public void resetGyroAngle() {
-    if (m_gyro != null) m_gyro.zeroYaw();
-    if (m_pose_estimator != null) m_pose_estimator.resetPose(new Pose2d(m_odom_pose.getX(), m_odom_pose.getY(), new Rotation2d()));
+    if (gyro != null) gyro.zeroYaw();
+    if (pose_estimator != null) pose_estimator.resetPose(new Pose2d(odom_pose.getX(), odom_pose.getY(), new Rotation2d()));
   }
 
   @Override

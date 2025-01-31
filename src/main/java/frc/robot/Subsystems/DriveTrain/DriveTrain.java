@@ -35,18 +35,18 @@ import frc.robot.Constants;
 public abstract class DriveTrain extends SubsystemBase {
 
   /** The drive train's SwerveModule objects. */
-  public SwerveModule[] m_modules;
+  public SwerveModule[] modules;
   /** @hidden */
-  public SwerveDriveKinematics m_kinematics;
+  public SwerveDriveKinematics kinematics;
   /** The desired module states. */
-  public SwerveModuleState[] m_module_states;
+  public SwerveModuleState[] module_states;
 
   /** Module positions for SwerveDrivePoseEstimator. */
-  public SwerveModulePosition[] m_module_positions;
+  public SwerveModulePosition[] module_positions;
   /** Pose estimator. */
-  public SwerveDrivePoseEstimator m_pose_estimator;
+  public SwerveDrivePoseEstimator pose_estimator;
   /** Odometry-based 2d pose. */
-  public Pose2d m_odom_pose;
+  public Pose2d odom_pose;
 
   /** State publisher for AdvantageScope. */
   protected StructArrayPublisher<SwerveModuleState> adv_real_states_pub, adv_target_states_pub;
@@ -54,39 +54,39 @@ public abstract class DriveTrain extends SubsystemBase {
   protected StructPublisher<Rotation2d> adv_gyro_pub;
 
   public DriveTrain() {
-    m_kinematics = new SwerveDriveKinematics(
+    kinematics = new SwerveDriveKinematics(
         new Translation2d(Constants.Swerve.OFFSET, Constants.Swerve.OFFSET), // front left
         new Translation2d(Constants.Swerve.OFFSET, -Constants.Swerve.OFFSET), // front right
         new Translation2d(-Constants.Swerve.OFFSET, Constants.Swerve.OFFSET), // back left
         new Translation2d(-Constants.Swerve.OFFSET, -Constants.Swerve.OFFSET) // back right
     );
 
-    m_modules = new SwerveModule[4];
-    m_modules[0] = initializeModule(Constants.Port.FRONT_LEFT_DRIVE_MOTOR, Constants.Port.FRONT_LEFT_STEER_MOTOR,
-        Constants.Port.FRONT_LEFT_CODER); // fl
-    m_modules[1] = initializeModule(Constants.Port.FRONT_RIGHT_DRIVE_MOTOR, Constants.Port.FRONT_RIGHT_STEER_MOTOR,
-        Constants.Port.FRONT_RIGHT_CODER); // fr
-    m_modules[2] = initializeModule(Constants.Port.BACK_LEFT_DRIVE_MOTOR, Constants.Port.BACK_LEFT_STEER_MOTOR,
-        Constants.Port.BACK_LEFT_CODER); // bl
-    m_modules[3] = initializeModule(Constants.Port.BACK_RIGHT_DRIVE_MOTOR, Constants.Port.BACK_RIGHT_STEER_MOTOR,
-        Constants.Port.BACK_RIGHT_CODER); // br
+    modules = new SwerveModule[4];
+    modules[0] = initializeModule(Constants.Port.FRONT_LEFT_DRIVE_MOTOR, Constants.Port.FRONT_LEFT_STEER_MOTOR,
+        Constants.Port.FRONT_LEFT_CODER);
+    modules[1] = initializeModule(Constants.Port.FRONT_RIGHT_DRIVE_MOTOR, Constants.Port.FRONT_RIGHT_STEER_MOTOR,
+        Constants.Port.FRONT_RIGHT_CODER);
+    modules[2] = initializeModule(Constants.Port.BACK_LEFT_DRIVE_MOTOR, Constants.Port.BACK_LEFT_STEER_MOTOR,
+        Constants.Port.BACK_LEFT_CODER);
+    modules[3] = initializeModule(Constants.Port.BACK_RIGHT_DRIVE_MOTOR, Constants.Port.BACK_RIGHT_STEER_MOTOR,
+        Constants.Port.BACK_RIGHT_CODER);
 
-    m_module_states = new SwerveModuleState[] {
+    module_states = new SwerveModuleState[] {
         new SwerveModuleState(),
         new SwerveModuleState(),
         new SwerveModuleState(),
         new SwerveModuleState()
     };
 
-    m_module_positions = new SwerveModulePosition[] {
+    module_positions = new SwerveModulePosition[] {
         new SwerveModulePosition(),
         new SwerveModulePosition(),
         new SwerveModulePosition(),
         new SwerveModulePosition(),
     };
 
-    m_odom_pose = new Pose2d();
-    m_pose_estimator = new SwerveDrivePoseEstimator(m_kinematics, getGyroAngle(), m_module_positions, m_odom_pose);
+    odom_pose = new Pose2d();
+    pose_estimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), module_positions, odom_pose);
 
     RobotConfig config;
     try {
@@ -96,9 +96,9 @@ public abstract class DriveTrain extends SubsystemBase {
       return;
     }
     AutoBuilder.configure(
-        () -> m_odom_pose,
-        m_pose_estimator::resetPose,
-        () -> m_kinematics.toChassisSpeeds(m_module_states),
+        () -> odom_pose,
+        pose_estimator::resetPose,
+        () -> kinematics.toChassisSpeeds(module_states),
         (speeds, feedforwards) -> setSwerveDrive(speeds),
         new PPHolonomicDriveController(
             new PIDConstants(Constants.Auto.translation_kP, Constants.Auto.translation_kI,
@@ -166,20 +166,20 @@ public abstract class DriveTrain extends SubsystemBase {
 
     SmartDashboard.putNumber("in_a", chassis_speeds.omegaRadiansPerSecond);
 
-    m_module_states = m_kinematics.toSwerveModuleStates(chassis_speeds);
+    module_states = kinematics.toSwerveModuleStates(chassis_speeds);
 
     // change target wheel directions if the wheel has to rotate more than 90*
-    for (int i = 0; i < m_module_states.length; i++) {
-      m_module_states[i].optimize(m_modules[i].getAngle());
+    for (int i = 0; i < module_states.length; i++) {
+      module_states[i].optimize(modules[i].getAngle());
     }
 
     // normalize wheel speeds of any are greater than max speed
-    SwerveDriveKinematics.desaturateWheelSpeeds(m_module_states, Constants.Swerve.MAX_SPEED);
+    SwerveDriveKinematics.desaturateWheelSpeeds(module_states, Constants.Swerve.MAX_SPEED);
+    
+    setModules(module_states);
 
-    setModules(m_module_states);
-
-    for (int i = 0; i < m_modules.length; i++) {
-      m_module_positions[i] = m_modules[i].getModulePosition();
+    for (int i = 0; i < modules.length; i++) {
+      module_positions[i] = modules[i].getModulePosition();
     }
   }
 
@@ -190,13 +190,12 @@ public abstract class DriveTrain extends SubsystemBase {
    */
 
   public void setModules(SwerveModuleState[] module_states) {
-    for (int i = 0; i < m_modules.length; i++) {
-      m_modules[i].setState(module_states[i]);
+    for (int i = 0; i < modules.length; i++) {
+      modules[i].setState(module_states[i]);
     }
   }
 
   // Thanks to Team 4738 for modified discretization code
-
   /**
    * Accounts for drift while simultaneously translating and rotating by
    * discretizing.
@@ -204,17 +203,16 @@ public abstract class DriveTrain extends SubsystemBase {
    * @param speeds Desired chassis speeds.
    * @return Adjusted chassis speeds.
    */
-
   public ChassisSpeeds discretize_chassis_speeds(ChassisSpeeds speeds) {
     double dt = Constants.Robot.LOOP_TIME_SECONDS;
     // makes a Pose2d for the target delta over one time loop
-    var desiredDeltaPose = new Pose2d(
+    var desired_delta_pose = new Pose2d(
         speeds.vxMetersPerSecond * dt,
         speeds.vyMetersPerSecond * dt,
         new Rotation2d(speeds.omegaRadiansPerSecond * dt * 1) // tunable
     );
     // makes a Twist2d object that maps new pose to delta pose
-    var twist = new Pose2d().log(desiredDeltaPose);
+    var twist = new Pose2d().log(desired_delta_pose);
 
     return new ChassisSpeeds((twist.dx / dt), (twist.dy / dt), (speeds.omegaRadiansPerSecond));
   }
@@ -226,9 +224,9 @@ public abstract class DriveTrain extends SubsystemBase {
    */
 
   public SwerveModulePosition[] getModulePositions() {
-    var positions = new SwerveModulePosition[m_modules.length];
-    for (int i = 0; i < m_modules.length; i++) {
-      positions[i] = m_modules[i].getModulePosition();
+    var positions = new SwerveModulePosition[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      positions[i] = modules[i].getModulePosition();
     }
     return positions;
   }
@@ -240,9 +238,9 @@ public abstract class DriveTrain extends SubsystemBase {
    */
 
   public SwerveModuleState[] getModuleStates() {
-    var states = new SwerveModuleState[m_modules.length];
-    for (int i = 0; i < m_modules.length; i++) {
-      states[i] = m_modules[i].getModuleState();
+    var states = new SwerveModuleState[modules.length];
+    for (int i = 0; i < modules.length; i++) {
+      states[i] = modules[i].getModuleState();
     }
     return states;
   }
@@ -279,17 +277,17 @@ public abstract class DriveTrain extends SubsystemBase {
       public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("SwerveDrive");
 
-        builder.addDoubleProperty("Front Left Angle", () -> m_module_states[0].angle.getDegrees(), null);
-        builder.addDoubleProperty("Front Left Velocity", () -> m_module_states[0].speedMetersPerSecond, null);
+        builder.addDoubleProperty("Front Left Angle", () -> module_states[0].angle.getDegrees(), null);
+        builder.addDoubleProperty("Front Left Velocity", () -> module_states[0].speedMetersPerSecond, null);
 
-        builder.addDoubleProperty("Front Right Angle", () -> m_module_states[1].angle.getDegrees(), null);
-        builder.addDoubleProperty("Front Right Velocity", () -> m_module_states[1].speedMetersPerSecond, null);
+        builder.addDoubleProperty("Front Right Angle", () -> module_states[1].angle.getDegrees(), null);
+        builder.addDoubleProperty("Front Right Velocity", () -> module_states[1].speedMetersPerSecond, null);
 
-        builder.addDoubleProperty("Back Left Angle", () -> m_module_states[2].angle.getDegrees(), null);
-        builder.addDoubleProperty("Back Left Velocity", () -> m_module_states[2].speedMetersPerSecond, null);
+        builder.addDoubleProperty("Back Left Angle", () -> module_states[2].angle.getDegrees(), null);
+        builder.addDoubleProperty("Back Left Velocity", () -> module_states[2].speedMetersPerSecond, null);
 
-        builder.addDoubleProperty("Back Right Angle", () -> m_module_states[3].angle.getDegrees(), null);
-        builder.addDoubleProperty("Back Right Velocity", () -> m_module_states[3].speedMetersPerSecond, null);
+        builder.addDoubleProperty("Back Right Angle", () -> module_states[3].angle.getDegrees(), null);
+        builder.addDoubleProperty("Back Right Velocity", () -> module_states[3].speedMetersPerSecond, null);
 
         builder.addDoubleProperty("Robot Angle", () -> getGyroAngle().getDegrees(), null);
       }
@@ -300,17 +298,17 @@ public abstract class DriveTrain extends SubsystemBase {
       public void initSendable(SendableBuilder builder) {
         builder.setSmartDashboardType("SwerveDrive");
 
-        builder.addDoubleProperty("Front Left Angle", () -> m_modules[0].getAngle().getDegrees(), null);
-        builder.addDoubleProperty("Front Left Velocity", () -> m_modules[0].getSpeed(), null);
+        builder.addDoubleProperty("Front Left Angle", () -> modules[0].getAngle().getDegrees(), null);
+        builder.addDoubleProperty("Front Left Velocity", () -> modules[0].getSpeed(), null);
 
-        builder.addDoubleProperty("Front Right Angle", () -> m_modules[1].getAngle().getDegrees(), null);
-        builder.addDoubleProperty("Front Right Velocity", () -> m_modules[1].getSpeed(), null);
+        builder.addDoubleProperty("Front Right Angle", () -> modules[1].getAngle().getDegrees(), null);
+        builder.addDoubleProperty("Front Right Velocity", () -> modules[1].getSpeed(), null);
 
-        builder.addDoubleProperty("Back Left Angle", () -> m_modules[2].getAngle().getDegrees(), null);
-        builder.addDoubleProperty("Back Left Velocity", () -> m_modules[2].getSpeed(), null);
+        builder.addDoubleProperty("Back Left Angle", () -> modules[2].getAngle().getDegrees(), null);
+        builder.addDoubleProperty("Back Left Velocity", () -> modules[2].getSpeed(), null);
 
-        builder.addDoubleProperty("Back Right Angle", () -> m_modules[3].getAngle().getDegrees(), null);
-        builder.addDoubleProperty("Back Right Velocity", () -> m_modules[3].getSpeed(), null);
+        builder.addDoubleProperty("Back Right Angle", () -> modules[3].getAngle().getDegrees(), null);
+        builder.addDoubleProperty("Back Right Velocity", () -> modules[3].getSpeed(), null);
 
         builder.addDoubleProperty("Robot Angle", () -> getGyroAngle().getDegrees(), null);
       }
@@ -324,19 +322,19 @@ public abstract class DriveTrain extends SubsystemBase {
 
   private void publishAdv() {
     adv_real_states_pub.set(getModuleStates());
-    adv_target_states_pub.set(m_module_states);
+    adv_target_states_pub.set(module_states);
     adv_gyro_pub.set(getGyroAngle());
   }
 
   @Override
   public void periodic() {
     SmartDashboard.putNumber("gyro", getGyroAngle().getDegrees());
-    SmartDashboard.putNumber("pose_angle", m_odom_pose.getRotation().getDegrees());
-    for (SwerveModule module : m_modules) {
+    SmartDashboard.putNumber("pose_angle", odom_pose.getRotation().getDegrees());
+    for (SwerveModule module : modules) {
       module.update();
     }
 
-    m_odom_pose = m_pose_estimator.update(getGyroAngle(), getModulePositions());
+    odom_pose = pose_estimator.update(getGyroAngle(), getModulePositions());
 
     publishAdv();
 

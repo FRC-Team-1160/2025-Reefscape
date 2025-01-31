@@ -4,7 +4,6 @@
 
 package frc.robot.Subsystems.DriveTrain;
 
-import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -35,6 +34,10 @@ public abstract class SwerveModule {
   abstract Rotation2d getAngle();
   abstract SwerveModuleState getModuleState();
   abstract SwerveModulePosition getModulePosition();
-  abstract void setSpeed(double speedMetersPerSecond);
+  /**
+   * 
+   * @param speed the speed to go at, in meters per second.
+   */
+  abstract void setSpeed(double speed);
   abstract void setAngle(Rotation2d angle);
 }
