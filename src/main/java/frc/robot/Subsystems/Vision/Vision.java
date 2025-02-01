@@ -5,7 +5,9 @@ import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
@@ -17,15 +19,15 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 
 public class Vision extends SubsystemBase {
-    public Pose3d pose;
-    public Pose3d photon_pose;
-    public Pose3d limelight_pose;
+    public Pose2d pose;
+    public Pose2d photon_pose;
+    public Pose2d limelight_pose;
 
     public int count;
 
-    StructPublisher<Pose3d> adv_pose_pub;
-    StructArrayPublisher<Pose3d> adv_target_pub;
-    StructPublisher<Pose3d> adv_tracked_pub;
+    StructPublisher<Pose2d> adv_pose_pub;
+    StructArrayPublisher<Pose2d> adv_target_pub;
+    StructPublisher<Pose2d> adv_tracked_pub;
 
     PhotonCamera photon_tag_camera;
     PhotonPoseEstimator photon_pose_estimator;
@@ -34,11 +36,11 @@ public class Vision extends SubsystemBase {
         if (Robot.isReal()){
             NetworkTableInstance inst = NetworkTableInstance.getDefault();
             NetworkTable adv_vision = inst.getTable("adv_vision");
-            adv_pose_pub = adv_vision.getStructTopic("Pose", Pose3d.struct).publish();
+            adv_pose_pub = adv_vision.getStructTopic("Pose", Pose2d.struct).publish();
 
             photon_tag_camera = new PhotonCamera("Arducam_OV9281_USB_Camera (1)");
 
-            pose = new Pose3d(0.12, 0, 0, new Rotation3d());
+            pose = new Pose2d(0.12, 0, new Rotation2d());
 
             AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
@@ -47,7 +49,7 @@ public class Vision extends SubsystemBase {
         }
     }
 
-    public Pose3d combinePoses(Pose3d photon_pose, double photon_weight, Pose3d limelight_pose, double limelight_weight) {
+    public Pose2d combinePoses(Pose2d photon_pose, double photon_weight, Pose2d limelight_pose, double limelight_weight) {
         double total_weight = photon_weight + limelight_weight;
         photon_weight /= total_weight;
         limelight_weight /= total_weight;
@@ -56,11 +58,11 @@ public class Vision extends SubsystemBase {
         double combinedX = photon_pose.getX() * photon_weight + limelight_pose.getX() * limelight_weight;
         double combinedY = photon_pose.getY() * photon_weight + limelight_pose.getY() * limelight_weight;
         // combine rotation
-        double photon_theta = photon_pose.getRotation().getZ();
-        double limelight_theta = limelight_pose.getRotation().getZ();
+        double photon_theta = photon_pose.getRotation().getRadians();
+        double limelight_theta = limelight_pose.getRotation().getRadians();
         double combined_theta = photon_theta * photon_weight + limelight_theta * limelight_weight;
 
-        return new Pose3d(combinedX, combinedY, photon_pose.getZ(), new Rotation3d(0, 0, combined_theta));
+        return new Pose2d(combinedX, combinedY, new Rotation2d(combined_theta));
     }
 
 
@@ -71,8 +73,8 @@ public class Vision extends SubsystemBase {
             if (photon_result.hasTargets()){
                 var update = photon_pose_estimator.update(photon_result);
                 if (update.isPresent()){
-                    photon_pose = update.get().estimatedPose;
-                    if (Math.abs(pose.getZ()) < 1){
+                    photon_pose = update.get().estimatedPose.toPose2d();
+                    if (Math.abs(pose.getRotation().getRadians()) < 1){
                     photon_pose_estimator.setReferencePose(photon_pose);
                     }
                 }
@@ -83,8 +85,8 @@ public class Vision extends SubsystemBase {
         if (photon_result.hasTargets()) {
             var update = photon_pose_estimator.update();
             if (update.isPresent()) {
-                photon_pose = update.get().estimatedPose;
-                if (Math.abs(pose.getZ()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
+                photon_pose = update.get().estimatedPose.toPose2d();
+                if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
             }
         }
         
@@ -138,7 +140,7 @@ public class Vision extends SubsystemBase {
         // }
 
         // testing object detection
-        pose = new Pose3d(13, 7, 0, new Rotation3d(0.0, 0.0, Math.PI));
+        pose = new Pose2d(13, 7, new Rotation2d(Math.PI));
         adv_pose_pub.set(pose);
     }
 }

@@ -13,6 +13,7 @@ import org.photonvision.targeting.TargetCorner;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
@@ -28,10 +29,10 @@ import frc.robot.Robot;
 public class ObjectDetection extends SubsystemBase {
   private PhotonCamera detector;
 
-  public Pose3d closest_pose;
+  public Pose2d closest_pose;
   private Pose2d robot_pose;
 
-  StructPublisher<Pose3d> adv_closest_pub;
+  StructPublisher<Pose2d> adv_closest_pub;
   StructSubscriber<Pose2d> adv_robot_pose_sub;
 
   StructArrayPublisher<Translation2d> adv_corners_pub; // jank
@@ -48,14 +49,14 @@ public class ObjectDetection extends SubsystemBase {
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable adv_vision = inst.getTable("adv_vision");
     NetworkTable adv_swerve = inst.getTable("adv_swerve");
-    adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
+    adv_closest_pub = adv_vision.getStructTopic("Closest", Pose2d.struct).publish();
     adv_corners_pub = adv_vision.getStructArrayTopic("Target Corners", Translation2d.struct).publish();
 
     adv_robot_pose_sub = adv_swerve.getStructTopic("Pose", Pose2d.struct).subscribe(new Pose2d(),
         PubSubOption.keepDuplicates(true));
   }
 
-  public Pose3d getObjectPose3D(Pose2d robot_pose, double distance, double angle_to_target) {
+  public Pose2d getObjectPose(Pose2d robot_pose, double distance, double angle_to_target) {
     // Robot's global heading
     double robot_theta = robot_pose.getRotation().getRadians();
 
@@ -66,7 +67,7 @@ public class ObjectDetection extends SubsystemBase {
 
     // If you don't know the object's actual heading, just store globalAngle or 0.
     // We'll just store the object's "facing" as globalAngle here for demonstration.
-    return new Pose3d(x, y, 0.21, new Rotation3d(0, 0, global_angle));
+    return new Pose2d(x, y, new Rotation2d(global_angle));
   }
 
   // public static double[] getDistance(double targetWidthPixel, double
@@ -122,18 +123,18 @@ public class ObjectDetection extends SubsystemBase {
     return new double[] { distance, horizontal_offset };
   }
 
-  public Pose3d getClosestTarget(ArrayList<Target> targets) {
-    double min_dist = Double.MAX_VALUE;
-    Target result = new Target();
-    for (Target target : targets) {
-      if (target.direct_distance < min_dist) {
-        min_dist = target.direct_distance;
-        result = target;
-      }
-    }
-    double angle_to_target = Math.atan(result.offset / result.distance);
-    return getObjectPose3D(robot_pose, result.distance, angle_to_target);
-  }
+  // public Pose2d getClosestTarget(ArrayList<Target> targets) {
+  //   double min_dist = Double.MAX_VALUE;
+  //   Target result = new Target();
+  //   for (Target target : targets) {
+  //     if (target.direct_distance < min_dist) {
+  //       min_dist = target.direct_distance;
+  //       result = target;
+  //     }
+  //   }
+  //   double angle_to_target = Math.atan(result.offset / result.distance);
+  //   return getObjectPose3D(robot_pose, result.distance, angle_to_target);
+  // }
 
   @Override
   public void periodic() {
@@ -143,14 +144,14 @@ public class ObjectDetection extends SubsystemBase {
     robot_pose = adv_robot_pose_sub.get();
 
     if (Robot.isSimulation()) {
-      closest_pose = new Pose3d(1, 7, 0, new Rotation3d(0, 0, Math.PI));
+      closest_pose = new Pose2d(1, 7, new Rotation2d(Math.PI));
       adv_closest_pub.set(closest_pose);
       return;
     }
 
     var result = detector.getLatestResult();
     List<PhotonTrackedTarget> targets = result.getTargets();
-    ArrayList<Pose3d> target_poses = new ArrayList<Pose3d>();
+    ArrayList<Pose2d> target_poses = new ArrayList<Pose2d>();
     ArrayList<Target> target_distances = new ArrayList<Target>();
 
     for (PhotonTrackedTarget target : targets) {
@@ -178,7 +179,7 @@ public class ObjectDetection extends SubsystemBase {
       double angle_to_target = Math.atan(offset / distance);
       double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
 
-      target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
+      target_poses.add(getObjectPose(robot_pose, distance, angle_to_target));
       target_distances.add(new Target(distance, offset, direct_distance));
     }
 

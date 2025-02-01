@@ -6,7 +6,6 @@ package frc.robot.Commands;
 
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
@@ -77,7 +76,7 @@ public class AlgaeAlignmentPID extends Command {
   @Override
   public void execute() {
     if (m_object_detection.closest_pose != null) {
-      Pose3d object_pose = m_object_detection.closest_pose;
+      Pose2d object_pose = m_object_detection.closest_pose;
       double x_dist = object_pose.getX() - m_drivetrain.odom_pose.getX();
       double y_dist = object_pose.getY() - m_drivetrain.odom_pose.getY();
 
