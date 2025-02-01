@@ -65,7 +65,7 @@ public class Elevator extends SubsystemBase {
     boolean shoot = m_rightBoard.getRawButton(9);
     if (shoot){
       shooter_motor.set(0.5);
-    }else{
+    }else {
       shooter_motor.set(0);
     }
 
