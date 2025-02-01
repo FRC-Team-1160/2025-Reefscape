@@ -61,6 +61,14 @@ public class Elevator extends SubsystemBase {
     SmartDashboard.putNumber("left_motor_encoder", left_motor.getPosition().getValueAsDouble());
     left_motor.setControl(new VoltageOut(-direction));
     right_motor.setControl(new VoltageOut(direction));
+
+    boolean shoot = m_rightBoard.getRawButton(9);
+    if (shoot){
+      shooter_motor.set(0.5);
+    }else{
+      shooter_motor.set(0);
+    }
+
   }
 
   @Override
