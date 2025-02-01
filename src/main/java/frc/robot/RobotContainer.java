@@ -58,6 +58,15 @@ public class RobotContainer {
     );
 
 
+
+    new JoystickButton(right_board, 9).onTrue(
+      new StartEndCommand(
+        () -> m_subsystem_manager.m_elevator.setShooter(0.5),
+        () -> m_subsystem_manager.m_elevator.setShooter(0.5)
+      )
+    );
+
+
     // new JoystickButton(main_stick, 3)
     //   .whileTrue(new StartEndCommand(
     //     () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.PID_CONTROL;},
