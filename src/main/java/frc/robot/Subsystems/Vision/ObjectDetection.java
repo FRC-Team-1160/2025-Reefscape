@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.photonvision.PhotonCamera;
-import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.TargetCorner;
 
@@ -29,17 +28,10 @@ import frc.robot.Robot;
 public class ObjectDetection extends SubsystemBase {
   private PhotonCamera detector;
 
-
-  public boolean has_target;
   public Pose3d closest_pose;
-  private ArrayList<Pose3d> target_poses = new ArrayList<>();
-  private ArrayList<Target> target_distances = new ArrayList<>();
-  public Target closest_target = new Target();
-
   private Pose2d robot_pose;
 
   StructPublisher<Pose3d> adv_closest_pub;
-  StructArrayPublisher<Pose3d> adv_targets_pub;
   StructSubscriber<Pose2d> adv_robot_pose_sub;
 
   StructArrayPublisher<Translation2d> adv_corners_pub; // jank
@@ -56,7 +48,6 @@ public class ObjectDetection extends SubsystemBase {
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable adv_vision = inst.getTable("adv_vision");
     NetworkTable adv_swerve = inst.getTable("adv_swerve");
-    adv_targets_pub = adv_vision.getStructArrayTopic("Target", Pose3d.struct).publish();
     adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
     adv_corners_pub = adv_vision.getStructArrayTopic("Target Corners", Translation2d.struct).publish();
 
@@ -149,6 +140,8 @@ public class ObjectDetection extends SubsystemBase {
     // This method will be called once per scheduler run
     // closestDistance = getDistance(413.0, 2.4, 413.0);
 
+    robot_pose = adv_robot_pose_sub.get();
+
     if (Robot.isSimulation()) {
       closest_pose = new Pose3d(1, 7, 0, new Rotation3d(0, 0, Math.PI));
       adv_closest_pub.set(closest_pose);
@@ -157,11 +150,15 @@ public class ObjectDetection extends SubsystemBase {
 
     var result = detector.getLatestResult();
     List<PhotonTrackedTarget> targets = result.getTargets();
+    ArrayList<Pose3d> target_poses = new ArrayList<Pose3d>();
+    ArrayList<Target> target_distances = new ArrayList<Target>();
+
     for (PhotonTrackedTarget target : targets) {
-      double minX = Double.MIN_VALUE;
-      double minY = Double.MIN_VALUE;
-      double maxX = Double.MAX_VALUE;
-      double maxY = Double.MAX_VALUE;
+
+      double minX = Double.MAX_VALUE;
+      double minY = Double.MAX_VALUE;
+      double maxX = Double.MIN_VALUE;
+      double maxY = Double.MIN_VALUE;
 
       for (TargetCorner corner : target.getMinAreaRectCorners()) {
         minX = Math.min(minX, corner.x);
@@ -184,21 +181,10 @@ public class ObjectDetection extends SubsystemBase {
       target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
       target_distances.add(new Target(distance, offset, direct_distance));
     }
-      target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
-      target_distances.add(new Target(distance, offset, direct_distance));
-    }
 
     if (target_poses.size() >= 1) {
-      // adv_targetsPub.set(targetPoses);
       adv_closest_pub.set(target_poses.get(0));
-      closest_pose = getClosestTarget(target_distances);
-    }
-  }
-}
-    if (target_poses.size() >= 1) {
-      // adv_targetsPub.set(targetPoses);
-      adv_closest_pub.set(target_poses.get(0));
-      closest_pose = getClosestTarget(target_distances);
+      closest_pose = target_poses.get(0);
     }
   }
 }

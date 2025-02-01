@@ -9,8 +9,9 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import frc.robot.Commands.Controller;
 import frc.robot.Subsystems.Claw.Claw;
+import frc.robot.Commands.AlgaeAlignmentPID;
+import frc.robot.Subsystems.Elevator;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
@@ -39,6 +40,7 @@ public class SubsystemManager {
     public ObjectDetection m_object_detection;
     public Claw m_claw;
 
+    public AlgaeAlignmentPID algae_alignment_PID;
 
 
     public RobotState robot_state = new RobotState();
@@ -58,7 +60,7 @@ public class SubsystemManager {
             this.m_drive = new DriveTrainRealIO();
             this.m_claw = new Claw();
             this.m_elevator = new Elevator();
-            m_vision = new Vision();
+            // m_vision = new Vision();
             m_object_detection = new ObjectDetection();
         }
 
@@ -66,6 +68,8 @@ public class SubsystemManager {
         this.getStickY = getStickY;
         this.getStickA = getStickA;
         this.getStickEl = getStickEl;
+
+        algae_alignment_PID = new AlgaeAlignmentPID(m_object_detection, m_drive);
 
         // robot_pose = new Pose2d();
         // m_pose_estimator = new SwerveDrivePoseEstimator(
@@ -106,9 +110,9 @@ public class SubsystemManager {
         double drive_y = -stick_y * Constants.Swerve.DRIVE_SPEED;
         double drive_a = -stick_a * Constants.Swerve.TURN_SPEED;
 
-        // if (robot_state.drive_state == RobotState.DriveStates.FULL_CONTROL) {
+        if (!algae_alignment_PID.isScheduled()) {
             m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
-        // }
+        }
 
         // m_elevator.setpoint += Constants.Elevator.MAX_SPEED * stick_el;
     }

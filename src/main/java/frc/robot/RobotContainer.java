@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import frc.robot.Commands.SpeedController;
 import frc.robot.Commands.AlgaeAlignmentPID;
-import frc.robot.Commands.Controller;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 
 public class RobotContainer {
@@ -58,12 +57,17 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
+
+    // new JoystickButton(main_stick, 3)
+    //   .whileTrue(new StartEndCommand(
+    //     () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.PID_CONTROL;},
+    //     () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.FULL_CONTROL;}
+    //   ));
+    // }
+
     new JoystickButton(main_stick, 3)
-      .whileTrue(new StartEndCommand(
-        () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.PID_CONTROL;},
-        () -> {m_subsystem_manager.robot_state.drive_state = SubsystemManager.RobotState.DriveStates.FULL_CONTROL;}
-      ));
-    }
+      .whileTrue(m_subsystem_manager.algae_alignment_PID);
+  }
 
   public Command getAutonomousCommand() {
     return auto_chooser.getSelected();
