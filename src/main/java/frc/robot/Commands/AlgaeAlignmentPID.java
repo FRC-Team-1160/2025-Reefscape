@@ -28,11 +28,6 @@ public class AlgaeAlignmentPID extends Command {
   Pose2d robot_pose;
 
   StructPublisher<Pose2d> adv_pose_pub;
-<<<<<<< HEAD
-
-  public static boolean running = false;
-=======
->>>>>>> 5c4ccfa99e0daa98fc42279d125469e1dd6b61a9
 
   // final??? maybe
   // edge case to be added to style guide
@@ -82,59 +77,6 @@ public class AlgaeAlignmentPID extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-<<<<<<< HEAD
-    if (m_object_detection.closest_pose != null) {
-      Pose3d object_pose = m_object_detection.closest_pose;
-      double x_dist = object_pose.getX() - robot_pose.getX();
-      double y_dist = object_pose.getY() - robot_pose.getY();
-
-      double target_angle = Math.atan2(y_dist, x_dist);
-
-      double dist = Math.sqrt(Math.pow(x_dist, 2) + Math.pow(y_dist, 2));
-
-      SmartDashboard.putNumber("x_dist", x_dist);
-      SmartDashboard.putNumber("y_dist", y_dist);
-      SmartDashboard.putNumber("dist", dist);
-      SmartDashboard.putNumber("t_ang", target_angle);
-      // offset from the algae
-      // Pose2d goalPose = objectPose.toPose2d().transformBy(new Transform2d(
-      // -x_dist,
-      // -y_dist,
-      // new Rotation2d()
-      // ));
-
-      Pose2d goal_pose = new Pose2d( // no likey transform2d
-          object_pose.getX() - 0.8 * x_dist / dist,
-          object_pose.getY() - 0.8 * y_dist / dist,
-          Rotation2d.fromRadians(target_angle));
-
-      adv_pose_pub.set(goal_pose);
-
-      x_controller.setGoal(goal_pose.getX());
-      y_controller.setGoal(goal_pose.getY());
-      // omegaController.setGoal(goalPose.getRotation().getRadians());
-      omega_controller.setGoal(goal_pose.getRotation().getRadians());
-
-      double x_speed = x_controller.calculate(m_drivetrain.odom_pose.getX());
-      if (x_controller.atSetpoint()) {
-        x_speed = 0;
-      }
-
-      double y_speed = y_controller.calculate(m_drivetrain.odom_pose.getY());
-      if (y_controller.atSetpoint()) {
-        y_speed = 0;
-      }
-
-      double omega_speed = omega_controller.calculate(robot_pose.getRotation().getRadians());
-      if (omega_controller.atSetpoint()) {
-        omega_speed = 0;
-      }
-      // System.out.println(xSpeed);
-
-      m_drivetrain.setSwerveDrive(x_speed, y_speed, omega_speed);
-    } else {
-      m_drivetrain.setSwerveDrive(0, 0, 0);
-=======
     if (m_object_detection.closest_pose == null) {
       m_drivetrain.setSwerveDrive(0, 0, 0);
       return;
@@ -178,7 +120,6 @@ public class AlgaeAlignmentPID extends Command {
     double x_speed = x_controller.calculate(current_robot_pose.getX());
     if (x_controller.atSetpoint()) {
       x_speed = 0;
->>>>>>> 5c4ccfa99e0daa98fc42279d125469e1dd6b61a9
     }
 
     double y_speed = y_controller.calculate(current_robot_pose.getY());
@@ -199,10 +140,6 @@ public class AlgaeAlignmentPID extends Command {
   @Override
   public void end(boolean interrupted) {
     m_drivetrain.setSwerveDrive(0, 0, 0);
-<<<<<<< HEAD
-    running = false;
-=======
->>>>>>> 5c4ccfa99e0daa98fc42279d125469e1dd6b61a9
   }
 
   // Returns true when the command should end.
