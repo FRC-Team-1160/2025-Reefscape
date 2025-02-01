@@ -4,8 +4,6 @@
 
 package frc.robot.Commands;
 
-import java.util.function.Supplier;
-
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -27,7 +25,7 @@ import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class SpeedController extends Command {  
+public class PIDController extends Command {  
   /** Creates a new AlgaeAlignmentPID. */
   Pose2d target_pose;
   Pose2d robot_pose;
@@ -47,7 +45,7 @@ public class SpeedController extends Command {
   ProfiledPIDController y_controller = new ProfiledPIDController(1, 0, 0, Y_CONSTRAINTS);
   ProfiledPIDController omega_controller = new ProfiledPIDController(1, 0, 0, OMEGA_CONSTRAINTS);
 
-  public SpeedController(
+  public PIDController(
       ObjectDetection m_object_detection,
       DriveTrain m_drivetrain) {
     // Use addRequirements() here to declare subsystem dependencies.

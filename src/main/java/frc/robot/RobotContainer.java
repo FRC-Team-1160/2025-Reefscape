@@ -15,7 +15,7 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Commands.SpeedController;
+import frc.robot.Commands.PIDController;
 import frc.robot.Commands.AlgaeAlignmentPID;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 
