@@ -22,7 +22,6 @@ import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.networktables.StructSubscriber;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Vision;
 import frc.robot.Robot;
@@ -111,7 +110,6 @@ public class ObjectDetection extends SubsystemBase {
     double focal_length = getFocalLength(Vision.SCREEN_WIDTH, Vision.CAMERA_X_FOV);
     if (target_width > 0) {
       distance = 250.0d / target_width; // (focalLengthPx * targetWidthM) / targetWidthPixel;
-      SmartDashboard.putNumber("Vison Distance", distance);
 
     } else {
       distance = Double.POSITIVE_INFINITY;
@@ -166,25 +164,16 @@ public class ObjectDetection extends SubsystemBase {
         maxY = Math.max(maxY, corner.y);
       }
 
-      double midpoint = (maxX + minX) / 2;
+      double midpoint = (maxX + minX)/2;
       double width = maxX - minX;
       double height = maxY - minY;
 
-      SmartDashboard.putNumber("minY", minY);
-      SmartDashboard.putNumber("maxY", maxY);
-      SmartDashboard.putNumber("tempHeight", height);
-
       double[] temp_dist = getDistance(width, height, midpoint);
-      // double distance = tempDistance[0] + 0.55;
       double distance = temp_dist[0];
-
       double offset = -temp_dist[1] + 0.24;
-      // double distance = 230 / tempWidthPixel;
-      // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
+
       double angle_to_target = Math.atan(offset / distance);
       double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
-      SmartDashboard.putNumber("tempHeight2", height);
-      System.out.println(distance);
 
       target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
       target_distances.add(new Target(distance, offset, direct_distance));

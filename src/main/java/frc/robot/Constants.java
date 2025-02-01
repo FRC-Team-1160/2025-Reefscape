@@ -38,6 +38,8 @@ public final class Constants {
     public static final int RIGHT_ELEVATOR_MOTOR = 11;
 
     public static final int SHOOTER_MOTOR = 12;
+
+    public static final int WRIST_MOTOR = 15;
   }
 
   public static class IO {
