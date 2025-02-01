@@ -6,6 +6,8 @@ package frc.robot.Subsystems.DriveTrain;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
@@ -102,13 +104,12 @@ public class SwerveModuleRealIO extends SwerveModule{
    */
   public void setSpeed(double speed){
     SmartDashboard.putNumber("in_speed", speed / Swerve.WHEEL_DIAMETER);
-    // drive_motor.setControl(new VelocityVoltage(speedMetersPerSecond / Swerve.WHEEL_DIAMETER));
-
+    drive_motor.setControl(new VelocityVoltage(speed / Swerve.WHEEL_DIAMETER));
   }
 
   public void setAngle(Rotation2d angle){
     SmartDashboard.putNumber("in_angle", angle.getRotations());
-    // steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
+    steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
   }
 
 }

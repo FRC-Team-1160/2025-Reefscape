@@ -29,7 +29,7 @@ import frc.robot.Robot;
 
 public class ObjectDetection extends SubsystemBase {
   private PhotonCamera detector;
-  
+
   public boolean has_target;
   public Pose3d closest_pose;
   private ArrayList<Pose3d> target_poses = new ArrayList<>();
@@ -91,18 +91,17 @@ public class ObjectDetection extends SubsystemBase {
   /**
    * 
    * @param image_width in pixels
-   * @param x_fov in radians
+   * @param x_fov       in radians
    * @return
    */
   private double getFocalLength(int image_width, double x_fov) {
     return (image_width / 2.0d) / Math.tan(x_fov / 2.0d);
   }
 
-  
   /**
-   * @param target_width in pixels
+   * @param target_width  in pixels
    * @param target_height in pixels
-   * @param target_x in pixels
+   * @param target_x      in pixels
    * @return [distance, offset] in meters
    */
   public double[] getDistance(double target_width, double target_height, double target_x) {
@@ -118,7 +117,7 @@ public class ObjectDetection extends SubsystemBase {
       distance = Double.POSITIVE_INFINITY;
     }
 
-    distance = 261/(Math.max(target_width, target_height)) - 0.04 + 0.35;
+    distance = 261 / (Math.max(target_width, target_height)) - 0.04 + 0.35;
 
     double image_center = Vision.SCREEN_WIDTH / 2.0;
     double fraction_off_center = (target_x - image_center) / image_center;
@@ -152,49 +151,49 @@ public class ObjectDetection extends SubsystemBase {
       return;
     }
 
-      var result = detector.getLatestResult();
-      List<PhotonTrackedTarget> targets = result.getTargets();
-      for (PhotonTrackedTarget target : targets) {
-        double minX = Double.MIN_VALUE; double minY = Double.MIN_VALUE;
-        double maxX = Double.MAX_VALUE; double maxY = Double.MAX_VALUE;
-        
-        for (TargetCorner corner : target.getMinAreaRectCorners()) {
-          minX = Math.min(minX, corner.x);
-          maxX = Math.max(maxX, corner.x);
-          minY = Math.min(minY, corner.y);
-          maxY = Math.max(maxY, corner.y);
-        }
-        
-        int midpoint = (maxX + minX) / 2;
-        double width = maxX - minX;
-        double height = maxY - minY;
+    var result = detector.getLatestResult();
+    List<PhotonTrackedTarget> targets = result.getTargets();
+    for (PhotonTrackedTarget target : targets) {
+      double minX = Double.MIN_VALUE;
+      double minY = Double.MIN_VALUE;
+      double maxX = Double.MAX_VALUE;
+      double maxY = Double.MAX_VALUE;
 
-        SmartDashboard.putNumber("minY", minY);
-        SmartDashboard.putNumber("maxY", maxY);
-        SmartDashboard.putNumber("tempHeight", height);
-
-
-        double[] temp_dist = getDistance(width, height, midpoint);
-        // double distance = tempDistance[0] + 0.55;
-        double distance = test_dist[0];
-
-        double offset = - temp_dist[1] + 0.24;
-        // double distance = 230 / tempWidthPixel;
-        // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
-        double angle_to_target = Math.atan(offset/distance);
-        double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
-        SmartDashboard.putNumber("tempHeight2", height);
-        System.out.println(distance);
-
-        target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
-        target_distances.add(new Target(distance, offset, direct_distance));
+      for (TargetCorner corner : target.getMinAreaRectCorners()) {
+        minX = Math.min(minX, corner.x);
+        maxX = Math.max(maxX, corner.x);
+        minY = Math.min(minY, corner.y);
+        maxY = Math.max(maxY, corner.y);
       }
 
-      if (target_poses.size() >= 1) {
-        // adv_targetsPub.set(targetPoses);
-        adv_closest_pub.set(target_poses.get(0));
-        closest_pose = getClosestTarget(target_distances);
-      }
+      double midpoint = (maxX + minX) / 2;
+      double width = maxX - minX;
+      double height = maxY - minY;
+
+      SmartDashboard.putNumber("minY", minY);
+      SmartDashboard.putNumber("maxY", maxY);
+      SmartDashboard.putNumber("tempHeight", height);
+
+      double[] temp_dist = getDistance(width, height, midpoint);
+      // double distance = tempDistance[0] + 0.55;
+      double distance = temp_dist[0];
+
+      double offset = -temp_dist[1] + 0.24;
+      // double distance = 230 / tempWidthPixel;
+      // double offset = -(tempMidpoint - (horizontalScreenPixel/2))*0.012 - 0.28;
+      double angle_to_target = Math.atan(offset / distance);
+      double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
+      SmartDashboard.putNumber("tempHeight2", height);
+      System.out.println(distance);
+
+      target_poses.add(getObjectPose3D(robot_pose, distance, angle_to_target));
+      target_distances.add(new Target(distance, offset, direct_distance));
+    }
+
+    if (target_poses.size() >= 1) {
+      // adv_targetsPub.set(targetPoses);
+      adv_closest_pub.set(target_poses.get(0));
+      closest_pose = getClosestTarget(target_distances);
     }
   }
 }

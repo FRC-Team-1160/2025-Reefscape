@@ -8,10 +8,10 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import frc.robot.Commands.AlgaeAlignmentPID;
+import frc.robot.Subsystems.Elevator;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
-import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 
@@ -63,7 +63,7 @@ public class SubsystemManager {
     }
 
     public void periodic_disabled() {
-        publishAdv();
+
     }
 
     public void periodic() {
@@ -85,8 +85,8 @@ public class SubsystemManager {
         }
 
         m_elevator.setpoint += Constants.Elevator.MAX_SPEED*stick_el;
-    
-        periodic();
+        
+        publishAdv();
     }
 
     public void publishAdv() {
