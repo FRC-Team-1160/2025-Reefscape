@@ -133,17 +133,18 @@ public abstract class DriveTrain extends SubsystemBase {
    * Calculates and sends inputs to swerve modules given field-relative speeds.
    * Calls setSwerveDrive(ChassisSpeeds chassis_speeds)
    * 
-   * @param x_metersPerSecond  X-axis speed in m/s. Forward is positive.
-   * @param y_metersPerSecond  Y-axis speed in m/s. Right is positive.
-   * @param a_radiansPerSecond Angular speed in rad/s. CCW is positive.
+   * @param x_speed  X-axis speed in m/s. Forward is positive.
+   * @param y_speed  Y-axis speed in m/s. Right is positive.
+   * @param a_speed Angular speed in rad/s. CCW is positive.
    */
 
-  public void setSwerveDrive(double x_metersPerSecond, double y_metersPerSecond, double a_radiansPerSecond) {
+  public void setSwerveDrive(double x_speed, double y_speed, double a_speed) {
     // converts speeds from field's frame of reference to robot's frame of reference
+
     ChassisSpeeds chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-        x_metersPerSecond,
-        y_metersPerSecond,
-        a_radiansPerSecond,
+        x_speed,
+        y_speed,
+        a_speed,
         getGyroAngle());
     setSwerveDrive(chassis_speeds);
   }
@@ -157,14 +158,10 @@ public abstract class DriveTrain extends SubsystemBase {
   public void setSwerveDrive(ChassisSpeeds chassis_speeds) {
     // fix weird change over time shenanigans
 
-    SmartDashboard.putNumber("in_x", chassis_speeds.vxMetersPerSecond);
-    SmartDashboard.putNumber("in_y", chassis_speeds.vyMetersPerSecond);
-
     chassis_speeds.omegaRadiansPerSecond *= -1;
 
     chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
-    SmartDashboard.putNumber("in_a", chassis_speeds.omegaRadiansPerSecond);
 
     module_states = kinematics.toSwerveModuleStates(chassis_speeds);
 
@@ -177,7 +174,7 @@ public abstract class DriveTrain extends SubsystemBase {
     SwerveDriveKinematics.desaturateWheelSpeeds(module_states, Constants.Swerve.MAX_SPEED);
     
     setModules(module_states);
-
+    
     for (int i = 0; i < modules.length; i++) {
       module_positions[i] = modules[i].getModulePosition();
     }

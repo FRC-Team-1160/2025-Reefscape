@@ -107,8 +107,8 @@ public final class Constants {
     public static final double OFFSET = 23.75 * 0.0254;
 
     public static final double MAX_SPEED = 3;
-    public static final double DRIVE_SPEED = 0.5;
-    public static final double TURN_SPEED = 0.5;
+    public static final double DRIVE_SPEED = 1.0;
+    public static final double TURN_SPEED = 1.0;
 
     public static class DriveMotorConfigs {
       public static final double kP = 0.3;

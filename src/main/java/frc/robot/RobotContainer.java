@@ -23,8 +23,8 @@ public class RobotContainer {
   private Joystick right_board = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
 
   public final SubsystemManager m_subsystem_manager = new SubsystemManager(
+    () -> main_stick.getRawAxis(1), // i think these should be swapped
     () -> main_stick.getRawAxis(0),
-    () -> main_stick.getRawAxis(1),
     () -> second_stick.getRawAxis(0),
     () -> right_board.getRawAxis(1)
   );
