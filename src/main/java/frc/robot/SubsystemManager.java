@@ -7,16 +7,14 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import frc.robot.Subsystems.Claw.Claw;
 import frc.robot.Commands.AlgaeAlignmentPID;
-import frc.robot.Subsystems.Elevator;
+import frc.robot.Subsystems.Claw.Claw;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
-import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
-import frc.robot.Subsystems.Vision.Vision;
+import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO;
+import frc.robot.Subsystems.Elevator;
 import frc.robot.Subsystems.Vision.ObjectDetection;
+import frc.robot.Subsystems.Vision.Vision; //Simulation can't identify sim class without this for some reason
 
 public class SubsystemManager {
 
@@ -58,8 +56,8 @@ public class SubsystemManager {
             this.m_drive = new DriveTrainSimIO();
         } else {
             this.m_drive = new DriveTrainRealIO();
-            this.m_claw = new Claw();
-            this.m_elevator = new Elevator();
+            // this.m_claw = new Claw();
+            // this.m_elevator = new Elevator();
             // m_vision = new Vision();
             m_object_detection = new ObjectDetection();
         }
@@ -114,7 +112,9 @@ public class SubsystemManager {
             m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
         }
 
-        // m_elevator.setpoint += Constants.Elevator.MAX_SPEED * stick_el;
+        // m_elevator.setpoint += Constants.Elevator.MAX_SPEED*stick_el;
+
+        publishAdv();
     }
 
     public void publishAdv() {

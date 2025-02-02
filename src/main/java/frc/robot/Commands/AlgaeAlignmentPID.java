@@ -8,6 +8,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
@@ -136,7 +137,9 @@ public class AlgaeAlignmentPID extends Command {
       x_speed = current_velocity.getX() + x_accel;
       y_speed = current_velocity.getY() + y_accel;
 
-      m_drivetrain.setSwerveDrive(x_speed, y_speed, omega_speed);
+      ChassisSpeeds speeds = ChassisSpeeds.fromFieldRelativeSpeeds(x_speed, y_speed, omega_speed, m_drivetrain.getGyroAngle());
+
+      m_drivetrain.setSwerveDrive(speeds);
     } else {
       m_drivetrain.setSwerveDrive(0, 0, 0);
     }

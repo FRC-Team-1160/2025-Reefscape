@@ -32,7 +32,7 @@ public class ObjectDetection extends SubsystemBase {
   public Pose2d closest_pose;
   private Pose2d robot_pose;
 
-  StructPublisher<Pose2d> adv_closest_pub;
+  StructPublisher<Pose3d> adv_closest_pub;
   StructSubscriber<Pose2d> adv_robot_pose_sub;
 
   StructArrayPublisher<Translation2d> adv_corners_pub; // jank
@@ -49,7 +49,7 @@ public class ObjectDetection extends SubsystemBase {
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable adv_vision = inst.getTable("adv_vision");
     NetworkTable adv_swerve = inst.getTable("adv_swerve");
-    adv_closest_pub = adv_vision.getStructTopic("Closest", Pose2d.struct).publish();
+    adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
     adv_corners_pub = adv_vision.getStructArrayTopic("Target Corners", Translation2d.struct).publish();
 
     adv_robot_pose_sub = adv_swerve.getStructTopic("Pose", Pose2d.struct).subscribe(new Pose2d(),
@@ -145,7 +145,7 @@ public class ObjectDetection extends SubsystemBase {
 
     if (Robot.isSimulation()) {
       closest_pose = new Pose2d(1, 7, new Rotation2d(Math.PI));
-      adv_closest_pub.set(closest_pose);
+      adv_closest_pub.set(new Pose3d(closest_pose));
       return;
     }
 
@@ -184,7 +184,7 @@ public class ObjectDetection extends SubsystemBase {
     }
 
     if (target_poses.size() >= 1) {
-      adv_closest_pub.set(target_poses.get(0));
+      adv_closest_pub.set(new Pose3d(target_poses.get(0)));
       closest_pose = target_poses.get(0);
     }
   }
