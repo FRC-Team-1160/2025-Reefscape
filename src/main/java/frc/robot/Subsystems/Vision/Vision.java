@@ -38,7 +38,7 @@ public class Vision extends SubsystemBase {
             NetworkTable adv_vision = inst.getTable("adv_vision");
             adv_pose_pub = adv_vision.getStructTopic("Pose", Pose2d.struct).publish();
 
-            photon_tag_camera = new PhotonCamera("Arducam_OV9281_USB_Camera (1)");
+            photon_tag_camera = new PhotonCamera("OV9281");
 
             pose = new Pose2d(0.12, 0, new Rotation2d());
 
@@ -83,7 +83,7 @@ public class Vision extends SubsystemBase {
 
         var photon_result = photon_tag_camera.getLatestResult();
         if (photon_result.hasTargets()) {
-            var update = photon_pose_estimator.update();
+            var update = photon_pose_estimator.update(photon_result);
             if (update.isPresent()) {
                 photon_pose = update.get().estimatedPose.toPose2d();
                 if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
