@@ -1,0 +1,155 @@
+package frc.robot;
+
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Supplier;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.path.ConstraintsZone;
+import com.pathplanner.lib.path.EventMarker;
+import com.pathplanner.lib.path.GoalEndState;
+import com.pathplanner.lib.path.IdealStartingState;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PointTowardsZone;
+import com.pathplanner.lib.path.RotationTarget;
+import com.pathplanner.lib.path.Waypoint;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants.FieldConstants;
+import frc.robot.Constants.PathConstants;
+import frc.robot.Constants.RobotConstants;
+import frc.robot.Constants.FieldConstants.Reef;
+import frc.robot.Constants.PathConstants.ReefPaths;
+
+
+public class PathplannerController {
+    
+    public ChassisSpeeds generated_speeds;
+
+    public Command current_command;
+
+    public Supplier<Pose2d> robot_pose_supplier;
+
+    public PathConstraints PATH_CONSTRAINTS;
+
+    PathPlannerPath[] reef_paths;
+
+    /** Creates a new PathplannerController. */
+    public PathplannerController(Supplier<Pose2d> robot_pose_supplier) {
+        this.robot_pose_supplier = robot_pose_supplier;
+
+        generated_speeds = new ChassisSpeeds();
+        current_command = new Command() {};
+
+        PATH_CONSTRAINTS = new PathConstraints(
+            PathConstants.MAX_SPEED, 
+            PathConstants.MAX_ACCEL, 
+            PathConstants.MAX_ANG_SPEED, 
+            PathConstants.MAX_ANG_ACCEL);
+
+        generateReefPaths();
+    }
+
+    /** Generates internal end-paths for reef alignment. */
+    public void generateReefPaths() {
+        reef_paths = new PathPlannerPath[Reef.NUM_SIDES];
+        for (int i = 0; i < Reef.NUM_SIDES; i++) {
+            Rotation2d angle = Rotation2d.fromRotations((double) i / Reef.NUM_SIDES);
+            Rotation2d opp_angle = angle.plus(Rotation2d.kPi);
+            List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
+                new Pose2d(
+                    Reef.CENTER_X
+                     + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                     + opp_angle.getSin() * ReefPaths.H_OFFSET,
+                    Reef.CENTER_Y
+                     + opp_angle.getSin() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                     + opp_angle.getCos() * ReefPaths.H_OFFSET,
+                     angle),
+                new Pose2d(
+                    Reef.CENTER_X
+                     + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                     + opp_angle.getSin() * ReefPaths.H_OFFSET,
+                    Reef.CENTER_Y
+                     + opp_angle.getSin() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                     + opp_angle.getCos() * ReefPaths.H_OFFSET,
+                     angle)
+            );
+            // Use verbose constructor for PathPlannerPath to add RotationTarget
+            PathPlannerPath path = new PathPlannerPath(waypoints,
+            new PathConstraints(
+                ReefPaths.IDEAL_START_SPEED, 
+                PathConstants.MAX_ACCEL, 
+                PathConstants.MAX_ANG_SPEED, 
+                PathConstants.MAX_ANG_ACCEL),
+            new IdealStartingState(ReefPaths.IDEAL_START_SPEED, angle), 
+            new GoalEndState(0, angle));
+            reef_paths[i] = path;
+        }
+    }
+
+    /**
+     * Returns the closest reef face to the robot. The driverstation-oriented face is 0, and the rest are numbered CCW increasing.
+     * @return The number corresponding the closest reef face.
+     */
+    public int getNearestReefFace() {
+        Translation2d robot_position = robot_pose_supplier.get().getTranslation();
+        Rotation2d reef_angle = new Translation2d(
+                Reef.CENTER_X,
+                Reef.CENTER_Y
+            ).minus(robot_position).getAngle();
+        // Get angle to the reef, add 1 to remove negatives and 1/12 to shift by half a face. Round and multiply by 6 to get face #
+        return (int) Math.floor(6 * ((reef_angle.getRotations() + 1 + 0.5 / Reef.NUM_SIDES) % 1));
+    }
+
+    public Command getNearestReefCmd() {
+        return AutoBuilder.pathfindThenFollowPath(
+            reef_paths[getNearestReefFace()], 
+            PATH_CONSTRAINTS);
+    } 
+
+    /**
+     * Stores the speeds generated by a Pathplanner command.
+     * @param speeds The robot-relative chassis speeds.
+     */
+    public void acceptGeneratedSpeeds(ChassisSpeeds speeds) {
+        generated_speeds = speeds;
+    }
+
+    /**
+     * Wraps the initialize() method for the stored command.
+     */
+    public void cmdInitialize() {
+        current_command.initialize();
+    }
+
+    /**
+     * Wraps the execute() method for the stored command.
+     */
+    public void cmdExecute() {
+        current_command.execute();
+        
+    }
+
+    /**
+     * Wraps the end() method for the stored command.
+     * @param interrupted Whether the command was interrupted by isFinished().
+     */
+    public void cmdEnd(boolean interrupted) {
+        current_command.end(interrupted);
+    }
+
+    /*
+     * Wraps the isFinished() method for the stored command.
+     */
+    public boolean cmdIsFinished() {
+        return current_command.isFinished();
+    }
+}

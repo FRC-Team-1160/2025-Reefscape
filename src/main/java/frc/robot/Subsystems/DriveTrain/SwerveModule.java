@@ -34,10 +34,7 @@ public abstract class SwerveModule {
   abstract Rotation2d getAngle();
   abstract SwerveModuleState getModuleState();
   abstract SwerveModulePosition getModulePosition();
-  /**
-   * 
-   * @param speed the speed to go at, in meters per second.
-   */
+  
   abstract void setSpeed(double speed);
   abstract void setAngle(Rotation2d angle);
 }

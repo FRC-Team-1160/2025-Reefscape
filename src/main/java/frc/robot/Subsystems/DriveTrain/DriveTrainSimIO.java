@@ -1,6 +1,7 @@
 package frc.robot.Subsystems.DriveTrain;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.Constants.RobotConstants;
 
 public class DriveTrainSimIO extends DriveTrain {
     
@@ -26,6 +27,6 @@ public class DriveTrainSimIO extends DriveTrain {
     @Override
     public void periodic() {
         super.periodic();
-        angle = angle.plus(Rotation2d.fromRadians(kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond * 0.02));
+        angle = angle.plus(Rotation2d.fromRadians(kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond * RobotConstants.LOOP_TIME_SECONDS));
     }
 }

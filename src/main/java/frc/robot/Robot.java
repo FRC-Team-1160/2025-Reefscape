@@ -34,7 +34,6 @@ public class Robot extends TimedRobot {
   @Override
   public void autonomousInit() {
     autonomous_command = m_robot_container.getAutonomousCommand();
-
     if (autonomous_command != null) {
       autonomous_command.schedule();
     }

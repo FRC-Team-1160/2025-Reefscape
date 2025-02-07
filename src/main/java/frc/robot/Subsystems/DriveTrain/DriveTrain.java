@@ -4,16 +4,7 @@
 
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
-import java.io.IOException;
 
-import org.json.simple.parser.ParseException;
-
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
-
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -27,10 +18,11 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants;
+import frc.robot.Constants.PortConstants;
+import frc.robot.Constants.RobotConstants;
+import frc.robot.Constants.SwerveConstants;
 
 public abstract class DriveTrain extends SubsystemBase {
 
@@ -40,36 +32,31 @@ public abstract class DriveTrain extends SubsystemBase {
   public SwerveDriveKinematics kinematics;
   /** The desired module states. */
   public SwerveModuleState[] module_states;
-
-  /** Module positions for SwerveDrivePoseEstimator. */
-  public SwerveModulePosition[] module_positions;
-  /** Pose estimator. */
-  public SwerveDrivePoseEstimator pose_estimator;
   /** Odometry-based 2d pose. */
   public Pose2d odom_pose;
-
   /** State publisher for AdvantageScope. */
   protected StructArrayPublisher<SwerveModuleState> adv_real_states_pub, adv_target_states_pub;
   /** State publisher for AdvantageScope. */
   protected StructPublisher<Rotation2d> adv_gyro_pub;
 
+  /** Creates a new DriveTrain. */
   public DriveTrain() {
     kinematics = new SwerveDriveKinematics(
-        new Translation2d(Constants.Swerve.OFFSET, Constants.Swerve.OFFSET), // front left
-        new Translation2d(Constants.Swerve.OFFSET, -Constants.Swerve.OFFSET), // front right
-        new Translation2d(-Constants.Swerve.OFFSET, Constants.Swerve.OFFSET), // back left
-        new Translation2d(-Constants.Swerve.OFFSET, -Constants.Swerve.OFFSET) // back right
+        new Translation2d(SwerveConstants.OFFSET, SwerveConstants.OFFSET), // front left
+        new Translation2d(SwerveConstants.OFFSET, -SwerveConstants.OFFSET), // front right
+        new Translation2d(-SwerveConstants.OFFSET, SwerveConstants.OFFSET), // back left
+        new Translation2d(-SwerveConstants.OFFSET, -SwerveConstants.OFFSET) // back right
     );
 
     modules = new SwerveModule[4];
-    modules[0] = initializeModule(Constants.Port.FRONT_LEFT_DRIVE_MOTOR, Constants.Port.FRONT_LEFT_STEER_MOTOR,
-        Constants.Port.FRONT_LEFT_CODER);
-    modules[1] = initializeModule(Constants.Port.FRONT_RIGHT_DRIVE_MOTOR, Constants.Port.FRONT_RIGHT_STEER_MOTOR,
-        Constants.Port.FRONT_RIGHT_CODER);
-    modules[2] = initializeModule(Constants.Port.BACK_LEFT_DRIVE_MOTOR, Constants.Port.BACK_LEFT_STEER_MOTOR,
-        Constants.Port.BACK_LEFT_CODER);
-    modules[3] = initializeModule(Constants.Port.BACK_RIGHT_DRIVE_MOTOR, Constants.Port.BACK_RIGHT_STEER_MOTOR,
-        Constants.Port.BACK_RIGHT_CODER);
+    modules[0] = initializeModule(PortConstants.FRONT_LEFT_DRIVE_MOTOR, PortConstants.FRONT_LEFT_STEER_MOTOR,
+      PortConstants.FRONT_LEFT_CODER);
+    modules[1] = initializeModule(PortConstants.FRONT_RIGHT_DRIVE_MOTOR, PortConstants.FRONT_RIGHT_STEER_MOTOR,
+        PortConstants.FRONT_RIGHT_CODER);
+    modules[2] = initializeModule(PortConstants.BACK_LEFT_DRIVE_MOTOR, PortConstants.BACK_LEFT_STEER_MOTOR,
+        PortConstants.BACK_LEFT_CODER);
+    modules[3] = initializeModule(PortConstants.BACK_RIGHT_DRIVE_MOTOR, PortConstants.BACK_RIGHT_STEER_MOTOR,
+        PortConstants.BACK_RIGHT_CODER);
 
     module_states = new SwerveModuleState[] {
         new SwerveModuleState(),
@@ -78,69 +65,31 @@ public abstract class DriveTrain extends SubsystemBase {
         new SwerveModuleState()
     };
 
-    module_positions = new SwerveModulePosition[] {
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-        new SwerveModulePosition(),
-    };
-
     odom_pose = new Pose2d();
-    pose_estimator = new SwerveDrivePoseEstimator(kinematics, getGyroAngle(), module_positions, odom_pose);
 
-    RobotConfig config;
-    try {
-      config = RobotConfig.fromGUISettings();
-    } catch (IOException | ParseException e) {
-      e.printStackTrace();
-      return;
-    }
-    AutoBuilder.configure(
-        () -> odom_pose,
-        pose_estimator::resetPose,
-        () -> kinematics.toChassisSpeeds(module_states),
-        (speeds, feedforwards) -> setSwerveDrive(speeds),
-        new PPHolonomicDriveController(
-            new PIDConstants(Constants.Auto.translation_kP, Constants.Auto.translation_kI,
-                Constants.Auto.translation_kD),
-            new PIDConstants(Constants.Auto.rotation_kP, Constants.Auto.rotation_kI, Constants.Auto.rotation_kD)),
-        config,
-        () -> {
-          var alliance = DriverStation.getAlliance();
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-        },
-        this // Reference to this subsystem to set requirements
-    );
 
     setupDashboard();
   }
 
   /**
    * Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.
-   * 
-   * @param drive_port  port number of the drive motor
-   * @param steer_port  port number of the steer motor
-   * @param sensor_port port number of the module's CANcoder
-   * @return The constructed SwerveModule object
+   * @param drive_port  The port number of the drive motor.
+   * @param steer_port  The port number of the steer motor.
+   * @param sensor_port The port number of the module's CANcoder.
+   * @return The constructed SwerveModule object.
    */
 
   protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port);
 
   /**
-   * Calculates and sends inputs to swerve modules given field-relative speeds.
-   * Calls setSwerveDrive(ChassisSpeeds chassis_speeds)
-   * 
-   * @param x_speed  X-axis speed in m/s. Forward is positive.
-   * @param y_speed  Y-axis speed in m/s. Right is positive.
-   * @param a_speed Angular speed in rad/s. CCW is positive.
+   * Calculates and sends inputs to swerve modules given field-relative speeds. Calls {@link #setSwerveDrive(ChassisSpeeds)}.
+   * @param x_speed  The X-axis speed in m/s. Forward is positive.
+   * @param y_speed  The Y-axis speed in m/s. Left is positive.
+   * @param a_speed  Angular speed in rad/s. CCW is positive.
    */
 
   public void setSwerveDrive(double x_speed, double y_speed, double a_speed) {
-    // converts speeds from field's frame of reference to robot's frame of reference
-
+    // Convert speeds from field's frame of reference to robot's frame of reference
     ChassisSpeeds chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
         x_speed,
         y_speed,
@@ -150,18 +99,24 @@ public abstract class DriveTrain extends SubsystemBase {
   }
 
   /**
-   * Calculates and sends inputs to swerve modules given robot-relative speeds.
-   * 
+   * Calculates and sends inputs to swerve modules given robot-relative speeds. Assumes discretization is needed. 
    * @param chassis_speeds The desired robot-relative chassis speeds.
    */
 
   public void setSwerveDrive(ChassisSpeeds chassis_speeds) {
-    // fix weird change over time shenanigans
+    setSwerveDrive(chassis_speeds, true);
+  }
 
-    chassis_speeds.omegaRadiansPerSecond *= -1;
+  /**
+   * Calculates and sends inputs to swerve modules given robot-relative speeds.
+   * @param chassis_speeds
+   * @param discretize
+   */
 
-    chassis_speeds = discretize_chassis_speeds(chassis_speeds);
+  public void setSwerveDrive(ChassisSpeeds chassis_speeds, boolean discretize) {
+    SmartDashboard.putNumber("in_a", chassis_speeds.omegaRadiansPerSecond);
 
+    if (discretize) chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
     module_states = kinematics.toSwerveModuleStates(chassis_speeds);
 
@@ -171,18 +126,13 @@ public abstract class DriveTrain extends SubsystemBase {
     }
 
     // normalize wheel speeds of any are greater than max speed
-    SwerveDriveKinematics.desaturateWheelSpeeds(module_states, Constants.Swerve.MAX_SPEED);
+    SwerveDriveKinematics.desaturateWheelSpeeds(module_states, SwerveConstants.MAX_SPEED);
     
     setModules(module_states);
-    
-    for (int i = 0; i < modules.length; i++) {
-      module_positions[i] = modules[i].getModulePosition();
-    }
   }
 
   /**
    * Sends calculated inputs to swerve modules.
-   * 
    * @param module_states The desired module states.
    */
 
@@ -194,21 +144,20 @@ public abstract class DriveTrain extends SubsystemBase {
 
   // Thanks to Team 4738 for modified discretization code
   /**
-   * Accounts for drift while simultaneously translating and rotating by
-   * discretizing.
-   * 
-   * @param speeds Desired chassis speeds.
-   * @return Adjusted chassis speeds.
+   * Accounts for drift while simultaneously translating and rotating through discretization.
+   * @param speeds The desired chassis speeds.
+   * @return The adjusted chassis speeds.
    */
+
   public ChassisSpeeds discretize_chassis_speeds(ChassisSpeeds speeds) {
-    double dt = Constants.Robot.LOOP_TIME_SECONDS;
-    // makes a Pose2d for the target delta over one time loop
+    double dt = RobotConstants.LOOP_TIME_SECONDS;
+    // Makes a Pose2d for the target delta over one time loop
     var desired_delta_pose = new Pose2d(
         speeds.vxMetersPerSecond * dt,
         speeds.vyMetersPerSecond * dt,
         new Rotation2d(speeds.omegaRadiansPerSecond * dt * 1) // tunable
     );
-    // makes a Twist2d object that maps new pose to delta pose
+    // Makes a Twist2d object that maps new pose to delta pose
     var twist = new Pose2d().log(desired_delta_pose);
 
     return new ChassisSpeeds((twist.dx / dt), (twist.dy / dt), (speeds.omegaRadiansPerSecond));
@@ -216,7 +165,6 @@ public abstract class DriveTrain extends SubsystemBase {
 
   /**
    * Returns the measured swerve module positions for odometry.
-   * 
    * @return The measured swerve module positions.
    */
 
@@ -229,8 +177,7 @@ public abstract class DriveTrain extends SubsystemBase {
   }
 
   /**
-   * Returns the measured swerve module states for telemetry.
-   * 
+   * Returns the measured swerve module states for odometry and telemetry.
    * @return The measured swerve module states.
    */
 
@@ -243,10 +190,27 @@ public abstract class DriveTrain extends SubsystemBase {
   }
 
   /**
+   * Calculates current speeds using SwerveDriveKinematics odometry.
+   * @return The calculated robot-relative chassis speeds.
+   */
+
+  public ChassisSpeeds getOdomSpeeds() {
+    return kinematics.toChassisSpeeds(getModuleStates());
+  }
+
+  /**
+   * Calculates current target speeds using SwerveDriveKinematics odometry and target states.
+   * @return The calculated robot-relative chassis speeds.
+   */
+
+  public ChassisSpeeds getTargetOdomSpeeds() {
+    return kinematics.toChassisSpeeds(module_states);
+  }
+
+  /**
    * Gets either the measured yaw from the AHRS or the calculated angle from the
    * simulation.
    * Forward is 0, CCW is positive.
-   * 
    * @return The robot yaw.
    */
 
@@ -331,7 +295,7 @@ public abstract class DriveTrain extends SubsystemBase {
       module.update();
     }
 
-    odom_pose = pose_estimator.update(getGyroAngle(), getModulePositions());
+    
 
     publishAdv();
 

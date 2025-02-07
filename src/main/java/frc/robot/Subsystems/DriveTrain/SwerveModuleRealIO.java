@@ -16,12 +16,12 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import frc.robot.Constants.Swerve;
-import frc.robot.Constants.Swerve.DriveMotorConfigs;
-import frc.robot.Constants.Swerve.SteerMotorConfigs;
+import frc.robot.Constants.SwerveConstants;
+import frc.robot.Constants.SwerveConstants.DriveMotorConfigs;
+import frc.robot.Constants.SwerveConstants.SteerMotorConfigs;
 
 
-public class SwerveModuleRealIO extends SwerveModule{
+public class SwerveModuleRealIO extends SwerveModule {
 
   public TalonFX steer_motor, drive_motor;
 
@@ -73,12 +73,12 @@ public class SwerveModuleRealIO extends SwerveModule{
 
   public double getSpeed(){
     //getRotorVelocity() returns StatusSignal<AngularVelocity> with base unit rps
-    return drive_motor.getRotorVelocity().getValueAsDouble() * Swerve.WHEEL_DIAMETER / Swerve.GEAR_RATIO;
+    return drive_motor.getRotorVelocity().getValueAsDouble() * SwerveConstants.WHEEL_DIAMETER / SwerveConstants.GEAR_RATIO;
   }
 
   public double getPosition(){
     //getRotorPosition() returns StatusSignal<Angle> with base unit rotations
-    return drive_motor.getRotorPosition().getValueAsDouble() * Swerve.WHEEL_DIAMETER / Swerve.GEAR_RATIO;
+    return drive_motor.getRotorPosition().getValueAsDouble() * SwerveConstants.WHEEL_DIAMETER / SwerveConstants.GEAR_RATIO;
   }
 
   public Rotation2d getAngle(){
@@ -100,7 +100,7 @@ public class SwerveModuleRealIO extends SwerveModule{
    * @param speed the speed to go at, in meters per second.
    */
   public void setSpeed(double speed){
-    drive_motor.setControl(new VelocityVoltage(speed / Swerve.WHEEL_DIAMETER));
+    drive_motor.setControl(new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER));
 
   }
 

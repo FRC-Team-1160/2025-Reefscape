@@ -7,7 +7,6 @@ package frc.robot.Subsystems.DriveTrain;
 
 import com.studica.frc.AHRS;
 
-import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 
 public class DriveTrainRealIO extends DriveTrain {
@@ -29,7 +28,6 @@ public class DriveTrainRealIO extends DriveTrain {
 
   public void resetGyroAngle() {
     if (gyro != null) gyro.zeroYaw();
-    if (pose_estimator != null) pose_estimator.resetPose(new Pose2d(odom_pose.getX(), odom_pose.getY(), new Rotation2d()));
   }
 
   @Override

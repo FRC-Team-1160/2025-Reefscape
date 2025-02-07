@@ -6,6 +6,7 @@ package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
@@ -14,140 +15,152 @@ import org.photonvision.targeting.TargetCorner;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.PubSubOption;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.networktables.StructSubscriber;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.Constants.Vision;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.Robot;
+import frc.robot.Utils;
 
-public class ObjectDetection extends SubsystemBase {
-  private PhotonCamera detector;
-
-  public Pose2d closest_pose;
-  private Pose2d robot_pose;
-
-  StructPublisher<Pose3d> adv_closest_pub;
-  StructSubscriber<Pose2d> adv_robot_pose_sub;
-
-  StructArrayPublisher<Translation2d> adv_corners_pub; // jank
-
-  // TODO: potentially unneeded?
-  /** in meters */
-  double closest_distance;
+public class ObjectDetection {
+  /** The OV9281 instance. */
+  public PhotonCamera camera;
+  /** The current robot pose. */
+  public Pose2d robot_pose;
+  /** Supplier for the robot pose. */
+  Supplier<Pose2d> robot_pose_supplier;
+  /** AdvantageScope publisher. */
+  StructPublisher<Pose2d> adv_closest_pub;
+  /** AdvantageScope publisher. */
+  StructArrayPublisher<Pose3d> adv_tracked_pub;
+  /** List of targets that are being tracked. */
+  public List<Target> tracked_targets;
 
   /** Creates a new ObjectDetection. */
-  public ObjectDetection() {
-    if (!Robot.isSimulation()) {
-      detector = new PhotonCamera("OV9782");
-    }
-    NetworkTableInstance inst = NetworkTableInstance.getDefault();
-    NetworkTable adv_vision = inst.getTable("adv_vision");
-    NetworkTable adv_swerve = inst.getTable("adv_swerve");
-    adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
-    adv_corners_pub = adv_vision.getStructArrayTopic("Target Corners", Translation2d.struct).publish();
-
-    adv_robot_pose_sub = adv_swerve.getStructTopic("Pose", Pose2d.struct).subscribe(new Pose2d(),
-        PubSubOption.keepDuplicates(true));
-  }
-
-  public Pose2d getObjectPose(Pose2d robot_pose, double distance, double angle_to_target) {
-    // Robot's global heading
-    double robot_theta = robot_pose.getRotation().getRadians();
-
-    // Convert distance + angle to object coords in the field frame:
-    double global_angle = robot_theta + angle_to_target; // field heading to the target
-    double x = robot_pose.getX() + (distance * Math.cos(global_angle));
-    double y = robot_pose.getY() + (distance * Math.sin(global_angle));
-
-    // If you don't know the object's actual heading, just store globalAngle or 0.
-    // We'll just store the object's "facing" as globalAngle here for demonstration.
-    return new Pose2d(x, y, new Rotation2d(global_angle));
-  }
-
-  // public static double[] getDistance(double targetWidthPixel, double
-  // targetXPixel){
-  // double c = targetWidthPixel / (2 * Math.tanh(cameraHFOV));
-  // double distance = targetWidthM / targetWidthPixel * c;
-
-  // double offset = (targetXPixel - targetWidthPixel/2) * c * distance;
-  // double[] result = {distance, offset};
-  // return result;
-  // }
-
-  /**
-   * 
-   * @param image_width in pixels
-   * @param x_fov       in radians
-   * @return
-   */
-  private double getFocalLength(int image_width, double x_fov) {
-    return (image_width / 2.0d) / Math.tan(x_fov / 2.0d);
-  }
-
-  /**
-   * @param target_width  in pixels
-   * @param target_height in pixels
-   * @param target_x      in pixels
-   * @return [distance, offset] in meters
-   */
-  public double[] getDistance(double target_width, double target_height, double target_x) {
-    // 1) Distance: d = (focalLengthPx * realWidthMeters) / boundingBoxWidthPx
-    double distance;
-    // in pixels
-    double focal_length = getFocalLength(Vision.SCREEN_WIDTH, Vision.CAMERA_X_FOV);
-    if (target_width > 0) {
-      distance = 250.0d / target_width; // (focalLengthPx * targetWidthM) / targetWidthPixel;
-
-    } else {
-      distance = Double.POSITIVE_INFINITY;
+  public ObjectDetection(Supplier<Pose2d> robot_pose_supplier) {
+    if (Robot.isReal()) {
+      camera = new PhotonCamera("OV9782");
     }
 
-    distance = 261 / (Math.max(target_width, target_height)) - 0.04 + 0.35;
+    NetworkTable adv_vision =  NetworkTableInstance.getDefault().getTable("adv_vision");
 
-    double image_center = Vision.SCREEN_WIDTH / 2.0;
-    double fraction_off_center = (target_x - image_center) / image_center;
-    double offset_angle = fraction_off_center * (Vision.CAMERA_X_FOV / 2.0); // in radians
-    double horizontal_offset = distance * Math.sin(offset_angle);
+    adv_closest_pub = adv_vision.getStructTopic("Closest", Pose2d.struct).publish();
+    adv_tracked_pub = adv_vision.getStructArrayTopic("Tracked", Pose3d.struct).publish();
 
-    return new double[] { distance, horizontal_offset };
-  }
+    this.robot_pose_supplier = robot_pose_supplier;
 
-  // public Pose2d getClosestTarget(ArrayList<Target> targets) {
-  //   double min_dist = Double.MAX_VALUE;
-  //   Target result = new Target();
-  //   for (Target target : targets) {
-  //     if (target.direct_distance < min_dist) {
-  //       min_dist = target.direct_distance;
-  //       result = target;
-  //     }
-  //   }
-  //   double angle_to_target = Math.atan(result.offset / result.distance);
-  //   return getObjectPose3D(robot_pose, result.distance, angle_to_target);
-  // }
+    tracked_targets = new ArrayList<Target>();
 
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-    // closestDistance = getDistance(413.0, 2.4, 413.0);
-
-    robot_pose = adv_robot_pose_sub.get();
-
+    // Generate 3 random vision targets for testing
     if (Robot.isSimulation()) {
-      closest_pose = new Pose2d(1, 7, new Rotation2d(Math.PI));
-      adv_closest_pub.set(new Pose3d(closest_pose));
+      for (int i = 0; i < 3; i++) {
+        tracked_targets.add(new Target(
+          new Translation2d(Math.random() * 12.0 + 2.0, Math.random() * 4.0 + 2.0)
+        ));
+      }
+    }
+  }
+
+  /**
+   * Uses an inverse regression function to calculate the normal distance of the target.
+   * @param width The width of the target's bounding box in pixels.
+   * @param height The height of the target's bounding box in pixels.
+   * @return The normal distance of the target in meters.
+   */
+  public double getNormalDistance(double width, double height) {
+    return VisionConstants.EstimationParameters.a / (Math.max(width, height)) - VisionConstants.EstimationParameters.b;
+  }
+
+  /**
+   * Calculates the distance from the camera horizontal ray to the target center.
+   * @param normal_distance The normal distance to the target in meters.
+   * @param x_center The horizontal center of the target's bounding box in pixels.
+   * @return The lateral distance to the target in meters.
+   */
+  public double getLateralDistance(double normal_distance, int x_center) {
+    return normal_distance * Math.tan(VisionConstants.CAMERA_X_FOV/2) * (x_center / VisionConstants.SCREEN_WIDTH - 0.5);
+  }
+
+  /**
+   * Calculates the diagonal distance from the camera to the target.
+   * @param width The width of the target's bounding box in pixels.
+   * @param height The height of the target's bounding box in pixels.
+   * @param x_center The normal distance of the target in meters.
+   * @return The distance to the target in meters.
+   */
+  public double getDistance(double width, double height, int x_center) {
+    double n_dist = getNormalDistance(width, height);
+    return Utils.hypot(n_dist, getLateralDistance(n_dist, x_center));
+  }
+
+  /**
+   * Calculates the target's field-relative pose.
+   * @param width The width of the target's bounding box in pixels.
+   * @param height The height of the target's bounding box in pixels.
+   * @param x_center The normal distance of the target in meters.
+   * @return The calculated pose.
+   */
+  public Pose2d getTargetPose(double width, double height, int x_center) {
+    double n_dist = getNormalDistance(width, height);
+    Transform2d robot_transform = new Transform2d(
+      robot_pose.getTranslation(),
+      robot_pose.getRotation());
+    Transform2d target_transform = new Transform2d(
+      n_dist,
+      getLateralDistance(n_dist, x_center),
+      new Rotation2d()
+    );
+    return new Pose2d(
+      robot_transform.plus(target_transform).getTranslation(), 
+      target_transform.getTranslation().getAngle());
+  }
+
+
+  /**
+   * Returns the closest target to the robot. Accounts for robot orientation.
+   * @return The closest target.
+   */
+  public Target getClosestTarget() {
+    robot_pose = robot_pose_supplier.get();
+    double min_dist = VisionConstants.MAX_TRACKING_DISTANCE; // Only return if closest target is within range
+    Target closest = null;
+    for (Target t : tracked_targets) {
+      if (t.getDistance(robot_pose) < min_dist) {
+        // Take into account both distance and rotational distance
+        min_dist = t.getDistance(robot_pose) + t.getAngle(robot_pose).getRotations();
+        closest = t;
+      }
+    }
+    return closest;
+  }
+  
+  /** @hidden */
+  public void publishAdv() {
+    if (getClosestTarget() != null) adv_closest_pub.set(getClosestTarget().getPose());
+    Pose3d[] target_poses = new Pose3d[tracked_targets.size()];
+    for (int i = 0; i < tracked_targets.size(); i++) {
+      target_poses[i] = new Pose3d(tracked_targets.get(i).getPose());
+    }
+    adv_tracked_pub.set(target_poses);
+  }
+
+  /** @hidden */
+  public void update() {
+
+    robot_pose = robot_pose_supplier.get();
+    // Publish and exit now if robot is in sim; else, publish later
+    if (Robot.isSimulation()) {
+      publishAdv();
       return;
     }
+    // Increase marked counter
+    tracked_targets.forEach(
+      (t) -> {if (Math.abs(t.getAngle(robot_pose).getRadians()) < VisionConstants.EXPECTED_RANGE / 2) t.marked++;});
 
-    var result = detector.getLatestResult();
-    List<PhotonTrackedTarget> targets = result.getTargets();
-    ArrayList<Pose2d> target_poses = new ArrayList<Pose2d>();
-    ArrayList<Target> target_distances = new ArrayList<Target>();
+    List<PhotonTrackedTarget> targets = camera.getLatestResult().getTargets();
 
     for (PhotonTrackedTarget target : targets) {
 
@@ -156,6 +169,7 @@ public class ObjectDetection extends SubsystemBase {
       double maxX = Double.MIN_VALUE;
       double maxY = Double.MIN_VALUE;
 
+      // Corners are returned in an unordered list; get extrema
       for (TargetCorner corner : target.getMinAreaRectCorners()) {
         minX = Math.min(minX, corner.x);
         maxX = Math.max(maxX, corner.x);
@@ -163,24 +177,43 @@ public class ObjectDetection extends SubsystemBase {
         maxY = Math.max(maxY, corner.y);
       }
 
-      double midpoint = (maxX + minX)/2;
-      double width = maxX - minX;
-      double height = maxY - minY;
+      int tol = VisionConstants.EDGE_TOLERANCE;
 
-      double[] temp_dist = getDistance(width, height, midpoint);
-      double distance = temp_dist[0];
-      double offset = -temp_dist[1] + 0.24;
+      Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2);
+      // Keep track of whether current target has been matched with existing object
+      boolean matched = false; 
 
-      double angle_to_target = Math.atan(offset / distance);
-      double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
+      // Check that object isnt cut off
+      if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
 
-      target_poses.add(getObjectPose(robot_pose, distance, angle_to_target));
-      target_distances.add(new Target(distance, offset, direct_distance));
+        for (Target t : tracked_targets) {
+          if (t.getDistance(target_pose) < VisionConstants.TARGET_WIDTH/2) {
+            // If object matches position, update position of tracked object
+            t.updatePosition(target_pose); 
+            matched = true;
+            break;
+          }
+        }
+        // If current target hasnt been matched, start tracking as new target
+        if (!matched) tracked_targets.add(new Target(target_pose)); 
+
+      } else {
+        // If target bounding box is cut off at camera edges
+        for (Target t : tracked_targets) {
+          if (t.getAngle(robot_pose.getTranslation()).minus(target_pose.getRotation()).getDegrees() < 10) {
+            // Confirm that the target still exists, but calculated position may be inaccurate
+            t.resetTimer(); 
+            break;
+          }
+        }
+
+      }
+
     }
+    // If target was expected in fov and not seen, or has not been seen in too long, stop tracking it
+    tracked_targets.removeIf(target -> target.marked >= VisionConstants.DETECTION_LIMIT || target.timer.get() > VisionConstants.TRACKING_TIMEOUT);
+    
+    publishAdv();
 
-    if (target_poses.size() >= 1) {
-      adv_closest_pub.set(new Pose3d(target_poses.get(0)));
-      closest_pose = target_poses.get(0);
-    }
   }
 }
