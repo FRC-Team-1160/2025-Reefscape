@@ -56,8 +56,8 @@ public class SubsystemManager {
             this.m_drive = new DriveTrainSimIO();
         } else {
             this.m_drive = new DriveTrainRealIO();
-            // this.m_claw = new Claw();
-            // this.m_elevator = new Elevator();
+            this.m_claw = new Claw();
+            this.m_elevator = new Elevator();
             // m_vision = new Vision();
             m_object_detection = new ObjectDetection();
         }
@@ -111,6 +111,8 @@ public class SubsystemManager {
         if (!algae_alignment_PID.isScheduled()) {
             m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
         }
+
+        m_elevator.setVoltage((Math.abs(stick_el) < 0.1) ? 0 : -stick_el);
 
         // m_elevator.setpoint += Constants.Elevator.MAX_SPEED*stick_el;
 
