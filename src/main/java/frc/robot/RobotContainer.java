@@ -29,7 +29,7 @@ public class RobotContainer {
     () -> main_stick.getRawAxis(1), // i think these should be swapped
     () -> main_stick.getRawAxis(0),
     () -> second_stick.getRawAxis(0),
-    () -> right_board.getRawAxis(1)
+    () -> right_board.getRawAxis(0)
   );
 
   private final SendableChooser<Command> auto_chooser;
@@ -57,14 +57,16 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
-
-
-    new JoystickButton(right_board, 9).onTrue(
+    new JoystickButton(right_board, 9).whileTrue(
       new StartEndCommand(
         () -> m_subsystem_manager.m_elevator.setShooter(0.5),
-        () -> m_subsystem_manager.m_elevator.setShooter(0.5)
+        () -> m_subsystem_manager.m_elevator.setShooter(0)
       )
     );
+
+    new JoystickButton(right_board, 8)
+      .onTrue(new InstantCommand(() -> m_subsystem_manager.m_claw.setClaw(0.2)))
+      .onFalse(new InstantCommand(() -> m_subsystem_manager.m_claw.setClaw(0.0)));
 
 
     // new JoystickButton(main_stick, 3)
@@ -82,3 +84,4 @@ public class RobotContainer {
     return auto_chooser.getSelected();
   }
 }
+  

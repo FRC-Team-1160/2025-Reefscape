@@ -6,6 +6,7 @@ package frc.robot.Subsystems.Claw;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.NeutralOut;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -21,37 +22,47 @@ import frc.robot.Constants.Port;
 
 public class Claw extends SubsystemBase {
   TalonFX wrist_motor;
-  /** The height which the elevator aims to, in meters. */
-  public double setpoint = 0;
+  SparkMax l_motor, r_motor;
 
   public Claw() {
-    // right is negative to go up, right is also 11
+    // 
     wrist_motor = new TalonFX(Constants.Port.WRIST_MOTOR);
 
     TalonFXConfiguration configs = new TalonFXConfiguration();
-    // configs.Slot0 = new Slot0Configs()
-    //     .withKP(MotorConfigs.kP)
-    //     .withKI(MotorConfigs.kI)
-    //     .withKD(MotorConfigs.kD)
-    //     .withKS(MotorConfigs.kS)
-    //     .withKV(MotorConfigs.kV)
-    //     .withKA(MotorConfigs.kA)
-    //     .withKG(MotorConfigs.kG);
+    configs.Slot0 = new Slot0Configs()
+        .withKP(MotorConfigs.kP)
+        .withKI(MotorConfigs.kI)
+        .withKD(MotorConfigs.kD)
+        .withKS(MotorConfigs.kS)
+        .withKV(MotorConfigs.kV)
+        .withKA(MotorConfigs.kA)
+        .withKG(MotorConfigs.kG);
 
     configs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
     wrist_motor.getConfigurator().apply(configs);
 
+    l_motor = new SparkMax(28, MotorType.kBrushless);
+    r_motor = new SparkMax(27, MotorType.kBrushless);
+
   }
 
   @Override
   public void periodic() {
-    // left_motor.setControl(new PositionVoltage(setpoint));
-    // right_motor.setControl(new PositionVoltage(-setpoint));
     
     Joystick m_leftBoard = new Joystick(Constants.IO.LEFT_BOARD_PORT);
     double direction = m_leftBoard.getRawAxis(0);
-    wrist_motor.setControl(new VoltageOut(direction * 1));
+    if (Math.abs(direction) > 0.1) {
+      wrist_motor.setControl(new VoltageOut(-direction * 1));
+    } else {
+      wrist_motor.setControl(new NeutralOut());
+    }
+  }
+
+  public void setClaw(double speed) {
+    SmartDashboard.putNumber("Claw speed", speed);
+    l_motor.set(speed);
+    r_motor.set(-speed);
   }
 
   @Override

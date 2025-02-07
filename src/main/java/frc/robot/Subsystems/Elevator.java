@@ -7,11 +7,13 @@ package frc.robot.Subsystems;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.PositionVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.Elevator.MotorConfigs;
 import frc.robot.Constants.Port;
@@ -23,9 +25,10 @@ public class Elevator extends SubsystemBase {
   public double setpoint = 0;
 
   public Elevator() {
-    // left is negative to go up, right is also 11
-    left_motor = new TalonFX(Port.LEFT_ELEVATOR_MOTOR, "CANivore");
-    right_motor = new TalonFX(Port.RIGHT_ELEVATOR_MOTOR, "CANivore");
+    // right is negative to go up because CCW is positive
+    // krishna had them flipped because the control board stick inputs are reversed
+    left_motor = new TalonFX(Port.LEFT_ELEVATOR_MOTOR);
+    right_motor = new TalonFX(Port.RIGHT_ELEVATOR_MOTOR);
     shooter_motor = new SparkMax(Port.SHOOTER_MOTOR, MotorType.kBrushless);
 
     TalonFXConfiguration configs = new TalonFXConfiguration();
@@ -50,9 +53,9 @@ public class Elevator extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // TODO: should this be in a setSetpoint function or is this better
-    left_motor.setControl(new PositionVoltage(-setpoint));
-    right_motor.setControl(new PositionVoltage(setpoint));
+    // // TODO: should this be in a setSetpoint function or is this better
+    // left_motor.setControl(new PositionVoltage(-setpoint));
+    // right_motor.setControl(new PositionVoltage(setpoint));
   }
 
   @Override
@@ -61,7 +64,14 @@ public class Elevator extends SubsystemBase {
   }
 
   public void setShooter(double speed) {
+    SmartDashboard.putNumber("Shooter speed", speed);
     shooter_motor.set(speed);
+  }
+
+  public void setVoltage(double volt) {
+    SmartDashboard.putNumber("Elevator volt", volt);
+    left_motor.setControl(new VoltageOut(volt));
+    right_motor.setControl(new VoltageOut(-volt));
   }
 
 }

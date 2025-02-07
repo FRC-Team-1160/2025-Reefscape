@@ -34,12 +34,15 @@ public final class Constants {
     public static final int BACK_LEFT_CODER = 5;
     public static final int BACK_RIGHT_CODER = 7;
 
-    public static final int LEFT_ELEVATOR_MOTOR = 10;
-    public static final int RIGHT_ELEVATOR_MOTOR = 11;
+    public static final int LEFT_ELEVATOR_MOTOR = 9;
+    public static final int RIGHT_ELEVATOR_MOTOR = 10;
 
-    public static final int SHOOTER_MOTOR = 12;
+    public static final int SHOOTER_MOTOR = 30;
 
-    public static final int WRIST_MOTOR = 15;
+    public static final int WRIST_MOTOR = 11;
+
+    public static final int CLAW_LEFT = 27;
+    public static final int CLAW_RIGHT = 28;
   }
 
   public static class IO {
