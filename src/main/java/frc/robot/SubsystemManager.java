@@ -114,7 +114,7 @@ public class SubsystemManager {
             m_drive.setSwerveDrive(drive_x, drive_y, drive_a);
         }
 
-        m_elevator.setVoltage((Math.abs(stick_el) < 0.1) ? 0 : -stick_el);
+        m_elevator.setVoltage((Math.abs(stick_el) < 0.1) ? 0 : -stick_el * 1);
 
         // m_elevator.setpoint += Constants.Elevator.MAX_SPEED*stick_el;
 
