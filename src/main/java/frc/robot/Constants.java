@@ -40,12 +40,12 @@ public final class Constants {
     public static final int BACK_LEFT_CODER = 5;
     public static final int BACK_RIGHT_CODER = 7;
 
-    public static final int LEFT_ELEVATOR_MOTOR = 10;
-    public static final int RIGHT_ELEVATOR_MOTOR = 11;
+    public static final int LEFT_ELEVATOR_MOTOR = 9;
+    public static final int RIGHT_ELEVATOR_MOTOR = 10;
 
-    public static final int SHOOTER_MOTOR = 12;
-
-    public static final int WRIST_MOTOR = 15;
+    public static final int WRIST_MOTOR = 11;
+    // Krakens get CAN ID priority because theyre better
+    public static final int SHOOTER_MOTOR = 14;
   }
 
   public static class IOConstants {
@@ -66,6 +66,7 @@ public final class Constants {
 
         public static final int LEFT_CLIMB = 0;
       }
+      
       public static final class Right {
         public static final int UP_DOWN_INTAKE = 1;
         public static final int OVERRIDE = 4;
