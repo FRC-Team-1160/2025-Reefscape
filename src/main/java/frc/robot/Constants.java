@@ -38,6 +38,9 @@ public final class Constants {
     public static final int RIGHT_ELEVATOR_MOTOR = 11;
 
     public static final int SHOOTER_MOTOR = 12;
+
+    // NOTE: shooter angle motor number TBD
+    public static final int SHOOTER_ANGLE_MOTOR = 13;
   }
 
   public static class IO {
