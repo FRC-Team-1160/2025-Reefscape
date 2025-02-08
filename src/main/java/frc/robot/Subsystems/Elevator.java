@@ -23,6 +23,7 @@ public class Elevator extends SubsystemBase {
   SparkMax shooter_motor;
   /** The height which the elevator aims to, in meters. */
   public double setpoint = 0;
+  public double kG = 0.2;
 
   public Elevator() {
     // right is negative to go up because CCW is positive
@@ -70,8 +71,8 @@ public class Elevator extends SubsystemBase {
 
   public void setVoltage(double volt) {
     SmartDashboard.putNumber("Elevator volt", volt);
-    left_motor.setControl(new VoltageOut(volt));
-    right_motor.setControl(new VoltageOut(-volt));
+    left_motor.setControl(new VoltageOut(volt + kG));
+    right_motor.setControl(new VoltageOut(-(volt + kG)));
   }
 
 }

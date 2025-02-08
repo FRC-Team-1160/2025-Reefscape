@@ -100,12 +100,12 @@ public class SwerveModuleRealIO extends SwerveModule{
    * @param speed the speed to go at, in meters per second.
    */
   public void setSpeed(double speed){
-    // drive_motor.setControl(new VelocityVoltage(speed / Swerve.WHEEL_DIAMETER));
+    drive_motor.setControl(new VelocityVoltage(speed / Swerve.WHEEL_DIAMETER));
 
   }
 
   public void setAngle(Rotation2d angle){
-    // steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
+    steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
   }
 
 }

@@ -23,6 +23,7 @@ import frc.robot.Constants.Port;
 public class Claw extends SubsystemBase {
   TalonFX wrist_motor;
   SparkMax l_motor, r_motor;
+  public double kG = 0.0;
 
   public Claw() {
     // 
@@ -53,9 +54,9 @@ public class Claw extends SubsystemBase {
     Joystick m_leftBoard = new Joystick(Constants.IO.LEFT_BOARD_PORT);
     double direction = m_leftBoard.getRawAxis(0);
     if (Math.abs(direction) > 0.1) {
-      wrist_motor.setControl(new VoltageOut(-direction * 1));
+      wrist_motor.setControl(new VoltageOut(-(direction * 1  + kG)));
     } else {
-      wrist_motor.setControl(new NeutralOut());
+      wrist_motor.setControl(new VoltageOut(-kG));
     }
   }
 

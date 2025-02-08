@@ -22,7 +22,7 @@ import frc.robot.Subsystems.Vision.ObjectDetection;
 public class RobotContainer {
   private Joystick main_stick = new Joystick(Constants.IO.MAIN_PORT);
   private Joystick second_stick = new Joystick(Constants.IO.COPILOT_PORT);
-  // private Joystick left_board = new Joystick(Constants.IO.LEFT_BOARD_PORT);
+  private Joystick left_board = new Joystick(Constants.IO.LEFT_BOARD_PORT);
   private Joystick right_board = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
 
   public final SubsystemManager m_subsystem_manager = new SubsystemManager(
@@ -57,15 +57,26 @@ public class RobotContainer {
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)
     );
 
-    new JoystickButton(right_board, 9).whileTrue(
+    new JoystickButton(left_board, 4).whileTrue(
       new StartEndCommand(
         () -> m_subsystem_manager.m_elevator.setShooter(0.5),
         () -> m_subsystem_manager.m_elevator.setShooter(0)
       )
     );
 
-    new JoystickButton(right_board, 8)
+    new JoystickButton(left_board, 1).whileTrue(
+      new StartEndCommand(
+        () -> m_subsystem_manager.m_elevator.setShooter(0.5),
+        () -> m_subsystem_manager.m_elevator.setShooter(0)
+      )
+    );
+
+    new JoystickButton(left_board, 2)
       .onTrue(new InstantCommand(() -> m_subsystem_manager.m_claw.setClaw(0.2)))
+      .onFalse(new InstantCommand(() -> m_subsystem_manager.m_claw.setClaw(0.0)));
+
+      new JoystickButton(left_board, 3)
+      .onTrue(new InstantCommand(() -> m_subsystem_manager.m_claw.setClaw(-0.2)))
       .onFalse(new InstantCommand(() -> m_subsystem_manager.m_claw.setClaw(0.0)));
 
 
@@ -76,8 +87,8 @@ public class RobotContainer {
     //   ));
     // }
 
-    new JoystickButton(main_stick, 3)
-      .whileTrue(m_subsystem_manager.algae_alignment_PID);
+    // new JoystickButton(main_stick, 3)
+    //   .whileTrue(m_subsystem_manager.algae_alignment_PID);
   }
 
   public Command getAutonomousCommand() {
