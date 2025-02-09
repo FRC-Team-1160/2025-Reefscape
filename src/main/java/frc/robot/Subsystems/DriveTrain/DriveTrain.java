@@ -72,16 +72,6 @@ public abstract class DriveTrain extends SubsystemBase {
   }
 
   /**
-   * Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.
-   * @param drive_port  The port number of the drive motor.
-   * @param steer_port  The port number of the steer motor.
-   * @param sensor_port The port number of the module's CANcoder.
-   * @return The constructed SwerveModule object.
-   */
-
-  protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port);
-
-  /**
    * Calculates and sends inputs to swerve modules given field-relative speeds. Calls {@link #setSwerveDrive(ChassisSpeeds)}.
    * @param x_speed  The X-axis speed in m/s. Forward is positive.
    * @param y_speed  The Y-axis speed in m/s. Left is positive.
@@ -109,8 +99,8 @@ public abstract class DriveTrain extends SubsystemBase {
 
   /**
    * Calculates and sends inputs to swerve modules given robot-relative speeds.
-   * @param chassis_speeds
-   * @param discretize
+   * @param chassis_speeds The desired robot-relative chassis speeds.
+   * @param discretize Whether or not to perform discretization. Some library methods provide pre-discretized chassis speeds.
    */
 
   public void setSwerveDrive(ChassisSpeeds chassis_speeds, boolean discretize) {
@@ -208,17 +198,6 @@ public abstract class DriveTrain extends SubsystemBase {
   }
 
   /**
-   * Gets either the measured yaw from the AHRS or the calculated angle from the
-   * simulation.
-   * Forward is 0, CCW is positive.
-   * @return The robot yaw.
-   */
-
-  public abstract Rotation2d getGyroAngle();
-
-  public abstract void resetGyroAngle();
-
-  /**
    * One-time method to instantiate NT publishers for AdvantageScope and Elastic.
    */
 
@@ -286,6 +265,27 @@ public abstract class DriveTrain extends SubsystemBase {
     adv_target_states_pub.set(module_states);
     adv_gyro_pub.set(getGyroAngle());
   }
+
+  /**
+   * Gets either the measured yaw from the AHRS or the calculated angle from the
+   * simulation.
+   * Forward is 0, CCW is positive.
+   * @return The robot yaw.
+   */
+
+  public abstract Rotation2d getGyroAngle();
+
+  public abstract void resetGyroAngle();
+
+  /**
+   * Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.
+   * @param drive_port  The port number of the drive motor.
+   * @param steer_port  The port number of the steer motor.
+   * @param sensor_port The port number of the module's CANcoder.
+   * @return The constructed SwerveModule object.
+   */
+
+  protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port);
 
   @Override
   public void periodic() {

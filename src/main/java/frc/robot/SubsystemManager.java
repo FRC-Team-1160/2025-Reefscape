@@ -205,7 +205,6 @@ public class SubsystemManager {
 
                 m_drive.setSwerveDrive(stick_x, stick_y, stick_a);
         }
-        SmartDashboard.putNumber("reef face 2", m_pathplanner_controller.getNearestReefFace());
         publishAdv();
     }
 
@@ -231,8 +230,8 @@ public class SubsystemManager {
             orchestra.addInstrument(((SwerveModuleRealIO)module).steer_motor, t++ % tracks);
         }
         
-        orchestra.addInstrument(((ElevatorRealIO)m_elevator).left_motor, t++ % tracks);
-        orchestra.addInstrument(((ElevatorRealIO)m_elevator).right_motor, t++ % tracks);
+        orchestra.addInstrument(((ElevatorRealIO)m_elevator).ele_motor, t++ % tracks);
+
     }
  
     

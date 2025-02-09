@@ -4,18 +4,12 @@
 
 package frc.robot.Subsystems.Elevator;
 
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 
 abstract public class Elevator extends SubsystemBase {
 
-  /** The height which the elevator travels toward, in meters. 0 is the bottom of the range of motion. */
-  public double ele_setpoint;
-
-  public double wrist_setpoint;
-
-  public double shooter_speed;
+  public double ele_setpoint, wrist_setpoint, claw_speed, shooter_speed;
 
   public Elevator() {
     
@@ -23,7 +17,7 @@ abstract public class Elevator extends SubsystemBase {
 
   public void setElevatorSetpoint(double setpoint) {
     this.ele_setpoint = setpoint;
-    (setpoint);
+    setElePID(setpoint);
   }
 
   public void changeSetpoint(double setpoint) {
@@ -32,7 +26,7 @@ abstract public class Elevator extends SubsystemBase {
   }
 
   public void runElevator(double volts) {
-    
+    setEleVoltage(volts);
   }
 
   public void runShooter(double speed) {
@@ -41,16 +35,14 @@ abstract public class Elevator extends SubsystemBase {
   }
 
   // Direct set voltage methods
-  protected abstract void setLeftEleVoltage(double volts);
-  protected abstract void setRightEleVoltage(double volts);
+  protected abstract void setEleVoltage(double volts);
   protected abstract void setWristVoltage(double volts);
   // PID set methods
-  protected abstract void setLeftElePID(double setpoint);
-  protected abstract void setRightElePID(double setpoint);
+  protected abstract void setElePID(double setpoint);
   protected abstract void setWristPID(double setpoint);
   // Spark set methods
-  protected abstract void setLeftClawPID(double speed);
-  protected abstract void setRightClawPID(double speed);
+  protected abstract void setLeftClawSpeed(double speed);
+  protected abstract void setRightClawSpeed(double speed);
   protected abstract void setShooterSpeed(double speed);
 
   @Override

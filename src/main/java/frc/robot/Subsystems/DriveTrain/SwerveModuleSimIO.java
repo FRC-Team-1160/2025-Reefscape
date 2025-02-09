@@ -45,7 +45,7 @@ public class SwerveModuleSimIO extends SwerveModule {
 
     public double getPosition() { return position; }
 
-    public SwerveModuleState getModuleState() {
+    protected SwerveModuleState getModuleState() {
         return new SwerveModuleState(getSpeed(), getAngle());
     }
 

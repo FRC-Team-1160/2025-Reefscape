@@ -35,6 +35,6 @@ public abstract class SwerveModule {
   abstract SwerveModuleState getModuleState();
   abstract SwerveModulePosition getModulePosition();
   
-  abstract void setSpeed(double speed);
-  abstract void setAngle(Rotation2d angle);
+  protected abstract void setSpeed(double speed);
+  protected abstract void setAngle(Rotation2d angle);
 }

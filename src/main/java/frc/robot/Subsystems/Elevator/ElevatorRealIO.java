@@ -15,13 +15,12 @@ import frc.robot.Constants.ElevatorConstants.MotorConfigs;
 
 public class ElevatorRealIO extends Elevator {
 
-    public TalonFX left_ele_motor, right_ele_motor, wrist_motor;
+    public TalonFX ele_motor, wrist_motor;
 
     public SparkMax left_claw_motor, right_claw_motor, shooter_motor;
 
     public ElevatorRealIO() {
-        left_ele_motor = new TalonFX(PortConstants.LEFT_ELEVATOR_MOTOR, "CANivore");
-        right_ele_motor = new TalonFX(PortConstants.RIGHT_ELEVATOR_MOTOR, "CANivore");
+        ele_motor = new TalonFX(PortConstants.RIGHT_ELEVATOR_MOTOR, "CANivore");
         shooter_motor = new SparkMax(PortConstants.SHOOTER_MOTOR, MotorType.kBrushless);
 
         TalonFXConfiguration configs = new TalonFXConfiguration();
@@ -37,40 +36,34 @@ public class ElevatorRealIO extends Elevator {
         configs.Feedback.SensorToMechanismRatio = 25;
         configs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
-        left_ele_motor.getConfigurator().apply(configs);
-        right_ele_motor.getConfigurator().apply(configs);
+        ele_motor.getConfigurator().apply(configs);
 
-        ele_setpoint = right_ele_motor.getPosition().getValueAsDouble();
+        ele_setpoint = ele_motor.getPosition().getValueAsDouble();
     }
 
-    public void setElevatorPID() {
-        // left_motor.setControl(new PositionVoltage(setpoint));
-        // right_motor.setControl(new PositionVoltage(setpoint));    
+    protected void setEleVoltage(double volts) {
+        ele_motor.setControl(new VoltageOut(volts));
     }
 
-    public void setLeftEleVoltage(double volts) {
-        left_ele_motor.setControl(new VoltageOut(volts));
-    }
-
-    public void setRightEleVoltage(double volts) {
-        right_ele_motor.setControl(new VoltageOut(volts));
-    }
-
-    //DON'T ACTIVATE UNTIL FULLY TUNED
-    public void setLeftElePID(double setpoint) {
-        // left_ele_motor.setControl(new PositionVoltage(setpoint));
-    }
-
-    public void setRightElePID(double setpoint) {
-        // right_ele_motor.setControl(new PositionVoltage(setpoint));
-    }
-
-    public void setWristVoltage(double volts) {
+    protected void setWristVoltage(double volts) {
         wrist_motor.setControl(new VoltageOut(volts));
     }
 
-    public void setWristPID(double setpoint) {
+    //DON'T ACTIVATE UNTIL FULLY TUNED
+    protected void setElePID(double setpoint){
+        // ele_motor.setControl(new PositionVoltage(setpoint));
+    }
+
+    protected void setWristPID(double setpoint) {
         wrist_motor.setControl(new PositionVoltage(setpoint));
+    }
+
+    protected void setLeftClawSpeed(double speed) {
+        left_claw_motor.set(speed);
+    }
+
+    protected void setRightClawSpeed(double speed) {
+        right_claw_motor.set(speed);
     }
 
     public void setShooterSpeed(double speed) {
