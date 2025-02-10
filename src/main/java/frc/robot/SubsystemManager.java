@@ -1,16 +1,20 @@
 package frc.robot;
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
 
 import com.ctre.phoenix6.Orchestra;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -192,13 +196,13 @@ public class SubsystemManager {
                 }
 
             default:
-                double stick_x = Utils.threshold(-getStickX.get(), 0.1) * SwerveConstants.DRIVE_SPEED;
-                double stick_y = Utils.threshold(-getStickY.get(), 0.1) * SwerveConstants.DRIVE_SPEED;
-                double stick_a = Utils.threshold(-getStickA.get(), 0.1) * SwerveConstants.TURN_SPEED;
+                double stick_x = MathUtil.applyDeadband(-getStickX.get(), 0.1, 1) * SwerveConstants.DRIVE_SPEED;
+                double stick_y = MathUtil.applyDeadband(-getStickY.get(), 0.1, 1) * SwerveConstants.DRIVE_SPEED;
+                double stick_a = MathUtil.applyDeadband(-getStickA.get(), 0.1, 1) * SwerveConstants.TURN_SPEED;
 
                 double stick_el = getStickEl.get();
 
-                double stick_speed = Utils.hypot(stick_x, stick_y);
+                double stick_speed = RobotUtils.hypot(stick_x, stick_y);
                 // Renormalize movement if combined vector is overspeed
                 stick_x *= Math.min(SwerveConstants.DRIVE_SPEED / stick_speed, 1);
                 stick_y *= Math.min(SwerveConstants.DRIVE_SPEED / stick_speed, 1);
@@ -218,19 +222,19 @@ public class SubsystemManager {
     }
 
     public void setupOrchestra(int tracks) {
-        if (Robot.isSimulation()) return; // Abort if robot is simulated
+
+        if (Robot.isSimulation()) return; // Abort if robot is in simulation
 
         orchestra.clearInstruments();
 
-        int t = 0;
+        List<TalonFX> instruments = ((DriveTrainRealIO) m_drive).getTalons();
+        instruments.addAll(((ElevatorRealIO) m_elevator).getTalons());
 
-        for (SwerveModule module : m_drive.modules) {
-            // Increment track number by 1 when adding; reset when max tracks reached
-            orchestra.addInstrument(((SwerveModuleRealIO)module).drive_motor, t++ % tracks); 
-            orchestra.addInstrument(((SwerveModuleRealIO)module).steer_motor, t++ % tracks);
+        int t = 0;
+        // Increment track number by 1 when adding; reset when max tracks reached
+        for (TalonFX talon : instruments) { 
+            orchestra.addInstrument(talon, t++ % tracks);
         }
-        
-        orchestra.addInstrument(((ElevatorRealIO)m_elevator).ele_motor, t++ % tracks);
 
     }
  

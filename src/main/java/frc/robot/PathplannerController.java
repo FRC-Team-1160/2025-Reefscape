@@ -59,7 +59,7 @@ public class PathplannerController {
             Rotation2d opp_angle = angle.plus(Rotation2d.kPi);
             List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
                 new Pose2d(
-                    Reef.CENTER_X
+                    RobotUtils.allianceFlip(Reef.CENTER_X)
                      + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
                      + opp_angle.getSin() * ReefPaths.H_OFFSET,
                     Reef.CENTER_Y
@@ -67,7 +67,7 @@ public class PathplannerController {
                      + opp_angle.getCos() * ReefPaths.H_OFFSET,
                      angle),
                 new Pose2d(
-                    Reef.CENTER_X
+                    RobotUtils.allianceFlip(Reef.CENTER_X)
                      + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
                      + opp_angle.getSin() * ReefPaths.H_OFFSET,
                     Reef.CENTER_Y
@@ -95,7 +95,7 @@ public class PathplannerController {
     public int getNearestReefFace() {
         Translation2d robot_position = robot_pose_supplier.get().getTranslation();
         Rotation2d reef_angle = new Translation2d(
-                Reef.CENTER_X,
+                RobotUtils.allianceFlip(Reef.CENTER_X),
                 Reef.CENTER_Y
             ).minus(robot_position).getAngle();
         // Get angle to the reef, add 1 to remove negatives and 1/12 to shift by half a face. Round and multiply by 6 to get face #

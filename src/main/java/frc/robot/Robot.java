@@ -9,67 +9,67 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class Robot extends TimedRobot {
-  private Command autonomous_command;
+    private Command autonomous_command;
 
-  private final RobotContainer m_robot_container;
+    private final RobotContainer m_robot_container;
 
-  public Robot() {
-    m_robot_container = new RobotContainer();
-  }
-
-  @Override
-  public void robotPeriodic() {
-    CommandScheduler.getInstance().run();
-  }
-
-  @Override
-  public void disabledInit() {}
-
-  @Override
-  public void disabledPeriodic() {}
-
-  @Override
-  public void disabledExit() {}
-
-  @Override
-  public void autonomousInit() {
-    autonomous_command = m_robot_container.getAutonomousCommand();
-    if (autonomous_command != null) {
-      autonomous_command.schedule();
+    public Robot() {
+        m_robot_container = new RobotContainer();
     }
-  }
 
-  @Override
-  public void autonomousPeriodic() {
-    m_robot_container.updateSubsystemManager();
-  }
-
-  @Override
-  public void autonomousExit() {}
-
-  @Override
-  public void teleopInit() {
-    if (autonomous_command != null) {
-      autonomous_command.cancel();
+    @Override
+    public void robotPeriodic() {
+        CommandScheduler.getInstance().run();
     }
-  }
 
-  @Override
-  public void teleopPeriodic() {
-    m_robot_container.updateSubsystemManager();
-  }
+    @Override
+    public void disabledInit() {}
 
-  @Override
-  public void teleopExit() {}
+    @Override
+    public void disabledPeriodic() {}
 
-  @Override
-  public void testInit() {
-    CommandScheduler.getInstance().cancelAll();
-  }
+    @Override
+    public void disabledExit() {}
 
-  @Override
-  public void testPeriodic() {}
+    @Override
+    public void autonomousInit() {
+        autonomous_command = m_robot_container.getAutonomousCommand();
+        if (autonomous_command != null) {
+            autonomous_command.schedule();
+        }
+    }
 
-  @Override
-  public void testExit() {}
+    @Override
+    public void autonomousPeriodic() {
+        m_robot_container.updateSubsystemManager();
+    }
+
+    @Override
+    public void autonomousExit() {}
+
+    @Override
+    public void teleopInit() {
+        if (autonomous_command != null) {
+            autonomous_command.cancel();
+        }
+    }
+
+    @Override
+    public void teleopPeriodic() {
+        m_robot_container.updateSubsystemManager();
+    }
+
+    @Override
+    public void teleopExit() {}
+
+    @Override
+    public void testInit() {
+        CommandScheduler.getInstance().cancelAll();
+    }
+
+    @Override
+    public void testPeriodic() {}
+
+    @Override
+    public void testExit() {}
 }
