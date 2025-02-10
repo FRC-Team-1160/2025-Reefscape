@@ -1,4 +1,6 @@
 package frc.robot.Subsystems.Vision;
+import java.util.function.Supplier;
+
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
@@ -17,6 +19,8 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
+import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 
 public class Vision extends SubsystemBase {
     public Pose2d pose;
@@ -25,27 +29,44 @@ public class Vision extends SubsystemBase {
 
     public int count;
 
+    // DriveTrain drive_train;
+
     StructPublisher<Pose2d> adv_pose_pub;
     StructArrayPublisher<Pose2d> adv_target_pub;
     StructPublisher<Pose2d> adv_tracked_pub;
 
     PhotonCamera photon_tag_camera;
+    PhotonCamera photon_tag_camera2;
     PhotonPoseEstimator photon_pose_estimator;
+    PhotonPoseEstimator photon_pose_estimator2;
 
-    public Vision() {
+    Supplier<Pose2d> getOdomPose;
+
+    public boolean stero = true;
+
+    public Vision(Supplier<Pose2d> getOdomPose) {
         if (Robot.isReal()){
+            this.getOdomPose = getOdomPose;
+            
             NetworkTableInstance inst = NetworkTableInstance.getDefault();
             NetworkTable adv_vision = inst.getTable("adv_vision");
             adv_pose_pub = adv_vision.getStructTopic("Pose", Pose2d.struct).publish();
 
             photon_tag_camera = new PhotonCamera("OV9281");
+            photon_tag_camera2 = new PhotonCamera("OV9782");
 
             pose = new Pose2d(0.12, 0, new Rotation2d());
 
             AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-            photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(-0.15 * 0.0254, 0.10 * 0.0254, 0.2), new Rotation3d(0, 20.0 * Math.PI / 180, 0)));
+            // 1 in = 0.0254 m
+            photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, -11 * 0.0254, 9 * 0.0254), new Rotation3d(0, 0, Math.toRadians(20))));
+            // correct: 10.3 
+            // object detection camera (on the left of the robot)
+            photon_pose_estimator2 = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, 11 * 0.0254, 9 * 0.0254), new Rotation3d(0, 0,-Math.toRadians(20))));
+
             photon_pose_estimator.setReferencePose(pose);
+            photon_pose_estimator2.setReferencePose(pose);
         }
     }
 
@@ -68,27 +89,42 @@ public class Vision extends SubsystemBase {
 
     @Override 
     public void periodic() {
+        pose = getOdomPose.get();
+        // photon_tag_camera2.setPipelineIndex(1);
+
         if (Robot.isReal()) {
-            var photon_result = photon_tag_camera.getLatestResult();
-            if (photon_result.hasTargets()){
-                var update = photon_pose_estimator.update(photon_result);
-                if (update.isPresent()){
-                    photon_pose = update.get().estimatedPose.toPose2d();
-                    if (Math.abs(pose.getRotation().getRadians()) < 1){
-                    photon_pose_estimator.setReferencePose(photon_pose);
+            var photon_result = photon_tag_camera.getAllUnreadResults();
+            for (var result : photon_result){
+                if (result.hasTargets()) {
+                    var update = photon_pose_estimator.update(result);
+                    if (update.isPresent()) {
+                        photon_pose = update.get().estimatedPose.toPose2d();
+                        if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
                     }
                 }
             }
+
+            if (stero){
+                var photon_result2 = photon_tag_camera2.getAllUnreadResults();
+                for (var result : photon_result2){
+                    if (result.hasTargets()) {
+                        var update = photon_pose_estimator2.update(result);
+                        if (update.isPresent()) {
+                            // combine poses for both cameras
+                            if (photon_pose == null){
+                                photon_pose = update.get().estimatedPose.toPose2d();
+                            }else{
+                                photon_pose = combinePoses(photon_pose, 0.5, update.get().estimatedPose.toPose2d(), 0.5);
+                            }
+                            if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator2.setReferencePose(photon_pose);
+                        }
+                    }
+                }
+            }
+
         }
 
-        var photon_result = photon_tag_camera.getLatestResult();
-        if (photon_result.hasTargets()) {
-            var update = photon_pose_estimator.update(photon_result);
-            if (update.isPresent()) {
-                photon_pose = update.get().estimatedPose.toPose2d();
-                if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
-            }
-        }
+
         
         // smart cropping:
         // LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
@@ -140,7 +176,9 @@ public class Vision extends SubsystemBase {
         // }
 
         // testing object detection
-        pose = new Pose2d(13, 7, new Rotation2d(Math.PI));
+        // pose = new Pose2d(13, 7, new Rotation2d(Math.PI));
+
+        pose = photon_pose;
         adv_pose_pub.set(pose);
     }
 }

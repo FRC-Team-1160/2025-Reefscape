@@ -27,7 +27,7 @@ import frc.robot.Constants.Vision;
 import frc.robot.Robot;
 
 public class ObjectDetection extends SubsystemBase {
-  private PhotonCamera detector;
+  public PhotonCamera detector;
 
   public Pose2d closest_pose;
   private Pose2d robot_pose;
@@ -104,21 +104,26 @@ public class ObjectDetection extends SubsystemBase {
     // 1) Distance: d = (focalLengthPx * realWidthMeters) / boundingBoxWidthPx
     double distance;
     // in pixels
-    double focal_length = getFocalLength(Vision.SCREEN_WIDTH, Vision.CAMERA_X_FOV);
-    if (target_width > 0) {
-      distance = 250.0d / target_width; // (focalLengthPx * targetWidthM) / targetWidthPixel;
-
-    } else {
-      distance = Double.POSITIVE_INFINITY;
-    }
+    // double focal_length = getFocalLength(Vision.SCREEN_WIDTH, Vision.CAMERA_X_FOV);
 
     distance = 261 / (Math.max(target_width, target_height)) - 0.04 + 0.35;
     distance = 261 / (Math.max(target_width, target_height)) - 0.04 + 0.35;
 
+    // adjust with offset
+    // distance += 2.5 * 0.0254;
     double image_center = Vision.SCREEN_WIDTH / 2.0;
     double fraction_off_center = (target_x - image_center) / image_center;
-    double offset_angle = fraction_off_center * (Vision.CAMERA_X_FOV / 2.0); // in radians
-    double horizontal_offset = distance * Math.sin(offset_angle);
+
+    // Angle from camera centerline
+    double offset_angle_camera = fraction_off_center * (Vision.CAMERA_X_FOV / 2.0);
+
+    // Because camera is turned 20° clockwise, subtract 20° to get the robot-relative angle
+    double cameraMountAngleRad = Math.toRadians(-20.0);
+    double offset_angle_robot = offset_angle_camera - cameraMountAngleRad;
+
+    // Horizontal offset in meters from the robot’s forward axis
+    double horizontal_offset = distance * Math.sin(offset_angle_robot);
+    distance = distance * Math.sin(offset_angle_robot);
 
     return new double[] { distance, horizontal_offset };
   }
@@ -150,6 +155,7 @@ public class ObjectDetection extends SubsystemBase {
     }
 
     var result = detector.getLatestResult();
+    // var result = detector.getAllUnreadResults();
     List<PhotonTrackedTarget> targets = result.getTargets();
     ArrayList<Pose2d> target_poses = new ArrayList<Pose2d>();
     ArrayList<Target> target_distances = new ArrayList<Target>();
