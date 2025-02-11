@@ -7,7 +7,6 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -19,7 +18,7 @@ import frc.robot.Constants.IOConstants;
 public class RobotContainer {
   private Joystick main_stick = new Joystick(IOConstants.MAIN_PORT);
   private Joystick second_stick = new Joystick(IOConstants.COPILOT_PORT);
-  // private Joystick left_board = new Joystick(Constants.IO.LEFT_BOARD_PORT);
+  private Joystick left_board = new Joystick(IOConstants.LEFT_BOARD_PORT);
   private Joystick right_board = new Joystick(IOConstants.RIGHT_BOARD_PORT);
 
   public final SubsystemManager m_subsystem_manager = new SubsystemManager(
@@ -38,11 +37,7 @@ public class RobotContainer {
   }
 
   public void updateSubsystemManager() {
-    if (RobotState.isEnabled()) {
-      m_subsystem_manager.periodic();
-    } else if (RobotState.isAutonomous()) {
-      m_subsystem_manager.periodic();
-    }
+    m_subsystem_manager.periodic();
   }
 
   private void configureBindings() {

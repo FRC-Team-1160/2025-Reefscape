@@ -8,11 +8,11 @@ import frc.robot.Constants.FieldConstants;
 public final class RobotUtils {
     
     public static double hypot(double a, double b) {
-        return Math.sqrt(a*a + b*b);
+        return Math.sqrt(a * a + b * b);
     }
 
     public static double hypot_inverse(double c, double a) {
-        return Math.sqrt(c*c - a*a);
+        return Math.sqrt(c * c - a * a);
     }
 
     public static double clampAbs(double x, double maxAbs) {

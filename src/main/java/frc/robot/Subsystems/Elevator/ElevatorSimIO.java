@@ -6,8 +6,8 @@ public class ElevatorSimIO extends Elevator {
 
     public ElevatorSimIO () {}
 
-    protected void setEleVoltage(double volts) {}
-    protected void setWristVoltage(double volts) {}
+    public void runElevator(double speed) {}
+    public void runWrist(double speed) {}
 
     protected void setElePID(double setpoint) {}
     protected void setWristPID(double setpoint) {}

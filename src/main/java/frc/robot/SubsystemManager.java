@@ -1,7 +1,6 @@
 package frc.robot;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -23,7 +22,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import frc.robot.Constants.AutoConstants;
@@ -31,9 +30,7 @@ import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
-import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; //Simulation can't identify sim class without this for some reason
-import frc.robot.Subsystems.DriveTrain.SwerveModule;
-import frc.robot.Subsystems.DriveTrain.SwerveModuleRealIO;
+import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO; // Simulation can't identify sim class without this for some reason
 import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Elevator.ElevatorSimIO;
@@ -51,7 +48,7 @@ public class SubsystemManager {
         }
 
         enum ElevatorStates {
-            FULL_CONTROL // control via setpoint
+            FULL_CONTROL // Control via setpoint
         }
     
         public DriveStates drive_state = DriveStates.DRIVER_CONTROL;

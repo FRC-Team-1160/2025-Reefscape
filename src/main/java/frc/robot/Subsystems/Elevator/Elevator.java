@@ -6,9 +6,8 @@ package frc.robot.Subsystems.Elevator;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.robot.RobotUtils;
+
 import frc.robot.Constants.ElevatorConstants;
-import frc.robot.Constants.ElevatorConstants.ElevatorConfigs;
 
 
 abstract public class Elevator extends SubsystemBase {
@@ -34,18 +33,14 @@ abstract public class Elevator extends SubsystemBase {
         setElevatorSetpoint(setpoint);
     }
 
-    public void runElevator(double speed) {
-        setEleVoltage(-(speed + Math.signum(speed) + ElevatorConfigs.kS) + ElevatorConfigs.kG);
-    }
-
     public void runShooter(double speed) {
         shooter_speed = speed;
         setShooterSpeed(speed);
     }
 
-    // Direct set voltage methods
-    protected abstract void setEleVoltage(double volts);
-    protected abstract void setWristVoltage(double volts);
+    // VoltageOut() methods
+    public abstract void runElevator(double speed);
+    public abstract void runWrist(double speed);
     // PID set methods
     protected abstract void setElePID(double setpoint);
     protected abstract void setWristPID(double setpoint);

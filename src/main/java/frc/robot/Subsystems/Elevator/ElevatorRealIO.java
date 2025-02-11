@@ -57,12 +57,12 @@ public class ElevatorRealIO extends Elevator {
 
     }
 
-    protected void setEleVoltage(double volts) {
-        ele_motor.setControl(new VoltageOut(volts));
+    public void runElevator(double speed) {
+        ele_motor.setControl(new VoltageOut(-(speed + Math.signum(speed) * ElevatorConfigs.kS) + ElevatorConfigs.kG));
     }
 
-    protected void setWristVoltage(double volts) {
-        wrist_motor.setControl(new VoltageOut(volts));
+    public void runWrist(double speed) {
+        wrist_motor.setControl(new VoltageOut(speed + Math.signum(speed) * WristConfigs.kS));
     }
 
     //DON'T ACTIVATE UNTIL FULLY TUNED

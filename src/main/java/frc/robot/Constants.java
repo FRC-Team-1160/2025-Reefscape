@@ -17,28 +17,11 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public final class Constants {
 
-    public static class EnabledMechanisms {
-        public static class SwerveSwitches {
-            public static final boolean DRIVE = true;
-            public static final boolean STEER = true;
-        }
-        public static class ElevatorSwitches {
-            public static final boolean ELEVATOR_ALL = true;
-            public static final boolean ELEVATOR_PID = false;
-
-            public static final boolean WRIST_ALL = true;
-            public static final boolean WRIST_PID = false;
-
-            public static final boolean CLAW_LEFT = true;
-            public static final boolean CLAW_RIGHT = true;
-            public static final boolean SHOOTER = true;
-        }
-    }
 
     public static class RobotConstants {
         public static final double LOOP_TIME_SECONDS = 0.02;
 
-        public static final double BASE_WIDTH = Units.inchesToMeters(30);
+        public static final double BASE_WIDTH = Units.inchesToMeters(29.5);
     }
 
     public static final class PortConstants {
@@ -118,6 +101,38 @@ public final class Constants {
         public final static double TRACKING_TIMEOUT = 15.0;
         /**Number of undetected frames before target is no longer tracked. */
         public final static int DETECTION_LIMIT = 3;
+        
+        public static class CameraTransforms {
+            public static class LeftCamera {
+                public static final double X = Units.inchesToMeters(2.5);
+                public static final double Y = Units.inchesToMeters(9.0);
+                public static final double Z = Units.inchesToMeters(11.0);
+
+                public static final double ROLL = 0;
+                public static final double PITCH = 0;
+                public static final double YAW = Units.degreesToRadians(-20);
+            }
+
+            public static class RightCamera {
+                public static final double X = Units.inchesToMeters(2.5);
+                public static final double Y = Units.inchesToMeters(-9.0);
+                public static final double Z = Units.inchesToMeters(11.0);
+
+                public static final double ROLL = 0;
+                public static final double PITCH = 0;
+                public static final double YAW = Units.degreesToRadians(20);
+            }
+
+            public static class BackCamera {
+                public static final double X = 0; //TODO: find constants
+                public static final double Y = 0;
+                public static final double Z = 0;
+
+                public static final double ROLL = 0;
+                public static final double PITCH = 0;
+                public static final double YAW = 0;
+            }
+        }
 
         public static class EstimationParameters {
             public static final double a = 261.3;
