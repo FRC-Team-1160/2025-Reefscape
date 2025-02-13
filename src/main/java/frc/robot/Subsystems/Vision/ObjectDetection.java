@@ -11,13 +11,17 @@ import java.util.List;
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.TargetCorner;
+
+import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.FixedSpaceIndenter;
+
 import org.opencv.calib3d.Calib3d;
+import org.opencv.core.Core;
 import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
-import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose2d; 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -50,13 +54,18 @@ public class ObjectDetection extends SubsystemBase {
 
   Transform2d robot_to_camera;
 
-  MatOfPoint2f temp_mat;
+  MatOfPoint2f temp_mat, dest_mat;
 
   Mat camera_instrinsics_mat, dist_coeffs_mat;
 
   // TODO: potentially unneeded?
   /** in meters */
   double closest_distance;
+
+  // Load OpenCV
+  static {
+    System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+  }
 
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
@@ -74,21 +83,21 @@ public class ObjectDetection extends SubsystemBase {
 
     robot_to_camera = new Transform2d(Units.inchesToMeters(2.5), Units.inchesToMeters(11), Rotation2d.fromDegrees(-20));
 
-    MatOfPoint2f temp = new MatOfPoint2f();
+    // Initialize mats as member fields because creating mats is expensive
+    temp_mat = new MatOfPoint2f();
+    dest_mat = new MatOfPoint2f();
 
-    int[] idxs_arr = new int[3];
-    Arrays.setAll(idxs_arr, i -> i++);
+    // Camera intrinsics matrix
+    camera_instrinsics_mat = Mat.zeros(3, 3, CvType.CV_64F);
+    camera_instrinsics_mat.put(0, 0, CameraIntrinsics.f_x);
+    camera_instrinsics_mat.put(0, 2, CameraIntrinsics.c_x);
+    camera_instrinsics_mat.put(1, 1, CameraIntrinsics.f_y);
+    camera_instrinsics_mat.put(1, 2, CameraIntrinsics.f_y);
+    camera_instrinsics_mat.put(2, 2, 1);
 
-    camera_instrinsics_mat = new Mat(3, 3, CvType.CV_64F);
-    camera_instrinsics_mat.put(new int[] {0, 1, 2}, CameraIntrinsics.f_x, 0, CameraIntrinsics.c_x);
-    camera_instrinsics_mat.put(new int[] {0, 1, 2}, 0, CameraIntrinsics.f_y, CameraIntrinsics.c_y);
-    camera_instrinsics_mat.put(new int[] {0, 1, 2}, 0, 0, 1);
-
-    idxs_arr = new int[8];
-    Arrays.setAll(idxs_arr, i -> i++);
-
+    
     dist_coeffs_mat = new Mat(1, 8, CvType.CV_64F);
-    dist_coeffs_mat.put(idxs_arr, 
+    dist_coeffs_mat.put(0, 0, 
         CameraDistortion.k1, 
         CameraDistortion.k2, 
         CameraDistortion.k3, 
@@ -97,8 +106,6 @@ public class ObjectDetection extends SubsystemBase {
         CameraDistortion.k6, 
         CameraDistortion.k7, 
         CameraDistortion.k8);
-
-
   }
 
   public Pose2d getObjectPose(Pose2d robot_pose, double distance, double angle_to_target) {
@@ -229,25 +236,45 @@ public class ObjectDetection extends SubsystemBase {
 
       temp_mat.fromArray(corner_points);
 
-      Calib3d.undistortImagePoints(
-        temp_mat,
-        temp_mat,
-        params.calibration.getCameraIntrinsicsMat(),
-        params.calibration.getDistCoeffsMat());
-
       for (TargetCorner corner : target.getMinAreaRectCorners()) {
-        corner_points.add(new Point(corner.x, corner.y));
         minX = Math.min(minX, corner.x);
         maxX = Math.max(maxX, corner.x);
         minY = Math.min(minY, corner.y);
         maxY = Math.max(maxY, corner.y);
       }
 
-      temp.fromArray()
+      SmartDashboard.putNumber("minXo", minX);
+      SmartDashboard.putNumber("maxXo", maxX);
+      SmartDashboard.putNumber("minYo", minY);
+      SmartDashboard.putNumber("maxYo", maxY);
+
+      SmartDashboard.putNumber("heighto", maxY - minY);
+
+      SmartDashboard.putNumber("k1", dist_coeffs_mat.get(0, 0)[0]);
+
+      Calib3d.undistortImagePoints(
+        temp_mat,
+        dest_mat,
+        camera_instrinsics_mat,
+        dist_coeffs_mat);
+
+      for (Point corner : dest_mat.toArray()) {
+        minX = Math.min(minX, corner.x);
+        maxX = Math.max(maxX, corner.x);
+        minY = Math.min(minY, corner.y);
+        maxY = Math.max(maxY, corner.y);
+      }
+
+      SmartDashboard.putNumber("minX", minX);
+      SmartDashboard.putNumber("maxX", maxX);
+      SmartDashboard.putNumber("minY", minY);
+      SmartDashboard.putNumber("maxY", maxY);
 
       double midpoint = (maxX + minX)/2;
       double width = maxX - minX;
       double height = maxY - minY;
+
+      SmartDashboard.putNumber("height", height);
 
       double[] temp_dist = getDistance(width, height, midpoint);
       double distance = temp_dist[0];
