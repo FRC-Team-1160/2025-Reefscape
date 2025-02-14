@@ -294,9 +294,7 @@ public abstract class DriveTrain extends SubsystemBase {
         for (SwerveModule module : modules) {
             module.update();
         }
-
         
-
         publishAdv();
 
     }

@@ -90,6 +90,7 @@ public class SubsystemManager {
         // Initialize subsystems
         if (Robot.isReal()) {
             this.m_drive = new DriveTrainRealIO();
+            this.m_elevator = new ElevatorRealIO();
         } else {
             this.m_drive = new DriveTrainSimIO();
             this.m_elevator = new ElevatorSimIO();

@@ -93,6 +93,5 @@ public class Vision extends SubsystemBase {
                 update_pose_estimator.accept(photon_pose.plus(camera_1_offset), update.get().timestampSeconds);
             }
         }
-         
     }
 }

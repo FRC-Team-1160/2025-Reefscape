@@ -37,7 +37,7 @@ public class ObjectDetection {
     /** AdvantageScope publisher. */
     StructArrayPublisher<Pose3d> adv_tracked_pub;
     /** List of targets that are being tracked. */
-    public List<Target> tracked_targets;
+    public List<VisionTarget> tracked_targets;
 
     /** Creates a new ObjectDetection. */
     public ObjectDetection(Supplier<Pose2d> robot_pose_supplier) {
@@ -52,12 +52,12 @@ public class ObjectDetection {
 
         this.robot_pose_supplier = robot_pose_supplier;
 
-        tracked_targets = new ArrayList<Target>();
+        tracked_targets = new ArrayList<VisionTarget>();
 
         // Generate 3 random vision targets for testing
         if (Robot.isSimulation()) {
             for (int i = 0; i < 3; i++) {
-                tracked_targets.add(new Target(
+                tracked_targets.add(new VisionTarget(
                     new Translation2d(Math.random() * 12.0 + 2.0, Math.random() * 4.0 + 2.0)
                 ));
             }
@@ -123,11 +123,11 @@ public class ObjectDetection {
      * Returns the closest target to the robot. Accounts for robot orientation.
      * @return The closest target.
      */
-    public Target getClosestTarget() {
+    public VisionTarget getClosestTarget() {
         robot_pose = robot_pose_supplier.get();
         double min_dist = VisionConstants.MAX_TRACKING_DISTANCE; // Only return if closest target is within range
-        Target closest = null;
-        for (Target t : tracked_targets) {
+        VisionTarget closest = null;
+        for (VisionTarget t : tracked_targets) {
             if (t.getDistance(robot_pose) < min_dist) {
                 // Take into account both distance and rotational distance
                 min_dist = t.getDistance(robot_pose) + t.getAngle(robot_pose).getRotations();
@@ -157,8 +157,13 @@ public class ObjectDetection {
             return;
         }
         // Increase marked counter
-        tracked_targets.forEach(
-            (t) -> {if (Math.abs(t.getAngle(robot_pose).getRadians()) < VisionConstants.EXPECTED_RANGE / 2) t.marked++;});
+        for (VisionTarget t : tracked_targets) {
+            if (Math.abs(t.getAngle(robot_pose).getRadians()) < VisionConstants.EXPECTED_RANGE / 2)  {
+                t.marked++;
+            } else {
+                t.marked = 0;
+            }
+        }
 
         List<PhotonTrackedTarget> targets = camera.getLatestResult().getTargets();
 
@@ -186,7 +191,7 @@ public class ObjectDetection {
             // Check that object isnt cut off
             if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
 
-                for (Target t : tracked_targets) {
+                for (VisionTarget t : tracked_targets) {
                     if (t.getDistance(target_pose) < VisionConstants.TARGET_WIDTH/2) {
                         // If object matches position, update position of tracked object
                         t.updatePosition(target_pose); 
@@ -195,11 +200,11 @@ public class ObjectDetection {
                     }
                 }
                 // If current target hasnt been matched, start tracking as new target
-                if (!matched) tracked_targets.add(new Target(target_pose)); 
+                if (!matched) tracked_targets.add(new VisionTarget(target_pose)); 
 
             } else {
                 // If target bounding box is cut off at camera edges
-                for (Target t : tracked_targets) {
+                for (VisionTarget t : tracked_targets) {
                     if (t.getAngle(robot_pose.getTranslation()).minus(target_pose.getRotation()).getDegrees() < 10) {
                         // Confirm that the target still exists, but calculated position may be inaccurate
                         t.resetTimer(); 

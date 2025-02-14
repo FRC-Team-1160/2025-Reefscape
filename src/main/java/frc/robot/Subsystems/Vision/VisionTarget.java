@@ -10,19 +10,19 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
 
 
-public class Target {
+public class VisionTarget {
 
     public Translation2d position;
     public Timer timer;
     public int marked;
 
     /** Creates a new Target. */
-    public Target(Pose2d position){
+    public VisionTarget(Pose2d position){
         this(position.getTranslation());
     }
 
     /** Creates a new Target. */
-    public Target(Translation2d position){
+    public VisionTarget(Translation2d position){
         this.position = position;
         timer = new Timer();
         timer.start();

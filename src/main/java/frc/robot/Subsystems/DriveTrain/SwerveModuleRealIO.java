@@ -101,11 +101,11 @@ public class SwerveModuleRealIO extends SwerveModule {
     }
 
     protected void setSpeed(double speed) {
-        drive_motor.setControl(new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER));
+        // drive_motor.setControl(new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER));
     }
 
     protected void setAngle(Rotation2d angle) {
-        steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
+        // steer_motor.setControl(new PositionVoltage(-angle.getRotations())); //account for motor reversal?
     }
 
     public List<TalonFX> getTalons() {
