@@ -21,7 +21,7 @@ import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 
-public class Vision extends SubsystemBase {
+public class Vision {
 
     public int count;
 
@@ -78,8 +78,7 @@ public class Vision extends SubsystemBase {
 
     }
 
-    @Override 
-    public void periodic() {
+    public void update() {
         // Object detection is still updated during simulation
         m_object_detection.update(); 
 

@@ -36,7 +36,7 @@ import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Elevator.ElevatorSimIO;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
-import frc.robot.Subsystems.Vision.Target;
+import frc.robot.Subsystems.Vision.VisionTarget;
 
 public class SubsystemManager {
 
@@ -74,7 +74,7 @@ public class SubsystemManager {
 
     public SwerveDrivePoseEstimator pose_estimator;
     
-    public Target tracked_target;
+    public VisionTarget tracked_target;
 
     StructPublisher<Pose2d> adv_pose_pub;
 
@@ -174,7 +174,9 @@ public class SubsystemManager {
         }
     }
 
-    public void periodic() {
+    public void update() {
+        // Get odometry readings BEFORE running 
+        m_vision.update();
 
         robot_pose = pose_estimator.updateWithTime(Timer.getTimestamp(), m_drive.getGyroAngle(), m_drive.getModulePositions());
 

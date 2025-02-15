@@ -36,10 +36,6 @@ public class RobotContainer {
     configureBindings();
   }
 
-  public void updateSubsystemManager() {
-    m_subsystem_manager.periodic();
-  }
-
   private void configureBindings() {
     new JoystickButton(main_stick, 8).onTrue(
       new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle)

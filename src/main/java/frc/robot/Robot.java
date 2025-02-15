@@ -19,6 +19,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
+        m_robot_container.m_subsystem_manager.update();
         CommandScheduler.getInstance().run();
     }
 
@@ -41,7 +42,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousPeriodic() {
-        m_robot_container.updateSubsystemManager();
+
     }
 
     @Override
@@ -56,7 +57,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        m_robot_container.updateSubsystemManager();
+
     }
 
     @Override
