@@ -76,34 +76,34 @@ public class Vision extends SubsystemBase {
     public boolean stero = true;
 
     public Vision(Supplier<Pose2d> getOdomPose, Supplier<PoseEstimator> getPoseEstimator) {
-        if (Robot.isReal()){
-            this.getOdomPose = getOdomPose;
+        this.getOdomPose = getOdomPose;
             this.getPoseEstimator = getPoseEstimator;
 
             photon_pose_chaching = new PoseCaching(20);
             photon_pose2_chaching = new PoseCaching(20);
             limelight_pose_chaching = new PoseCaching(20);
-            
-            NetworkTableInstance inst = NetworkTableInstance.getDefault();
-            NetworkTable adv_vision = inst.getTable("adv_vision");
-            adv_pose_pub = adv_vision.getStructTopic("Pose", Pose2d.struct).publish();
 
-            photon_tag_camera = new PhotonCamera("OV9281");
-            photon_tag_camera2 = new PhotonCamera("OV9782");
+        NetworkTableInstance inst = NetworkTableInstance.getDefault();
+        NetworkTable adv_vision = inst.getTable("adv_vision");
+        adv_pose_pub = adv_vision.getStructTopic("Pose", Pose2d.struct).publish();
 
-            pose = new Pose2d(0.12, 0, new Rotation2d());
+        pose = new Pose2d(0.12, 0, new Rotation2d());
 
-            AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+        AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
             // 1 in = 0.0254 m
-            photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, -0.2425 - 0.052, 9 * 0.0254), new Rotation3d(0, 0, Math.toRadians(20))));
+            photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, -11 * 0.0254, 9 * 0.0254), new Rotation3d(0, 0, Math.toRadians(20))));
             // correct: 10.3 
             // object detection camera (on the left of the robot)
-            photon_pose_estimator2 = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, 0.2425 + 0.052, 9 * 0.0254), new Rotation3d(0, 0,-Math.toRadians(20))));
+            photon_pose_estimator2 = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, 11 * 0.0254, 9 * 0.0254), new Rotation3d(0, 0,-Math.toRadians(20))));
 
-            photon_pose_estimator.setReferencePose(pose);
-            photon_pose_estimator2.setReferencePose(pose);
-        }
+        photon_pose_estimator.setReferencePose(pose);
+        photon_pose_estimator2.setReferencePose(pose);
+
+        if (!Robot.isReal()) return;
+
+        photon_tag_camera = new PhotonCamera("OV9281");
+        photon_tag_camera2 = new PhotonCamera("OV9782");
     }
 
     public Pose2d combinePoses(Pose2d photon_pose, double photon_weight, Pose2d limelight_pose, double limelight_weight) {

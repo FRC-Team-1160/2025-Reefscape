@@ -59,6 +59,9 @@ public class SubsystemManager {
 
         if (Robot.isSimulation()) {
             this.m_drive = new DriveTrainSimIO();
+            m_vision = new Vision(()-> this.m_drive.odom_pose);
+            m_object_detection = new ObjectDetection();
+            this.m_elevator = new Elevator();
         } else {
             this.m_drive = new DriveTrainRealIO();
             this.m_claw = new Claw();
