@@ -1,8 +1,8 @@
 package frc.robot.Subsystems.Vision;
+
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
 import org.photonvision.EstimatedRobotPose;
@@ -16,12 +16,15 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-
+import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
@@ -49,6 +52,9 @@ public class Vision {
         this.robot_pose_supplier = robot_pose_supplier;
 
         m_object_detection = new ObjectDetection(robot_pose_supplier);
+
+        pose_cache_left = new VisionPoseCache();
+        pose_cache_right = new VisionPoseCache();
 
         if (Robot.isSimulation()) return; // Exit if in simulation
 
@@ -78,9 +84,6 @@ public class Vision {
             )
         );
         pose_estimator_right.setReferencePose(new Pose2d());
-
-        pose_cache_left = new VisionPoseCache();
-        pose_cache_right = new VisionPoseCache();
 
     }
 
@@ -117,7 +120,7 @@ public class Vision {
                 cache.updateAmbiguity(result.getBestTarget().poseAmbiguity);
                 fiducials.add(result.getBestTarget().fiducialId);
             }
-
+            // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
             main_pose_estimator.addVisionMeasurement(pose, estimate.timestampSeconds, cache.getStdevs());
         }
 
@@ -128,7 +131,23 @@ public class Vision {
         // Object detection is still updated during simulation
         m_object_detection.update(); 
 
-        if (Robot.isSimulation()) return;
-        
+        if (Robot.isSimulation()) {
+            pose_cache_left.addPose(
+                robot_pose_supplier.get().plus(
+                    new Transform2d(
+                        0.05 - Math.random() * 0.1,
+                        0.05 - Math.random() * 0.1,
+                        Rotation2d.fromDegrees(5 - Math.random() * 10)
+                    )
+                ), 
+                robot_pose_supplier.get(),
+                Timer.getTimestamp());
+            // pose_cache_left.updateAmbiguity(0.1 + Math.random() * 0.1);
+            var stdevs = pose_cache_left.getStdevs();
+            SmartDashboard.putNumber("xdev", stdevs.get(0, 0));
+            SmartDashboard.putNumber("ydev", stdevs.get(1, 0));
+            SmartDashboard.putNumber("adev", stdevs.get(2, 0));
+
+        }
     }
 }

@@ -23,14 +23,13 @@ abstract public class Elevator extends SubsystemBase {
      * @param setpoint The setpoint in meters. 0 is the lowest elevator height.
      */
     public void setElevatorSetpoint(double setpoint) {
-        setpoint = MathUtil.clamp(setpoint, 0, ElevatorConstants.MAX_EXTENSION);
-        this.ele_setpoint = setpoint;
-        setElePID(setpoint);
+        ele_setpoint = MathUtil.clamp(setpoint, 0, ElevatorConstants.MAX_EXTENSION);
+        setElePID(ele_setpoint);
     }
 
     public void changeSetpoint(double setpoint) {
-        this.ele_setpoint += setpoint;
-        setElevatorSetpoint(setpoint);
+        ele_setpoint += setpoint;
+        setElevatorSetpoint(ele_setpoint);
     }
 
     public void runShooter(double speed) {

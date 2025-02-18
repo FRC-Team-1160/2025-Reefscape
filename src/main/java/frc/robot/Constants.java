@@ -26,15 +26,15 @@ public final class Constants {
 
     public static final class PortConstants {
         // CAN IDs 
-        public static final int FRONT_LEFT_STEER_MOTOR = 1;
-        public static final int FRONT_RIGHT_STEER_MOTOR = 3;
-        public static final int BACK_LEFT_STEER_MOTOR = 5;
-        public static final int BACK_RIGHT_STEER_MOTOR = 7;
+        public static final int STEER_MOTOR_FRONT_LEFT = 1;
+        public static final int STEER_MOTOR_FRONT_RIGHT = 3;
+        public static final int STEER_MOTOR_BACK_LEFT = 5;
+        public static final int STEER_MOTOR_BACK_RIGHT = 7;
 
-        public static final int FRONT_LEFT_DRIVE_MOTOR = 2;
-        public static final int FRONT_RIGHT_DRIVE_MOTOR = 4;
-        public static final int BACK_LEFT_DRIVE_MOTOR = 6;
-        public static final int BACK_RIGHT_DRIVE_MOTOR = 8;
+        public static final int DRIVE_MOTOR_FRONT_LEFT = 2;
+        public static final int DRIVE_MOTOR_FRONT_RIGHT = 4;
+        public static final int DRIVE_MOTOR_BACK_LEFT = 6;
+        public static final int DRIVE_MOTOR_BACK_RIGHT = 8;
 
         public static final int FRONT_LEFT_CODER = 1;
         public static final int FRONT_RIGHT_CODER = 3;

@@ -1,10 +1,6 @@
 package frc.robot.Subsystems.Vision;
 
-
-
 import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.function.Function;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
@@ -12,6 +8,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class VisionPoseCache {
 
@@ -29,7 +26,8 @@ public class VisionPoseCache {
     public VisionPoseCache() {
         POSE_TIMEOUT = 0.25;
         cache = new ArrayDeque<CachedPose>();
-        sums = sum_squares = new double[3];
+        sums = new double[3];
+        sum_squares = new double[3];
     }
 
     /**
@@ -39,9 +37,11 @@ public class VisionPoseCache {
      * @param timestampSeconds The time of the vision estimate.
      */
     public void addPose(Pose2d pose, Pose2d referencePose, double timestampSeconds) {
-        if (cache.isEmpty() || Math.abs(timestampSeconds - cache.getLast().timestamp) < 1e-4) {
+        if (cache.isEmpty() || Math.abs(timestampSeconds - cache.getLast().timestamp) > 1e-4) {
+            // We take the difference between the actual (best combined estimate) pose and the vision estimate
+            // to account for robot motion
             Transform2d diff = pose.minus(referencePose);
-
+            // Take rolling sum and sum of squares
             sums[0] += diff.getX();
             sums[1] += diff.getY();
             sums[2] += diff.getRotation().getRadians();
@@ -55,9 +55,9 @@ public class VisionPoseCache {
                 diff.getY(), 
                 diff.getRotation().getRadians(), 
                 timestampSeconds));
-
         }
         clearOldPoses(timestampSeconds);
+
     }
 
     public void updateAmbiguity(double ambiguity) {
@@ -67,7 +67,9 @@ public class VisionPoseCache {
     public void clearOldPoses(double timestampSeconds) {
         while (!cache.isEmpty()) {
             CachedPose first = cache.getFirst();
+            // Remove data from cache if too old
             if (timestampSeconds - first.timestamp > POSE_TIMEOUT) {
+                // Remove this pose from the rolling sums
                 sums[0] -= first.x;
                 sums[1] -= first.y;
                 sums[2] -= first.a;
@@ -85,7 +87,7 @@ public class VisionPoseCache {
 
     // The standard deviation can be calculated with no iterative passes using the sum and sum of squares
     private double calcStdev(int i) {
-        return Math.sqrt(sum_squares[i] - (sums[i] * sums[i] / cache.size()) / cache.size());
+        return Math.sqrt((sum_squares[i] - (sums[i] * sums[i] / cache.size())) / cache.size());
     }
 
     /**

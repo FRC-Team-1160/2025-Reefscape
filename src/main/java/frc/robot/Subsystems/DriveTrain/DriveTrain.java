@@ -49,13 +49,13 @@ public abstract class DriveTrain extends SubsystemBase {
         );
 
         modules = new SwerveModule[4];
-        modules[0] = initializeModule(PortConstants.FRONT_LEFT_DRIVE_MOTOR, PortConstants.FRONT_LEFT_STEER_MOTOR,
+        modules[0] = initializeModule(PortConstants.DRIVE_MOTOR_FRONT_LEFT, PortConstants.STEER_MOTOR_FRONT_LEFT,
             PortConstants.FRONT_LEFT_CODER);
-        modules[1] = initializeModule(PortConstants.FRONT_RIGHT_DRIVE_MOTOR, PortConstants.FRONT_RIGHT_STEER_MOTOR,
+        modules[1] = initializeModule(PortConstants.DRIVE_MOTOR_FRONT_RIGHT, PortConstants.STEER_MOTOR_FRONT_RIGHT,
                 PortConstants.FRONT_RIGHT_CODER);
-        modules[2] = initializeModule(PortConstants.BACK_LEFT_DRIVE_MOTOR, PortConstants.BACK_LEFT_STEER_MOTOR,
+        modules[2] = initializeModule(PortConstants.DRIVE_MOTOR_BACK_LEFT, PortConstants.STEER_MOTOR_BACK_LEFT,
                 PortConstants.BACK_LEFT_CODER);
-        modules[3] = initializeModule(PortConstants.BACK_RIGHT_DRIVE_MOTOR, PortConstants.BACK_RIGHT_STEER_MOTOR,
+        modules[3] = initializeModule(PortConstants.DRIVE_MOTOR_BACK_RIGHT, PortConstants.STEER_MOTOR_BACK_RIGHT,
                 PortConstants.BACK_RIGHT_CODER);
 
         module_states = new SwerveModuleState[] {

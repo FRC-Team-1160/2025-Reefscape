@@ -20,6 +20,7 @@ public final class RobotUtils {
     }
 
     public static double allianceFlip(double x) {
+        if (DriverStation.getAlliance().isEmpty()) return x;
         return DriverStation.getAlliance().get() == Alliance.Red ? FieldConstants.LENGTH - x : x;
     }
 
