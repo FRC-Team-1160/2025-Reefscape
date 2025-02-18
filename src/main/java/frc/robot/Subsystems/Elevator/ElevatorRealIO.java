@@ -21,7 +21,7 @@ public class ElevatorRealIO extends Elevator {
 
     private TalonFX ele_motor, wrist_motor;
 
-    private SparkMax left_claw_motor, right_claw_motor, shooter_motor;
+    private SparkMax claw_motor_left, claw_motor_right, shooter_motor;
 
     public ElevatorRealIO() {
         ele_motor = new TalonFX(PortConstants.RIGHT_ELEVATOR_MOTOR, "CANivore");
@@ -76,11 +76,11 @@ public class ElevatorRealIO extends Elevator {
     }
 
     protected void setLeftClawSpeed(double speed) {
-        left_claw_motor.set(speed);
+        claw_motor_left.set(speed);
     }
 
     protected void setRightClawSpeed(double speed) {
-        right_claw_motor.set(speed);
+        claw_motor_right.set(speed);
     }
 
     protected void setShooterSpeed(double speed) {
