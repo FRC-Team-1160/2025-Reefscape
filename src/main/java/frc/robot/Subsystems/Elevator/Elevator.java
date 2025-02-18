@@ -45,8 +45,7 @@ abstract public class Elevator extends SubsystemBase {
     protected abstract void setElePID(double setpoint);
     protected abstract void setWristPID(double setpoint);
     // Spark set methods
-    protected abstract void setLeftClawSpeed(double speed);
-    protected abstract void setRightClawSpeed(double speed);
+    protected abstract void setClawSpeed(double speed);
     protected abstract void setShooterSpeed(double speed);
 
     @Override

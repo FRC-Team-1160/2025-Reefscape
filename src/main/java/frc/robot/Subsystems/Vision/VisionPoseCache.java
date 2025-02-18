@@ -16,23 +16,29 @@ import edu.wpi.first.math.numbers.N3;
 public class VisionPoseCache {
 
     private final double POSE_TIMEOUT;
-
-    private final ArrayDeque<CachedPose> cache;
-
+    // A convenience class for storing poses with their timestamp
     private record CachedPose(double x, double y, double a, double timestamp) {}
-
+    // A cache for the stored poses. ArrayDeque is used because we only need to access the first and last element.
+    private final ArrayDeque<CachedPose> cache;
+    // Take a rolling sum and sum of squares to calculate stdevs
     private double[] sums, sum_squares;
 
     private double last_ambiguity;
 
+    /** Creates a new VisionPoseCache. */
     public VisionPoseCache() {
         POSE_TIMEOUT = 0.25;
         cache = new ArrayDeque<CachedPose>();
-        sums = new double[3];
-        sum_squares = new double[3];
+        sums = sum_squares = new double[3];
     }
 
-    public void addPose(Pose2d pose, Pose2d referencePose, double ambiguity, double timestampSeconds) {
+    /**
+     * Updates the cache with a new vision estimate. Clears out old datapoints.
+     * @param pose The vision-estimated pose.
+     * @param referencePose The predicted pose of the robot from odometry.
+     * @param timestampSeconds The time of the vision estimate.
+     */
+    public void addPose(Pose2d pose, Pose2d referencePose, double timestampSeconds) {
         if (cache.isEmpty() || Math.abs(timestampSeconds - cache.getLast().timestamp) < 1e-4) {
             Transform2d diff = pose.minus(referencePose);
 
@@ -50,9 +56,12 @@ public class VisionPoseCache {
                 diff.getRotation().getRadians(), 
                 timestampSeconds));
 
-            last_ambiguity = ambiguity;
         }
         clearOldPoses(timestampSeconds);
+    }
+
+    public void updateAmbiguity(double ambiguity) {
+        this.last_ambiguity = ambiguity;
     }
 
     public void clearOldPoses(double timestampSeconds) {
@@ -74,10 +83,15 @@ public class VisionPoseCache {
         }
     }
 
-    public double calcStdev(int i) {
+    // The standard deviation can be calculated with no iterative passes using the sum and sum of squares
+    private double calcStdev(int i) {
         return Math.sqrt(sum_squares[i] - (sums[i] * sums[i] / cache.size()) / cache.size());
     }
 
+    /**
+     * Returns the standard deviations for the associated camera based on the cached measurements.
+     * @return The x, y, and angular standard deviations.
+     */
     public Matrix<N3, N1> getStdevs() {
         return new Matrix<>(Nat.N3(), Nat.N1(), new double[] {
                 calcStdev(0),

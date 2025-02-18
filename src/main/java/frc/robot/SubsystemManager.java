@@ -104,7 +104,7 @@ public class SubsystemManager {
             robot_pose);
 
         // Vision needs to be initialized afterwards to have access to pose_estimator
-        m_vision = new Vision(pose_estimator::addVisionMeasurement, pose_estimator::getEstimatedPosition);
+        m_vision = new Vision(pose_estimator::addVisionMeasurement, this::getPoseEstimate);
 
         this.getStickX = getStickX;
         this.getStickY = getStickY;
@@ -116,7 +116,7 @@ public class SubsystemManager {
             this::getPidReferenceSpeeds, 
             1);
 
-        m_pathplanner_controller = new PathplannerController(pose_estimator::getEstimatedPosition);
+        m_pathplanner_controller = new PathplannerController(this::getPoseEstimate);
 
         // Configure Autobuilder
         RobotConfig config;
@@ -158,6 +158,14 @@ public class SubsystemManager {
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
         NetworkTable adv_swerve = inst.getTable("adv_swerve");
         adv_pose_pub = adv_swerve.getStructTopic("Pose", Pose2d.struct).publish();
+    }
+
+    /**
+     * Returns the estimated pose. Updates PoseEstimator with odometry readings for most accurate estimate.
+     * @return The updated pose estimate.
+     */
+    public Pose2d getPoseEstimate() {
+        return pose_estimator.updateWithTime(Timer.getTimestamp(), m_drive.getGyroAngle(), m_drive.getModulePositions());
     }
 
     /**

@@ -12,8 +12,7 @@ public class ElevatorSimIO extends Elevator {
     protected void setElePID(double setpoint) {}
     protected void setWristPID(double setpoint) {}
 
-    protected void setLeftClawSpeed(double speed) {}
-    protected void setRightClawSpeed(double speed) {}
+    protected void setClawSpeed(double speed) {}
     protected void setShooterSpeed(double speed) {}
 
 }

@@ -121,7 +121,7 @@ public class ObjectDetection {
 
     /**
      * Returns the closest target to the robot. Accounts for robot orientation.
-     * @return The closest target.
+     * @return The best target object.
      */
     public VisionTarget getClosestTarget() {
         robot_pose = robot_pose_supplier.get();
