@@ -24,12 +24,14 @@ public class RobotContainer {
   private Joystick second_stick = new Joystick(Constants.IO.COPILOT_PORT);
   private Joystick left_board = new Joystick(Constants.IO.LEFT_BOARD_PORT);
   private Joystick right_board = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
+  private Joystick simp_stick = new Joystick(4);
 
   public final SubsystemManager m_subsystem_manager = new SubsystemManager(
     () -> main_stick.getRawAxis(1), // i think these should be swapped
     () -> main_stick.getRawAxis(0),
     () -> second_stick.getRawAxis(0),
-    () -> right_board.getRawAxis(0)
+    // () -> right_board.getRawAxis(0)
+    () -> simp_stick.getRawAxis(1)
   );
 
   private final SendableChooser<Command> auto_chooser;
