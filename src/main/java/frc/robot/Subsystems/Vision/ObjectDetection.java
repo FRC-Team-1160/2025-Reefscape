@@ -26,7 +26,7 @@ import frc.robot.Robot;
 import frc.robot.RobotUtils;
 
 public class ObjectDetection {
-    /** The OV9281 instance. */
+    /** The OV9782 instance. */
     public PhotonCamera camera;
     /** The current robot pose. */
     public Pose2d robot_pose;
@@ -45,7 +45,7 @@ public class ObjectDetection {
             camera = new PhotonCamera("OV9782");
         }
 
-        NetworkTable adv_vision =    NetworkTableInstance.getDefault().getTable("adv_vision");
+        NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
 
         adv_closest_pub = adv_vision.getStructTopic("Closest", Pose2d.struct).publish();
         adv_tracked_pub = adv_vision.getStructArrayTopic("Tracked", Pose3d.struct).publish();

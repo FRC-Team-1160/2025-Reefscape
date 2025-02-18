@@ -104,7 +104,7 @@ public class SubsystemManager {
             robot_pose);
 
         // Vision needs to be initialized afterwards to have access to pose_estimator
-        m_vision = new Vision(pose_estimator::addVisionMeasurement, this::getPoseEstimate);
+        m_vision = new Vision(pose_estimator, this::getPoseEstimate);
 
         this.getStickX = getStickX;
         this.getStickY = getStickY;
@@ -112,7 +112,7 @@ public class SubsystemManager {
         this.getStickEl = getStickEl;
 
         m_swerve_pid_controller = new SwervePIDController(
-            pose_estimator::getEstimatedPosition, 
+            this::getPoseEstimate, 
             this::getPidReferenceSpeeds, 
             1);
 

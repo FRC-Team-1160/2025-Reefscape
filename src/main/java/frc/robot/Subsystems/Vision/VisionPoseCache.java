@@ -97,6 +97,6 @@ public class VisionPoseCache {
                 calcStdev(0),
                 calcStdev(1),
                 calcStdev(2)
-            }).times(last_ambiguity * 100);
+            }).plus(last_ambiguity);
     }
 }

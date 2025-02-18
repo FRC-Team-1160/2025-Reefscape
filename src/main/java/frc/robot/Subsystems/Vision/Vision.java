@@ -13,6 +13,7 @@ import org.photonvision.targeting.PhotonPipelineResult;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
@@ -20,7 +21,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
+
 import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
@@ -28,7 +29,7 @@ import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 public class Vision {
 
     public ObjectDetection m_object_detection;
-
+    // Convenience class for organizing readings from cameras
     private record CameraResults(Pose2d pose, Set<Integer> ids) {}
 
     StructArrayPublisher<Pose2d> adv_poses_pub;
@@ -37,15 +38,15 @@ public class Vision {
     PhotonCamera camera_left, camera_right;
     PhotonPoseEstimator pose_estimator_left, pose_estimator_right;
     VisionPoseCache pose_cache_left, pose_cache_right;
-
-    BiConsumer<Pose2d, Double> update_pose_estimator;
+    // A REFERENCE to the SwerveDrivePoseEstimator contained in SubsystemManager so that vision can update with 3 args
+    SwerveDrivePoseEstimator main_pose_estimator;
     Supplier<Pose2d> robot_pose_supplier;
 
     /** Creates a new Vision. */
-    public Vision(BiConsumer<Pose2d, Double> update_pose_estimator, Supplier<Pose2d> robot_pose_supplier) {
+    public Vision(SwerveDrivePoseEstimator main_pose_estimator, Supplier<Pose2d> robot_pose_supplier) {
 
+        this.main_pose_estimator = main_pose_estimator;
         this.robot_pose_supplier = robot_pose_supplier;
-        this.update_pose_estimator = update_pose_estimator;
 
         m_object_detection = new ObjectDetection(robot_pose_supplier);
 
@@ -83,36 +84,41 @@ public class Vision {
 
     }
 
-    public CameraResults readPhotonResults(PhotonCamera camera, PhotonPoseEstimator pose_estimator, VisionPoseCache cache) {
+    public CameraResults readPhotonResults(PhotonCamera camera, PhotonPoseEstimator photon_pose_estimator, VisionPoseCache cache) {
 
         Pose2d pose = null;
-        List<PhotonPipelineResult> photon_results = camera_left.getAllUnreadResults();
+        // Using a set prevents repetition
         Set<Integer> fiducials = new HashSet<Integer>();
+        List<PhotonPipelineResult> photon_results = camera.getAllUnreadResults();
 
+        // 2025: getAllUnreadResults() returns all estimations since the last check
         for (PhotonPipelineResult result : photon_results) {
-            // Exit if result has no targets or pose is empty
+            // Move on to next result if this has no targets or pose is empty
             if (!result.hasTargets()) continue;
-            var opt_pose = pose_estimator.update(result);
+            var opt_pose = photon_pose_estimator.update(result);
             if (opt_pose.isEmpty()) continue;
 
             EstimatedRobotPose estimate = opt_pose.get();
-
             pose = estimate.estimatedPose.toPose2d();
-            // cache pose for fluctuation calculations
+
+            // Cache pose for fluctuation calculations
             cache.addPose(
                 pose,
                 robot_pose_supplier.get(), 
                 estimate.timestampSeconds);
-            // store ambiguity and read used apriltag IDs
+
+            // Check if result has multiple tags; store ambiguity and read used apriltag IDs
             if (result.multitagResult.isPresent()) {
-                cache.updateAmbiguity(result.getMultiTagResult().get().estimatedPose.ambiguity);
-                for (Short id : result.getMultiTagResult().get().fiducialIDsUsed) {
+                cache.updateAmbiguity(result.multitagResult.get().estimatedPose.ambiguity);
+                for (Short id : result.multitagResult.get().fiducialIDsUsed) {
                     fiducials.add(id.intValue());
                 }
             } else {
                 cache.updateAmbiguity(result.getBestTarget().poseAmbiguity);
                 fiducials.add(result.getBestTarget().fiducialId);
             }
+
+            main_pose_estimator.addVisionMeasurement(pose, estimate.timestampSeconds, cache.getStdevs());
         }
 
         return new CameraResults(pose, fiducials);
