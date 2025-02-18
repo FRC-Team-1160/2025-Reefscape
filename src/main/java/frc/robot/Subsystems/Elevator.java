@@ -6,6 +6,7 @@ package frc.robot.Subsystems;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -28,7 +29,7 @@ public class Elevator extends SubsystemBase {
   public Elevator() {
     // right is negative to go up because CCW is positive
     // krishna had them flipped because the control board stick inputs are reversed
-    left_motor = new TalonFX(Port.LEFT_ELEVATOR_MOTOR);
+    left_motor = new TalonFX(20);
     right_motor = new TalonFX(Port.RIGHT_ELEVATOR_MOTOR);
     shooter_motor = new SparkMax(Port.SHOOTER_MOTOR, MotorType.kBrushless);
 
@@ -50,6 +51,9 @@ public class Elevator extends SubsystemBase {
 
     left_motor.setPosition(0);
     right_motor.setPosition(0);
+
+    left_motor.setControl(new Follower(Port.RIGHT_ELEVATOR_MOTOR, true));
+
   }
 
   @Override
@@ -71,7 +75,7 @@ public class Elevator extends SubsystemBase {
 
   public void setVoltage(double volt) {
     SmartDashboard.putNumber("Elevator volt", volt);
-    left_motor.setControl(new VoltageOut(volt + kG));
+    // left_motor.setControl(new VoltageOut(volt + kG));
     right_motor.setControl(new VoltageOut(-(volt + kG)));
   }
 
