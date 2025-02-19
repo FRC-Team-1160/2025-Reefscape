@@ -106,6 +106,7 @@ public class VisionPoseCache {
     /**
      * Returns standard deviations in combination with the last recorded ambiguity rating.
      * @return The weighted x, y, and angular standard deviations.
+     * 
      */
     public Matrix<N3, N1> getWeightedStdevs() {
         return getStdevs().plus(last_ambiguity / 2);

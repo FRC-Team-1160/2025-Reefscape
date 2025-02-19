@@ -1,7 +1,3 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 package frc.robot;
 
 import java.util.function.Supplier;
@@ -19,7 +15,6 @@ import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants.Tracking;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Angle;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Distance;
-
 
 public class SwervePIDController {
 
@@ -93,7 +88,7 @@ public class SwervePIDController {
             target_angle.minus(robot_pose.getRotation()).getRotations(),
             Tracking.ALIGN_SEPARATION_TOLERANCE,
             Tracking.MAX_ALIGN_SEPARATION));
-            
+
         adv_goal_pose_pub.set(new Pose2d(
                 target_pose.getTranslation().minus(target_off.times(goal_dist/target_off.getNorm())),
                 target_angle));
