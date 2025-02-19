@@ -156,6 +156,10 @@ public class ObjectDetection {
             publishAdv();
             return;
         }
+        if (camera.getPipelineIndex() != 0) {
+            publishAdv();
+            return;
+        }
         // Increase marked counter
         for (VisionTarget t : tracked_targets) {
             if (Math.abs(t.getAngle(robot_pose).getRadians()) < VisionConstants.EXPECTED_RANGE / 2)  {

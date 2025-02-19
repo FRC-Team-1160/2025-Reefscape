@@ -1,6 +1,7 @@
 package frc.robot;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -8,6 +9,7 @@ import org.json.simple.parser.ParseException;
 
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.ConnectedMotorValue;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
@@ -89,11 +91,23 @@ public class SubsystemManager {
 
         // Initialize subsystems
         if (Robot.isReal()) {
-            this.m_drive = new DriveTrainRealIO();
-            this.m_elevator = new ElevatorRealIO();
+            m_drive = new DriveTrainRealIO();
+            for (TalonFX talon : ((DriveTrainRealIO) m_drive).getTalons()) {
+                if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
+                    m_drive = new DriveTrainSimIO();
+                    break;
+                }
+            }
+            m_elevator = new ElevatorRealIO();
+            for (TalonFX talon : ((ElevatorRealIO) m_elevator).getTalons()) {
+                if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
+                    m_elevator = new ElevatorSimIO();
+                    break;
+                }
+            }
         } else {
-            this.m_drive = new DriveTrainSimIO();
-            this.m_elevator = new ElevatorSimIO();
+            m_drive = new DriveTrainSimIO();
+            m_elevator = new ElevatorSimIO();
         }
 
         robot_pose = new Pose2d();
@@ -221,7 +235,7 @@ public class SubsystemManager {
     }
 
     public void publishAdv() {
-        adv_pose_pub.set(pose_estimator.getEstimatedPosition());
+        adv_pose_pub.set(getPoseEstimate());
     }
 
 
@@ -235,8 +249,17 @@ public class SubsystemManager {
 
         orchestra.clearInstruments();
 
-        List<TalonFX> instruments = ((DriveTrainRealIO) m_drive).getTalons();
-        instruments.addAll(((ElevatorRealIO) m_elevator).getTalons());
+        List<TalonFX> instruments = new ArrayList<TalonFX>();
+        try {
+            instruments.addAll(((DriveTrainRealIO) m_drive).getTalons());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        try {
+            instruments.addAll(((ElevatorRealIO) m_elevator).getTalons());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         int t = 0;
         // Increment track number by 1 when adding; reset when max tracks reached

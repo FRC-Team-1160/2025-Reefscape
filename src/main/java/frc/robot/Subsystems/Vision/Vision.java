@@ -1,7 +1,9 @@
 package frc.robot.Subsystems.Vision;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -87,7 +89,7 @@ public class Vision {
 
     }
 
-    public CameraResults readPhotonResults(PhotonCamera camera, PhotonPoseEstimator photon_pose_estimator, VisionPoseCache cache) {
+    public Optional<CameraResults> readPhotonResults(PhotonCamera camera, PhotonPoseEstimator photon_pose_estimator, VisionPoseCache cache) {
 
         Pose2d pose = null;
         // Using a set prevents repetition
@@ -112,42 +114,39 @@ public class Vision {
 
             // Check if result has multiple tags; store ambiguity and read used apriltag IDs
             if (result.multitagResult.isPresent()) {
-                cache.updateAmbiguity(result.multitagResult.get().estimatedPose.ambiguity);
+                cache.last_ambiguity = result.multitagResult.get().estimatedPose.ambiguity;
                 for (Short id : result.multitagResult.get().fiducialIDsUsed) {
                     fiducials.add(id.intValue());
                 }
             } else {
-                cache.updateAmbiguity(result.getBestTarget().poseAmbiguity);
+                cache.last_ambiguity = result.getBestTarget().poseAmbiguity;
                 fiducials.add(result.getBestTarget().fiducialId);
             }
             // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
-            main_pose_estimator.addVisionMeasurement(pose, estimate.timestampSeconds, cache.getStdevs());
+            if (pose != null) main_pose_estimator.addVisionMeasurement(pose, estimate.timestampSeconds, cache.getStdevs());
+            SmartDashboard.putNumber("y_stdev", cache.getStdevs().get(1,0));
         }
-
-        return new CameraResults(pose, fiducials);
+        return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, fiducials));
     }
 
     public void update() {
         // Object detection is still updated during simulation
         m_object_detection.update(); 
+        List<Pose2d> vision_poses = new ArrayList<>();
+        HashSet<Integer> used_ids = new HashSet<Integer>();
 
-        if (Robot.isSimulation()) {
-            pose_cache_left.addPose(
-                robot_pose_supplier.get().plus(
-                    new Transform2d(
-                        0.05 - Math.random() * 0.1,
-                        0.05 - Math.random() * 0.1,
-                        Rotation2d.fromDegrees(5 - Math.random() * 10)
-                    )
-                ), 
-                robot_pose_supplier.get(),
-                Timer.getTimestamp());
-            // pose_cache_left.updateAmbiguity(0.1 + Math.random() * 0.1);
-            var stdevs = pose_cache_left.getStdevs();
-            SmartDashboard.putNumber("xdev", stdevs.get(0, 0));
-            SmartDashboard.putNumber("ydev", stdevs.get(1, 0));
-            SmartDashboard.putNumber("adev", stdevs.get(2, 0));
+        readPhotonResults(camera_left, pose_estimator_left, pose_cache_left).ifPresent(
+            result -> {
+                vision_poses.add(result.pose);
+                used_ids.addAll(result.ids);
+            });
 
-        }
+        readPhotonResults(camera_right, pose_estimator_right, pose_cache_right).ifPresent(
+            result -> {
+                vision_poses.add(result.pose);
+                used_ids.addAll(result.ids);
+            });
+
+        adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
     }
 }

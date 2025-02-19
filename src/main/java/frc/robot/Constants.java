@@ -4,6 +4,8 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -112,22 +114,22 @@ public final class Constants {
         public static class CameraTransforms {
             public static class LeftCamera {
                 public static final double X = Units.inchesToMeters(2.5);
-                public static final double Y = Units.inchesToMeters(9.0);
+                public static final double Y = 0.24;
                 public static final double Z = Units.inchesToMeters(11.0);
 
                 public static final double ROLL = 0;
                 public static final double PITCH = 0;
-                public static final double YAW = Units.degreesToRadians(-20);
+                public static final double YAW = Units.degreesToRadians(-17);
             }
 
             public static class RightCamera {
                 public static final double X = Units.inchesToMeters(2.5);
-                public static final double Y = Units.inchesToMeters(-9.0);
+                public static final double Y = -0.24;
                 public static final double Z = Units.inchesToMeters(11.0);
 
                 public static final double ROLL = 0;
                 public static final double PITCH = 0;
-                public static final double YAW = Units.degreesToRadians(20);
+                public static final double YAW = Units.degreesToRadians(17);
             }
 
             public static class BackCamera {
@@ -273,6 +275,13 @@ public final class Constants {
             public static final double CENTER_X = Units.feetToMeters(12) + INNER_RADIUS;
             public static final double CENTER_Y = FieldConstants.WIDTH / 2;
             public static final int NUM_SIDES = 6;
+        }
+
+        public static class AprilTags {
+            public static final Transform3d TAG_1 = new Transform3d(
+                0, 0, 0,
+                new Rotation3d(0, 0, 0)
+            );
         }
     }
 

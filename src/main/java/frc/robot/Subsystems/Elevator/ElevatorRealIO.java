@@ -30,6 +30,9 @@ public class ElevatorRealIO extends Elevator {
     public ElevatorRealIO() {
         ele_motor_left = new TalonFX(PortConstants.ELEVATOR_MOTOR_LEFT, "CANivore");
         ele_motor_right = new TalonFX(PortConstants.ELEVATOR_MOTOR_RIGHT, "CANivore");
+        wrist_motor = new TalonFX(PortConstants.WRIST_MOTOR);
+        claw_motor_left = new SparkMax(PortConstants.CLAW_MOTOR_LEFT, MotorType.kBrushless);
+        claw_motor_right = new SparkMax(PortConstants.CLAW_MOTOR_RIGHT, MotorType.kBrushless);
         shooter_motor = new SparkMax(PortConstants.SHOOTER_MOTOR, MotorType.kBrushless);
 
         TalonFXConfiguration ele_configs = new TalonFXConfiguration();
