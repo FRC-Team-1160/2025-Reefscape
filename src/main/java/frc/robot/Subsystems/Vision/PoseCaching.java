@@ -13,6 +13,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 import java.util.ArrayDeque;
 import java.util.LinkedList;
@@ -22,23 +23,23 @@ public class PoseCaching {
     
     private double pose_timeout;
 
-    private final ArrayDeque<CachedPose> cache;
+    private final LinkedList<CachedPose> cache;
 
     private record CachedPose(double x, double y, double a, double timestamp) {}
 
     private double[] sums, sum_squares;
 
     public PoseCaching(double pose_timeout) {
-        pose_timeout = pose_timeout;
-        cache = new ArrayDeque<CachedPose>();
-        sums = new double[3];
-        sum_squares = new double[3];
+        this.pose_timeout = pose_timeout;
+        this.cache = new LinkedList<CachedPose>();
+        this.sums = new double[3];
+        this.sum_squares = new double[3];
     }
 
     public void addPose(Pose2d pose, Pose2d referencePose, double timestampSeconds) {
-        if (cache.isEmpty() || Math.abs(timestampSeconds - cache.getLast().timestamp) < 1e-4) {
+        if (cache.isEmpty() || timestampSeconds - cache.getLast().timestamp > 1e-4) {
             Transform2d diff = pose.minus(referencePose);
-
+            SmartDashboard.putNumber("off_x", diff.getX());
             sums[0] += diff.getX();
             sums[1] += diff.getY();
             sums[2] += diff.getRotation().getRadians();
@@ -47,14 +48,23 @@ public class PoseCaching {
             sum_squares[1] += Math.pow(diff.getY(), 2);
             sum_squares[2] += Math.pow(diff.getRotation().getRadians(), 2);
 
-            cache.add(new CachedPose(
-                diff.getX(), 
-                diff.getY(), 
-                diff.getRotation().getRadians(), 
-                timestampSeconds));
+            CachedPose estimate = new CachedPose(diff.getX(), diff.getY(), diff.getRotation().getRadians(), timestampSeconds);
+
+            if (!cache.isEmpty()){
+                if (timestampSeconds < cache.getLast().timestamp) {
+                    cache.add(estimate);
+                } else {
+                    cache.add(cache.size() - 1, estimate);
+                }
+            }else{
+                cache.add(estimate);
+            }
 
         }
         clearOldPoses(timestampSeconds);
+        SmartDashboard.putNumber("sum_x", sums[0]);
+        SmartDashboard.putNumber("ssum_x", sum_squares[0]);
+        SmartDashboard.putNumber("n", cache.size());
     }
 
     public void clearOldPoses(double timestampSeconds) {

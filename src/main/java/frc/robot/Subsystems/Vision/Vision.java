@@ -1,5 +1,9 @@
 package frc.robot.Subsystems.Vision;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.function.Supplier;
 
@@ -7,6 +11,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -79,32 +84,45 @@ public class Vision extends SubsystemBase {
     StructArrayPublisher<Pose2d> vision_pose_array_pub;
     StructPublisher<Transform2d> diff_pub;
 
+    HashMap<Integer, Pose3d>  apriltags_map;
+    StructArrayPublisher<Pose3d> apriltags_array_pub;
+    List<Pose3d> apriltag_poses;
+
+
     public boolean stero = true;
 
     public Vision(Supplier<Pose2d> getOdomPose, Supplier<PoseEstimator> getPoseEstimator) {
         this.getOdomPose = getOdomPose;
-            this.getPoseEstimator = getPoseEstimator;
+        this.getPoseEstimator = getPoseEstimator;
 
-            photon_pose_chaching = new PoseCaching(0.25);
-            photon_pose2_chaching = new PoseCaching(0.25);
-            limelight_pose_chaching = new PoseCaching(0.25);
+        photon_pose_chaching = new PoseCaching(0.25);
+        photon_pose2_chaching = new PoseCaching(0.25);
+        limelight_pose_chaching = new PoseCaching(0.25);
+
+        apriltags_map = new HashMap<Integer, Pose3d>();
+        apriltag_poses = new ArrayList<Pose3d>();
+        for(double[] i:Constants.Vision.tags_map){
+            apriltags_map.put((int)i[0], new Pose3d(i[1] * 0.0254, i[2] * 0.0254, i[3] * 0.0254, new Rotation3d(0, i[5], i[4])));
+        }
 
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
         NetworkTable adv_vision = inst.getTable("adv_vision");
         adv_pose_pub = adv_vision.getStructTopic("Pose", Pose2d.struct).publish();
         vision_pose_array_pub = adv_vision.getStructArrayTopic("photon poses", Pose2d.struct).publish();
         diff_pub = adv_vision.getStructTopic("diff pose", Transform2d.struct).publish();
+
+        apriltags_array_pub = adv_vision.getStructArrayTopic("apriltags", Pose3d.struct).publish();
         
 
         pose = new Pose2d(0.12, 0, new Rotation2d());
 
         AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
-            // 1 in = 0.0254 m
-            photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, -0.305, 9 * 0.0254), new Rotation3d(0, 0, Math.toRadians(20))));
-            // correct: 10.3 
-            // object detection camera (on the left of the robot)
-            photon_pose_estimator2 = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, 0.305 + 0.052, 9 * 0.0254), new Rotation3d(0, 0,-Math.toRadians(20))));
+        // 1 in = 0.0254 m
+        photon_pose_estimator = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, -0.305, 9 * 0.0254), new Rotation3d(0, 0, Math.toRadians(20))));
+        // correct: 10.3 
+        // object detection camera (on the left of the robot)
+        photon_pose_estimator2 = new PhotonPoseEstimator(APRILTAG_FIELD_LAYOUT, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, new Transform3d(new Translation3d(2.5 * 0.0254, 0.305 + 0.052, 9 * 0.0254), new Rotation3d(0, 0,-Math.toRadians(20))));
 
         photon_pose_estimator.setReferencePose(pose);
         photon_pose_estimator2.setReferencePose(pose);
@@ -115,26 +133,11 @@ public class Vision extends SubsystemBase {
         photon_tag_camera2 = new PhotonCamera("OV9782");
     }
 
-    public Pose2d combinePoses(Pose2d photon_pose, double photon_weight, Pose2d limelight_pose, double limelight_weight) {
-        double total_weight = photon_weight + limelight_weight;
-        photon_weight /= total_weight;
-        limelight_weight /= total_weight;
-
-        // combine xy
-        double combinedX = photon_pose.getX() * photon_weight + limelight_pose.getX() * limelight_weight;
-        double combinedY = photon_pose.getY() * photon_weight + limelight_pose.getY() * limelight_weight;
-        // combine rotation
-        double photon_theta = photon_pose.getRotation().getRadians();
-        double limelight_theta = limelight_pose.getRotation().getRadians();
-        double combined_theta = photon_theta * photon_weight + limelight_theta * limelight_weight;
-
-        return new Pose2d(combinedX, combinedY, new Rotation2d(combined_theta));
-    }
-
     @Override 
     public void periodic() {
         pose = getOdomPose.get();
         odom_estimator = getPoseEstimator.get();
+        apriltag_poses.clear();
 
         // photon_tag_camera2.setPipelineIndex(1);
 
@@ -148,15 +151,19 @@ public class Vision extends SubsystemBase {
                         photon_pose = update.get().estimatedPose.toPose2d();
                         photon_poses_list[0] = photon_pose;
                         photon_pose_timestamp = result.getTimestampSeconds();
-                        photon_pose_chaching.addPose(photon_pose, getOdomPose.get(),photon_pose_timestamp);
+                        photon_pose_chaching.addPose(photon_pose, getOdomPose.get(), photon_pose_timestamp);
                         photon_pose_stddev = photon_pose_chaching.getStdevs();
-                        if (result.multitagResult.isPresent()){
-                            photon_pose_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
-                        }else{
-                            photon_pose_stddev.div(result.targets.get(0).poseAmbiguity);
-                        }
-                        System.out.println(photon_pose_stddev);
+                        // if (result.multitagResult.isPresent()){
+                        //     photon_pose_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
+                        // }else{
+                        //     photon_pose_stddev.div(result.targets.get(0).poseAmbiguity);
+                        // }
                         // if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
+                    }
+                    System.out.println(photon_pose_stddev);
+                    // store it in apriltag 
+                    for (PhotonTrackedTarget target:result.getTargets()){
+                        apriltag_poses.add(apriltags_map.get(target.fiducialId));
                     }
                 }
             }
@@ -167,23 +174,23 @@ public class Vision extends SubsystemBase {
                     if (result.hasTargets()) {
                         var update = photon_pose_estimator2.update(result);
                         if (update.isPresent()) {
-                            // combine poses for both cameras
-                            // if (photon_pose == null){
-                            //     photon_pose = update.get().estimatedPose.toPose2d();
-                            // }else{
-                            //     photon_pose = combinePoses(photon_pose, 0.5, update.get().estimatedPose.toPose2d(), 0.5);
-                            // }
                             photon_pose2 = update.get().estimatedPose.toPose2d();
                             photon_poses_list[1] = photon_pose2;
                             photon_pose2_timestamp = result.getTimestampSeconds();
-                            photon_pose2_chaching.addPose(photon_pose2,getOdomPose.get(), photon_pose2_timestamp);
+                            photon_pose2_chaching.addPose(photon_pose2, getOdomPose.get(), photon_pose2_timestamp);
                             photon_pose2_stddev = photon_pose_chaching.getStdevs();
-                            if (result.multitagResult.isPresent()){
-                                photon_pose2_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
-                            }else{
-                                photon_pose2_stddev.div(result.targets.get(0).poseAmbiguity);
-                            }
+                            // if (result.multitagResult.isPresent()){
+                            //     photon_pose2_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
+                            // }else{
+                            //     System.out.println(photon_pose2_stddev);
+                            //     photon_pose2_stddev.div(result.targets.get(0).poseAmbiguity);
+                            // }
                             // if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator2.setReferencePose(photon_pose);
+                        }
+                        // System.out.println(photon_pose2_stddev);
+                        // store it in apriltag 
+                        for (PhotonTrackedTarget target:result.getTargets()){
+                            apriltag_poses.add(apriltags_map.get(target.fiducialId));
                         }
                     }
                 }
@@ -222,10 +229,20 @@ public class Vision extends SubsystemBase {
             limelight_pose_chaching.addPose(limelight_pose, getOdomPose.get(), limelight_pose_timestamp);
             limelight_pose_stddev = limelight_pose_chaching.getStdevs();
 
-            RawFiducial[] fiducials = LimelightHelpers.getRawFiducials("");
-            if (fiducials != null){
-                limelight_pose_stddev.times(fiducials[0].ambiguity);
+             RawFiducial[] fiducials = LimelightHelpers.getRawFiducials("");
+            // if (fiducials != null){
+            //     limelight_pose_stddev.times(fiducials[0].ambiguity);
+            // }
+            // store it in apriltag 
+            for (RawFiducial fudicial:fiducials){
+                apriltag_poses.add(apriltags_map.get(fudicial));
             }
+        }
+
+
+        // publish aprlitag poses
+        if (apriltag_poses != null){
+            apriltags_array_pub.set((new HashSet<Pose3d>(apriltag_poses)).toArray(new Pose3d[0]));
         }
 
         if (limelight_pose_stddev != null){
@@ -247,18 +264,7 @@ public class Vision extends SubsystemBase {
         }
         // System.out.println(photon_pose2_stddev);
 
-        // vision pose merging
-        // if (limelight_pose != null && photon_pose != null){
-        //     pose = combinePoses(photon_pose, 0.5, limelight_pose, 0.5);
-        // }else if(limelightResult.valid){
-        //     pose = limelight_pose;
-        // }else if(photon_result != null && photon_result2 != null){
-        //     pose = photon_pose;
-        //     System.out.println("HELSDLASKJDLKDJ");
-        // }
 
-        // testing object detection
-        // pose = new Pose2d(13, 7, new Rotation2d(Math.PI));
 
         pose = getOdomPose.get();
         adv_pose_pub.set(pose);
