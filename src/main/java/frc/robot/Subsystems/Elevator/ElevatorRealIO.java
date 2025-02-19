@@ -69,7 +69,11 @@ public class ElevatorRealIO extends Elevator {
         ele_motor_right.setControl(new Follower(PortConstants.ELEVATOR_MOTOR_LEFT, true));
 
         SparkBaseConfig claw_configs = new SparkMaxConfig().follow(PortConstants.CLAW_MOTOR_LEFT, true);
-        claw_motor_right.configure(claw_configs, SparkBase.ResetMode.kResetSafeParameters, SparkBase.PersistMode.kNoPersistParameters);
+        claw_motor_right.configure(
+            claw_configs, 
+            SparkBase.ResetMode.kResetSafeParameters, 
+            SparkBase.PersistMode.kNoPersistParameters
+        );
     }
 
     public void runElevator(double speed) {

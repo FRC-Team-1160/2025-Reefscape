@@ -26,7 +26,8 @@ public class DriveTrainRealIO extends DriveTrain {
     }
 
     public Rotation2d getGyroAngle() {
-        if (gyro != null) return Rotation2d.fromDegrees(-gyro.getAngle()); //gyro reports CW positive, negate to return CCW positive
+        // Gyro reports CW positive, negate to return CCW positive
+        if (gyro != null) return Rotation2d.fromDegrees(-gyro.getAngle()); 
         return new Rotation2d();
     }
 
@@ -44,12 +45,7 @@ public class DriveTrainRealIO extends DriveTrain {
 
     @Override
     public void periodic() {
-        //the child periodic() method overrides the parent class periodic(), which has to be explicitly called
+        // The child periodic() method overrides the parent class periodic(), which has to be explicitly called
         super.periodic();
-    }
-
-    @Override
-    public void simulationPeriodic() {
-        // This method will be called once per scheduler run during simulation
     }
 }

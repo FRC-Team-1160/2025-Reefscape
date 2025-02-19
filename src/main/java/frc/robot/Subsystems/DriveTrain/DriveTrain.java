@@ -35,9 +35,9 @@ public abstract class DriveTrain extends SubsystemBase {
     /** Odometry-based 2d pose. */
     public Pose2d odom_pose;
     /** State publisher for AdvantageScope. */
-    protected StructArrayPublisher<SwerveModuleState> adv_real_states_pub, adv_target_states_pub;
+    protected StructArrayPublisher<SwerveModuleState> real_states_pub, target_states_pub;
     /** State publisher for AdvantageScope. */
-    protected StructPublisher<Rotation2d> adv_gyro_pub;
+    protected StructPublisher<Rotation2d> gyro_pub;
 
     /** Creates a new DriveTrain. */
     public DriveTrain() {
@@ -203,54 +203,70 @@ public abstract class DriveTrain extends SubsystemBase {
 
     private void setupDashboard() {
 
-        // instantiate network publishers for advantagescope
-        NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        NetworkTable adv_swerve = inst.getTable("adv_swerve");
-        adv_real_states_pub = adv_swerve.getStructArrayTopic("States", SwerveModuleState.struct).publish();
-        adv_target_states_pub = adv_swerve.getStructArrayTopic("Target States", SwerveModuleState.struct).publish();
-        adv_gyro_pub = adv_swerve.getStructTopic("Gyro", Rotation2d.struct).publish();
+        // Instantiate network publishers for advantagescope
+        NetworkTable swerve = NetworkTableInstance.getDefault().getTable("swerve");
+        real_states_pub = swerve.getStructArrayTopic("States", SwerveModuleState.struct).publish();
+        target_states_pub = swerve.getStructArrayTopic("Target States", SwerveModuleState.struct).publish();
+        gyro_pub = swerve.getStructTopic("Gyro", Rotation2d.struct).publish();
 
-        // create swerve drive publishers for elastic dashboard (one time setup,
-        // auto-call lambdas)
+        // Create swerve drive publishers for elastic dashboard (one time setup, auto-call lambdas)
         SmartDashboard.putData("Swerve Target States", new Sendable() {
             @Override
             public void initSendable(SendableBuilder builder) {
                 builder.setSmartDashboardType("SwerveDrive");
 
-                builder.addDoubleProperty("Front Left Angle", () -> module_states[0].angle.getDegrees(), null);
-                builder.addDoubleProperty("Front Left Velocity", () -> module_states[0].speedMetersPerSecond, null);
+                builder.addDoubleProperty("Front Left Angle", 
+                    () -> module_states[0].angle.getDegrees(), null);
+                builder.addDoubleProperty("Front Left Velocity", 
+                    () -> module_states[0].speedMetersPerSecond, null);
 
-                builder.addDoubleProperty("Front Right Angle", () -> module_states[1].angle.getDegrees(), null);
-                builder.addDoubleProperty("Front Right Velocity", () -> module_states[1].speedMetersPerSecond, null);
+                builder.addDoubleProperty("Front Right Angle", 
+                    () -> module_states[1].angle.getDegrees(), null);
+                builder.addDoubleProperty("Front Right Velocity", 
+                    () -> module_states[1].speedMetersPerSecond, null);
 
-                builder.addDoubleProperty("Back Left Angle", () -> module_states[2].angle.getDegrees(), null);
-                builder.addDoubleProperty("Back Left Velocity", () -> module_states[2].speedMetersPerSecond, null);
+                builder.addDoubleProperty("Back Left Angle", 
+                    () -> module_states[2].angle.getDegrees(), null);
+                builder.addDoubleProperty("Back Left Velocity", 
+                    () -> module_states[2].speedMetersPerSecond, null);
 
-                builder.addDoubleProperty("Back Right Angle", () -> module_states[3].angle.getDegrees(), null);
-                builder.addDoubleProperty("Back Right Velocity", () -> module_states[3].speedMetersPerSecond, null);
+                builder.addDoubleProperty("Back Right Angle", 
+                    () -> module_states[3].angle.getDegrees(), null);
+                builder.addDoubleProperty("Back Right Velocity", 
+                    () -> module_states[3].speedMetersPerSecond, null);
 
-                builder.addDoubleProperty("Robot Angle", () -> getGyroAngle().getDegrees(), null);
+                builder.addDoubleProperty("Robot Angle", 
+                    () -> getGyroAngle().getDegrees(), null);
             }
         });
-        // same here
+        // Same here
         SmartDashboard.putData("Swerve Real States", new Sendable() {
             @Override
             public void initSendable(SendableBuilder builder) {
                 builder.setSmartDashboardType("SwerveDrive");
 
-                builder.addDoubleProperty("Front Left Angle", () -> modules[0].getAngle().getDegrees(), null);
-                builder.addDoubleProperty("Front Left Velocity", () -> modules[0].getSpeed(), null);
+                builder.addDoubleProperty("Front Left Angle", 
+                    () -> modules[0].getAngle().getDegrees(), null);
+                builder.addDoubleProperty("Front Left Velocity", 
+                    () -> modules[0].getSpeed(), null);
 
-                builder.addDoubleProperty("Front Right Angle", () -> modules[1].getAngle().getDegrees(), null);
-                builder.addDoubleProperty("Front Right Velocity", () -> modules[1].getSpeed(), null);
+                builder.addDoubleProperty("Front Right Angle", 
+                    () -> modules[1].getAngle().getDegrees(), null);
+                builder.addDoubleProperty("Front Right Velocity", 
+                    () -> modules[1].getSpeed(), null);
 
-                builder.addDoubleProperty("Back Left Angle", () -> modules[2].getAngle().getDegrees(), null);
-                builder.addDoubleProperty("Back Left Velocity", () -> modules[2].getSpeed(), null);
+                builder.addDoubleProperty("Back Left Angle", 
+                    () -> modules[2].getAngle().getDegrees(), null);
+                builder.addDoubleProperty("Back Left Velocity", 
+                    () -> modules[2].getSpeed(), null);
 
-                builder.addDoubleProperty("Back Right Angle", () -> modules[3].getAngle().getDegrees(), null);
-                builder.addDoubleProperty("Back Right Velocity", () -> modules[3].getSpeed(), null);
+                builder.addDoubleProperty("Back Right Angle", 
+                    () -> modules[3].getAngle().getDegrees(), null);
+                builder.addDoubleProperty("Back Right Velocity", 
+                    () -> modules[3].getSpeed(), null);
 
-                builder.addDoubleProperty("Robot Angle", () -> getGyroAngle().getDegrees(), null);
+                builder.addDoubleProperty("Robot Angle", 
+                    () -> getGyroAngle().getDegrees(), null);
             }
         });
 
@@ -261,9 +277,9 @@ public abstract class DriveTrain extends SubsystemBase {
      */
 
     private void publishAdv() {
-        adv_real_states_pub.set(getModuleStates());
-        adv_target_states_pub.set(module_states);
-        adv_gyro_pub.set(getGyroAngle());
+        real_states_pub.set(getModuleStates());
+        target_states_pub.set(module_states);
+        gyro_pub.set(getGyroAngle());
     }
 
     /**
@@ -298,9 +314,5 @@ public abstract class DriveTrain extends SubsystemBase {
         publishAdv();
 
     }
-
-    @Override
-    public void simulationPeriodic() {
-        // This method will be called once per scheduler run during simulation
-    }
+    
 }

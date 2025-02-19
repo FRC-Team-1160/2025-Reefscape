@@ -16,9 +16,12 @@ import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -91,6 +94,7 @@ public class SubsystemManager {
 
         // Initialize subsystems
         if (Robot.isReal()) {
+            // If motors aren't connected, assume mechanism isn't attached/working and run it as simulation
             m_drive = new DriveTrainRealIO();
             for (TalonFX talon : ((DriveTrainRealIO) m_drive).getTalons()) {
                 if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
@@ -112,10 +116,13 @@ public class SubsystemManager {
 
         robot_pose = new Pose2d();
         pose_estimator = new SwerveDrivePoseEstimator(
-            m_drive.kinematics,
-            m_drive.getGyroAngle(),
-            m_drive.getModulePositions(),
-            robot_pose);
+            m_drive.kinematics, 
+            m_drive.getGyroAngle(), 
+            m_drive.getModulePositions(), 
+            robot_pose, 
+            new Matrix<>(Nat.N3(), Nat.N1(), new double[] {0.02, 0.02, 0.02}), 
+            null);
+
 
         // Vision needs to be initialized afterwards to have access to pose_estimator
         m_vision = new Vision(pose_estimator, this::getPoseEstimate);
@@ -148,9 +155,14 @@ public class SubsystemManager {
             // Pathplanner commands are redirected to the PathplannerController instance
             (speeds, feedforwards) -> m_pathplanner_controller.acceptGeneratedSpeeds(speeds),
             new PPHolonomicDriveController(
-                new PIDConstants(AutoConstants.translation_kP, AutoConstants.translation_kI,
+                new PIDConstants(
+                    AutoConstants.translation_kP, 
+                    AutoConstants.translation_kI,
                     AutoConstants.translation_kD),
-                new PIDConstants(AutoConstants.rotation_kP, AutoConstants.rotation_kI, AutoConstants.rotation_kD)),
+                new PIDConstants(
+                    AutoConstants.rotation_kP, 
+                    AutoConstants.rotation_kI, 
+                    AutoConstants.rotation_kD)),
             config,
             () -> { 
             if (true) return false;
@@ -179,7 +191,10 @@ public class SubsystemManager {
      * @return The updated pose estimate.
      */
     public Pose2d getPoseEstimate() {
-        return pose_estimator.updateWithTime(Timer.getTimestamp(), m_drive.getGyroAngle(), m_drive.getModulePositions());
+        return pose_estimator.updateWithTime(
+            Timer.getTimestamp(), 
+            m_drive.getGyroAngle(), 
+            m_drive.getModulePositions());
     }
 
     /**
@@ -200,7 +215,7 @@ public class SubsystemManager {
         // Get odometry readings BEFORE running 
         m_vision.update();
 
-        robot_pose = pose_estimator.updateWithTime(Timer.getTimestamp(), m_drive.getGyroAngle(), m_drive.getModulePositions());
+        robot_pose = getPoseEstimate();
 
         switch (m_robot_state.drive_state) {
 
@@ -210,7 +225,9 @@ public class SubsystemManager {
 
             case PID_CONTROL:
                 if (tracked_target != null && tracked_target.marked < VisionConstants.DETECTION_LIMIT) {
-                    m_drive.setSwerveDrive(m_swerve_pid_controller.calculate(tracked_target.getPose()), false);
+                    m_drive.setSwerveDrive(
+                        m_swerve_pid_controller.calculate(tracked_target.getPose()), 
+                        false);
                     break;
                 } else {
                     tracked_target = null;
@@ -218,9 +235,12 @@ public class SubsystemManager {
                 }
 
             default:
-                double stick_x = MathUtil.applyDeadband(-getStickX.get(), 0.1, 1) * SwerveConstants.DRIVE_SPEED;
-                double stick_y = MathUtil.applyDeadband(-getStickY.get(), 0.1, 1) * SwerveConstants.DRIVE_SPEED;
-                double stick_a = MathUtil.applyDeadband(-getStickA.get(), 0.1, 1) * SwerveConstants.TURN_SPEED;
+                double stick_x = MathUtil.applyDeadband(-getStickX.get(), 0.1, 1)
+                    * SwerveConstants.DRIVE_SPEED;
+                double stick_y = MathUtil.applyDeadband(-getStickY.get(), 0.1, 1)
+                    * SwerveConstants.DRIVE_SPEED;
+                double stick_a = MathUtil.applyDeadband(-getStickA.get(), 0.1, 1)
+                    * SwerveConstants.TURN_SPEED;
 
                 double stick_el = getStickEl.get();
 

@@ -6,6 +6,7 @@ package frc.robot;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -42,7 +43,10 @@ public class SwervePIDController {
         this(robot_pose_supplier, robot_speeds_supplier, 0.5);
     }
 
-    public SwervePIDController(Supplier<Pose2d> robot_pose_supplier, Supplier<ChassisSpeeds> robot_speeds_supplier, double target_distance) {
+    public SwervePIDController(
+        Supplier<Pose2d> robot_pose_supplier, 
+        Supplier<ChassisSpeeds> robot_speeds_supplier, 
+        double target_distance) {
 
         target_pose = new Pose2d();
         robot_pose = robot_pose_supplier.get();
@@ -85,9 +89,11 @@ public class SwervePIDController {
         Translation2d target_off = target_pose.getTranslation().minus(robot_pose.getTranslation());
         Rotation2d target_angle = target_off.getAngle();
         // Add extra space for turning to goal distance if robot is not pointing towards target
-        double goal_dist = DISTANCE + Math.min(0, 
-            Tracking.MAX_ALIGN_SEPARATION * (Math.abs(target_angle.minus(robot_pose.getRotation()).getRotations()) - Tracking.ALIGN_SEPARATION_TOLERANCE));
-
+        double goal_dist = DISTANCE + Math.abs(MathUtil.applyDeadband(
+            target_angle.minus(robot_pose.getRotation()).getRotations(),
+            Tracking.ALIGN_SEPARATION_TOLERANCE,
+            Tracking.MAX_ALIGN_SEPARATION));
+            
         adv_goal_pose_pub.set(new Pose2d(
                 target_pose.getTranslation().minus(target_off.times(goal_dist/target_off.getNorm())),
                 target_angle));

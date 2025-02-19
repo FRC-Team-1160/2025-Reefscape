@@ -22,6 +22,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.Constants.VisionConstants.EstimationParameters;
 import frc.robot.Robot;
 import frc.robot.RobotUtils;
 
@@ -71,7 +72,7 @@ public class ObjectDetection {
      * @return The normal distance of the target in meters.
      */
     public double getNormalDistance(double width, double height) {
-        return VisionConstants.EstimationParameters.a / (Math.max(width, height)) - VisionConstants.EstimationParameters.b;
+        return EstimationParameters.a / (Math.max(width, height)) - EstimationParameters.b;
     }
 
     /**
@@ -81,7 +82,9 @@ public class ObjectDetection {
      * @return The lateral distance to the target in meters.
      */
     public double getLateralDistance(double normal_distance, int x_center) {
-        return normal_distance * Math.tan(VisionConstants.CAMERA_X_FOV/2) * (x_center / VisionConstants.SCREEN_WIDTH - 0.5);
+        return normal_distance 
+            * Math.tan(VisionConstants.CAMERA_X_FOV/2) 
+            * (x_center / VisionConstants.SCREEN_WIDTH - 0.5);
     }
 
     /**
@@ -193,7 +196,8 @@ public class ObjectDetection {
             boolean matched = false; 
 
             // Check that object isnt cut off
-            if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
+            if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol 
+                || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
 
                 for (VisionTarget t : tracked_targets) {
                     if (t.getDistance(target_pose) < VisionConstants.TARGET_WIDTH/2) {
@@ -220,7 +224,8 @@ public class ObjectDetection {
 
         }
         // If target was expected in fov and not seen, or has not been seen in too long, stop tracking it
-        tracked_targets.removeIf(target -> target.marked >= VisionConstants.DETECTION_LIMIT || target.timer.get() > VisionConstants.TRACKING_TIMEOUT);
+        tracked_targets.removeIf(target -> 
+            target.marked >= VisionConstants.DETECTION_LIMIT || target.timer.get() > VisionConstants.TRACKING_TIMEOUT);
         
         publishAdv();
 

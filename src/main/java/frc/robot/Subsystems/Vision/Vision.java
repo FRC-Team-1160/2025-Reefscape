@@ -18,15 +18,12 @@ import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 import frc.robot.Robot;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
@@ -89,7 +86,10 @@ public class Vision {
 
     }
 
-    public Optional<CameraResults> readPhotonResults(PhotonCamera camera, PhotonPoseEstimator photon_pose_estimator, VisionPoseCache cache) {
+    public Optional<CameraResults> readPhotonResults(
+        PhotonCamera camera, 
+        PhotonPoseEstimator photon_pose_estimator, 
+        VisionPoseCache cache) {
 
         Pose2d pose = null;
         // Using a set prevents repetition
@@ -123,15 +123,21 @@ public class Vision {
                 fiducials.add(result.getBestTarget().fiducialId);
             }
             // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
-            if (pose != null) main_pose_estimator.addVisionMeasurement(pose, estimate.timestampSeconds, cache.getStdevs());
-            SmartDashboard.putNumber("y_stdev", cache.getStdevs().get(1,0));
+            if (pose != null) main_pose_estimator.addVisionMeasurement(
+                pose, 
+                estimate.timestampSeconds, 
+                cache.getWeightedStdevs());
         }
         return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, fiducials));
     }
 
+    // Vision is marked as a non-subsystem to allow it to run before subsystem periodic methods
     public void update() {
         // Object detection is still updated during simulation
-        m_object_detection.update(); 
+        m_object_detection.update();
+
+        if (Robot.isSimulation()) return;
+
         List<Pose2d> vision_poses = new ArrayList<>();
         HashSet<Integer> used_ids = new HashSet<Integer>();
 
