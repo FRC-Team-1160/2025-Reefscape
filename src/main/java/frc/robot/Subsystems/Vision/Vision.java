@@ -5,8 +5,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.function.Supplier;
 
+import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
@@ -33,6 +36,7 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
@@ -78,6 +82,9 @@ public class Vision extends SubsystemBase {
     List<PhotonPipelineResult> photon_result;
     List<PhotonPipelineResult> photon_result2;
 
+    CameraResults photonCameraResults_left;
+    CameraResults photonCameraResults_right;
+
     Supplier<Pose2d> getOdomPose;
     Supplier<PoseEstimator> getPoseEstimator;
 
@@ -88,8 +95,10 @@ public class Vision extends SubsystemBase {
     StructArrayPublisher<Pose3d> apriltags_array_pub;
     List<Pose3d> apriltag_poses;
 
+    public final record CameraResults(Pose2d pose, Set<Integer> fiducialId){}
 
-    public boolean stero = true;
+
+    public boolean apriltag_stero = true;
 
     public Vision(Supplier<Pose2d> getOdomPose, Supplier<PoseEstimator> getPoseEstimator) {
         this.getOdomPose = getOdomPose;
@@ -133,6 +142,46 @@ public class Vision extends SubsystemBase {
         photon_tag_camera2 = new PhotonCamera("OV9782");
     }
 
+    public Optional<CameraResults> readPhotonResults(PhotonCamera camera, PhotonPoseEstimator photon_pose_estimator, PoseCaching cache) {
+
+        Pose2d pose = null;
+        // Using a set prevents repetition
+        Set<Integer> fiducials = new HashSet<Integer>();
+        List<PhotonPipelineResult> photon_results = camera.getAllUnreadResults();
+
+        // 2025: getAllUnreadResults() returns all estimations since the last check
+        for (PhotonPipelineResult result : photon_results) {
+            // Move on to next result if this has no targets or pose is empty
+            if (!result.hasTargets()) continue;
+            var opt_pose = photon_pose_estimator.update(result);
+            if (opt_pose.isEmpty()) continue;
+
+            EstimatedRobotPose estimate = opt_pose.get();
+            pose = estimate.estimatedPose.toPose2d();
+
+            // Cache pose for fluctuation calculations
+            cache.addPose(
+                pose,
+                getOdomPose.get(), 
+                estimate.timestampSeconds);
+
+            // Check if result has multiple tags; store ambiguity and read used apriltag IDs
+            if (result.multitagResult.isPresent()) {
+                cache.last_ambiguity = result.multitagResult.get().estimatedPose.ambiguity;
+                for (Short id : result.multitagResult.get().fiducialIDsUsed) {
+                    fiducials.add(id.intValue());
+                }
+            } else {
+                cache.last_ambiguity = result.getBestTarget().poseAmbiguity;
+                fiducials.add(result.getBestTarget().fiducialId);
+            }
+            // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
+            if (pose != null) odom_estimator.addVisionMeasurement(pose, estimate.timestampSeconds, cache.getStdevs());
+            SmartDashboard.putNumber("y_stdev", cache.getStdevs().get(1,0));
+        }
+        return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, fiducials));
+    }
+    
     @Override 
     public void periodic() {
         pose = getOdomPose.get();
@@ -143,55 +192,70 @@ public class Vision extends SubsystemBase {
 
         if (Robot.isReal()) {
             Pose2d[] photon_poses_list = new Pose2d[2];
-            photon_result = photon_tag_camera.getAllUnreadResults();
-            for (var result : photon_result){
-                if (result.hasTargets()) {
-                    var update = photon_pose_estimator.update(result);
-                    if (update.isPresent()) {
-                        photon_pose = update.get().estimatedPose.toPose2d();
-                        photon_poses_list[0] = photon_pose;
-                        photon_pose_timestamp = result.getTimestampSeconds();
-                        photon_pose_chaching.addPose(photon_pose, getOdomPose.get(), photon_pose_timestamp);
-                        photon_pose_stddev = photon_pose_chaching.getStdevs();
-                        // if (result.multitagResult.isPresent()){
-                        //     photon_pose_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
-                        // }else{
-                        //     photon_pose_stddev.div(result.targets.get(0).poseAmbiguity);
-                        // }
-                        // if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
-                    }
-                    System.out.println(photon_pose_stddev);
-                    // store it in apriltag 
-                    for (PhotonTrackedTarget target:result.getTargets()){
-                        apriltag_poses.add(apriltags_map.get(target.fiducialId));
-                    }
+            // photon_result = photon_tag_camera.getAllUnreadResults();
+            // for (var result : photon_result){
+                // if (result.hasTargets()) {
+                //     var update = photon_pose_estimator.update(result);
+                //     if (update.isPresent()) {
+                //         photon_pose = update.get().estimatedPose.toPose2d();
+                //         photon_poses_list[0] = photon_pose;
+                //         photon_pose_timestamp = result.getTimestampSeconds();
+                //         photon_pose_chaching.addPose(photon_pose, getOdomPose.get(), photon_pose_timestamp);
+                //         photon_pose_stddev = photon_pose_chaching.getStdevs();
+                //         // if (result.multitagResult.isPresent()){
+                //         //     photon_pose_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
+                //         // }else{
+                //         //     photon_pose_stddev.div(result.targets.get(0).poseAmbiguity);
+                //         // }
+                //         // if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator.setReferencePose(photon_pose);
+                //     }
+                //     System.out.println(photon_pose_stddev);
+                //     // store it in apriltag 
+                //     for (PhotonTrackedTarget target:result.getTargets()){
+                //         apriltag_poses.add(apriltags_map.get(target.fiducialId));
+                //     }
+                // }
+                
+            // }
+            var result = readPhotonResults(photon_tag_camera, photon_pose_estimator, photon_pose_chaching);
+            if (!result.isEmpty()){
+                photonCameraResults_right = result.get();
+                for(int i:photonCameraResults_right.fiducialId){
+                    apriltag_poses.add(apriltags_map.get(i));
                 }
             }
 
-            if (stero){
-                var photon_result2 = photon_tag_camera2.getAllUnreadResults();
-                for (var result : photon_result2){
-                    if (result.hasTargets()) {
-                        var update = photon_pose_estimator2.update(result);
-                        if (update.isPresent()) {
-                            photon_pose2 = update.get().estimatedPose.toPose2d();
-                            photon_poses_list[1] = photon_pose2;
-                            photon_pose2_timestamp = result.getTimestampSeconds();
-                            photon_pose2_chaching.addPose(photon_pose2, getOdomPose.get(), photon_pose2_timestamp);
-                            photon_pose2_stddev = photon_pose_chaching.getStdevs();
-                            // if (result.multitagResult.isPresent()){
-                            //     photon_pose2_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
-                            // }else{
-                            //     System.out.println(photon_pose2_stddev);
-                            //     photon_pose2_stddev.div(result.targets.get(0).poseAmbiguity);
-                            // }
-                            // if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator2.setReferencePose(photon_pose);
-                        }
-                        // System.out.println(photon_pose2_stddev);
-                        // store it in apriltag 
-                        for (PhotonTrackedTarget target:result.getTargets()){
-                            apriltag_poses.add(apriltags_map.get(target.fiducialId));
-                        }
+            if (apriltag_stero){
+                // var photon_result2 = photon_tag_camera2.getAllUnreadResults();
+                // for (var result : photon_result2){
+                //     if (result.hasTargets()) {
+                //         var update = photon_pose_estimator2.update(result);
+                //         if (update.isPresent()) {
+                //             photon_pose2 = update.get().estimatedPose.toPose2d();
+                //             photon_poses_list[1] = photon_pose2;
+                //             photon_pose2_timestamp = result.getTimestampSeconds();
+                //             photon_pose2_chaching.addPose(photon_pose2, getOdomPose.get(), photon_pose2_timestamp);
+                //             photon_pose2_stddev = photon_pose_chaching.getStdevs();
+                //             // if (result.multitagResult.isPresent()){
+                //             //     photon_pose2_stddev.div(result.multitagResult.get().estimatedPose.ambiguity);
+                //             // }else{
+                //             //     System.out.println(photon_pose2_stddev);
+                //             //     photon_pose2_stddev.div(result.targets.get(0).poseAmbiguity);
+                //             // }
+                //             // if (Math.abs(pose.getRotation().getRadians()) < 1) photon_pose_estimator2.setReferencePose(photon_pose);
+                //         }
+                //         // System.out.println(photon_pose2_stddev);
+                //         // store it in apriltag 
+                //         for (PhotonTrackedTarget target:result.getTargets()){
+                //             apriltag_poses.add(apriltags_map.get(target.fiducialId));
+                //         }
+                //     }
+                // }
+                var result2 = readPhotonResults(photon_tag_camera2, photon_pose_estimator2, photon_pose2_chaching);
+                if (!result2.isEmpty()){
+                    photonCameraResults_left = result2.get();
+                    for(int i:photonCameraResults_left.fiducialId){
+                        apriltag_poses.add(apriltags_map.get(i));
                     }
                 }
             }

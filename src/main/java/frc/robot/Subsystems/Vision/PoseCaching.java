@@ -29,6 +29,8 @@ public class PoseCaching {
 
     private double[] sums, sum_squares;
 
+    double last_ambiguity;
+
     public PoseCaching(double pose_timeout) {
         this.pose_timeout = pose_timeout;
         this.cache = new LinkedList<CachedPose>();
