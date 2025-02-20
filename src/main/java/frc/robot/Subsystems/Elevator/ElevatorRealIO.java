@@ -31,6 +31,7 @@ public class ElevatorRealIO extends Elevator {
         ele_motor_left = new TalonFX(PortConstants.ELEVATOR_MOTOR_LEFT, "CANivore");
         ele_motor_right = new TalonFX(PortConstants.ELEVATOR_MOTOR_RIGHT, "CANivore");
         wrist_motor = new TalonFX(PortConstants.WRIST_MOTOR);
+
         claw_motor_left = new SparkMax(PortConstants.CLAW_MOTOR_LEFT, MotorType.kBrushless);
         claw_motor_right = new SparkMax(PortConstants.CLAW_MOTOR_RIGHT, MotorType.kBrushless);
         shooter_motor = new SparkMax(PortConstants.SHOOTER_MOTOR, MotorType.kBrushless);
@@ -100,6 +101,14 @@ public class ElevatorRealIO extends Elevator {
 
     protected void setShooterSpeed(double speed) {
         shooter_motor.set(speed);
+    }
+
+    public double getElevatorHeight() {
+        return ele_motor_left.getPosition().getValueAsDouble();
+    }
+
+    public double getWristAngle() {
+        return wrist_motor.getPosition().getValueAsDouble();
     }
 
     public List<TalonFX> getTalons() {

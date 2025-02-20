@@ -60,20 +60,20 @@ public class PathplannerController {
             List<Waypoint> waypoints = PathPlannerPath.waypointsFromPoses(
                 new Pose2d(
                     RobotUtils.allianceFlip(Reef.CENTER_X)
-                     + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
-                     + opp_angle.getSin() * ReefPaths.H_OFFSET,
+                        + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                        + opp_angle.getSin() * ReefPaths.H_OFFSET,
                     Reef.CENTER_Y
-                     + opp_angle.getSin() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
-                     + opp_angle.getCos() * ReefPaths.H_OFFSET,
-                     angle),
+                        + opp_angle.getSin() * (Reef.INNER_RADIUS + ReefPaths.START_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                        + opp_angle.getCos() * ReefPaths.H_OFFSET, 
+                    angle),
                 new Pose2d(
                     RobotUtils.allianceFlip(Reef.CENTER_X)
-                     + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
-                     + opp_angle.getSin() * ReefPaths.H_OFFSET,
+                        + opp_angle.getCos() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                        + opp_angle.getSin() * ReefPaths.H_OFFSET,
                     Reef.CENTER_Y
-                     + opp_angle.getSin() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
-                     + opp_angle.getCos() * ReefPaths.H_OFFSET,
-                     angle)
+                        + opp_angle.getSin() * (Reef.INNER_RADIUS + ReefPaths.END_DISTANCE + RobotConstants.BASE_WIDTH / 2)
+                        + opp_angle.getCos() * ReefPaths.H_OFFSET,
+                    angle)
             );
             // Use verbose constructor for PathPlannerPath to add RotationTarget
             PathPlannerPath path = new PathPlannerPath(waypoints,

@@ -249,6 +249,26 @@ public final class Constants {
             public static final double kA = 0;
             public static final double kG = 0;
         }
+
+        public static class ElevatorSetpoints {
+            public static final double kL1 = 0;
+            public static final double kL2 = 0;
+            public static final double kL3 = 0;
+            public static final double kL4 = 0;
+            public static final double kProcessor = 0;
+            public static final double kStow = 0;
+            public static final double kSource = 0;
+        }
+
+        public static class WristSetpoints {
+            public static final double kL1 = 0;
+            public static final double kL2 = 0;
+            public static final double kL3 = 0;
+            public static final double kL4 = 0;
+            public static final double kProcessor = 0;
+            public static final double kStow = 0;
+            public static final double kSource = 0;
+        }
     }
 
     public static class AutoConstants {

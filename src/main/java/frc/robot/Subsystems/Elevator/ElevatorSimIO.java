@@ -15,4 +15,6 @@ public class ElevatorSimIO extends Elevator {
     protected void setClawSpeed(double speed) {}
     protected void setShooterSpeed(double speed) {}
 
+    public double getElevatorHeight() { return 0; }
+    public double getWristAngle() { return 0; }
 }
