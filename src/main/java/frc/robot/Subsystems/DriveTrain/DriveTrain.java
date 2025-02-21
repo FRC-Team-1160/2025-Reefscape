@@ -62,7 +62,6 @@ public abstract class DriveTrain extends SubsystemBase {
 
         odom_pose = new Pose2d();
 
-
         setupDashboard();
     }
 
@@ -75,12 +74,7 @@ public abstract class DriveTrain extends SubsystemBase {
 
     public void setSwerveDrive(double x_speed, double y_speed, double a_speed) {
         // Convert speeds from field's frame of reference to robot's frame of reference
-        ChassisSpeeds chassis_speeds = ChassisSpeeds.fromFieldRelativeSpeeds(
-                x_speed,
-                y_speed,
-                a_speed,
-                getGyroAngle());
-        setSwerveDrive(chassis_speeds);
+        setSwerveDrive(ChassisSpeeds.fromFieldRelativeSpeeds(x_speed, y_speed, a_speed, getGyroAngle()));
     }
 
     /**

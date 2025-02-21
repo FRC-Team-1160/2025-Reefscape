@@ -108,12 +108,7 @@ public class VisionTarget {
      * @return Whether or not the observed target matches this target.
      */
     public boolean match(Pose2d observed_pose, Pose2d robot_pose, boolean update_pose) {
-        Translation2d robot_pos = robot_pose.getTranslation();
-        Translation2d observed_pos = observed_pose.getTranslation();
-        // Estimate angular error
-        // Estimate distance error, and take the ratio of error to (supposed) actual distance, similar to a percent error
-        double dist_diff_ratio = (observed_pos.getDistance(robot_pos) - getDistance(robot_pos)) / getDistance(observed_pos);
-
+        // Check if the given pose has a close enough angle and distance     
         if (inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose)) {
             resetTimer();
             if (update_pose) updatePosition(observed_pose);

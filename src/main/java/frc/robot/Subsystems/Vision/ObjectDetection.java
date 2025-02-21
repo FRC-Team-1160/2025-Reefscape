@@ -47,7 +47,7 @@ import edu.wpi.first.networktables.StructPublisher;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.VisionConstants.EstimationParameters;
+import frc.robot.Constants.VisionConstants.EstimationParams;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
@@ -135,7 +135,7 @@ public class ObjectDetection {
      * @return The normal distance of the target in meters.
      */
     public double getNormalDistance(double width, double height) {
-        return EstimationParameters.a / (Math.max(width, height)) - EstimationParameters.b;
+        return EstimationParams.a / (Math.max(width, height)) - EstimationParams.b;
     }
 
     /**
