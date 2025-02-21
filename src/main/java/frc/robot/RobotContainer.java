@@ -3,6 +3,7 @@ package frc.robot;
 import com.pathplanner.lib.auto.AutoBuilder;
 
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -30,7 +31,15 @@ public class RobotContainer {
         auto_chooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", auto_chooser);   
     configureBindings();
+  }
+
+  public void updateSubsystemManager() {
+    if (RobotState.isEnabled()) {
+      m_subsystem_manager.update();
+    } else if (RobotState.isAutonomous()) {
+      m_subsystem_manager.update();
     }
+  }
 
     private void configureBindings() {
         new JoystickButton(main_stick, 8).onTrue(
@@ -60,3 +69,4 @@ public class RobotContainer {
         return m_subsystem_manager.commands.pathCmdWrapper(auto_chooser.getSelected());
     }
 }
+  

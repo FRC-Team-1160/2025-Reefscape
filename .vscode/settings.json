@@ -57,5 +57,6 @@
     "edu.wpi.first.math.**.proto.*",
     "edu.wpi.first.math.**.struct.*",
   ],
-  "comments.visible": true
+  "comments.visible": true,
+  "CodeGPT.apiKey": "Ollama"
 }

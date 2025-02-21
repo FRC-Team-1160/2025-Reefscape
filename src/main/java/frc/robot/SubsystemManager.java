@@ -24,6 +24,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -32,6 +33,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
+import frc.robot.Subsystems.ServoSystem;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO;
@@ -64,6 +66,7 @@ public class SubsystemManager {
     public Elevator m_elevator;
     public Vision m_vision;
     public ObjectDetection m_object_detection;
+    public ServoSystem m_servo;
 
     public SwervePIDController m_swerve_pid_controller;
     public PathplannerController m_pathplanner_controller;
