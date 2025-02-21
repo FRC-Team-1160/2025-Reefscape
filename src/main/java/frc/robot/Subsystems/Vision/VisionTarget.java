@@ -10,7 +10,7 @@ public class VisionTarget {
 
     public Translation2d position;
     public Timer timer;
-    public int marked;
+    public int timeout;
 
     /** Creates a new Target. */
     public VisionTarget(Pose2d position) {
@@ -22,7 +22,7 @@ public class VisionTarget {
         this.position = position;
         timer = new Timer();
         timer.start();
-        marked = 0;
+        timeout = 0;
     }
 
     /**
@@ -70,13 +70,13 @@ public class VisionTarget {
     }
 
     /**
-     * Updates the vision-estimated position of the object and resets its deletion marks.
+     * Updates the vision-estimated position of the object and resets its timeout.
      * @param new_pose The new pose.
      */
     public void updatePosition(Pose2d new_pose) {
         position = new_pose.getTranslation();
         timer.restart();
-        marked = 0;
+        timeout = 0;
     }
 
     /**
@@ -84,7 +84,20 @@ public class VisionTarget {
      */
     public void resetTimer() {
         timer.restart();
-        marked = 0;
+        timeout = 0;
+    }
+
+    public boolean inAngularTolerance(Pose2d observed_pose, Pose2d robot_pose) {
+        Translation2d robot_pos = robot_pose.getTranslation();
+        return observed_pose.getTranslation().minus(robot_pos).getAngle()
+            .minus(position.minus(robot_pos).getAngle()).getRadians() <= AlgaeParams.ANGULAR_TOLERANCE;
+    } 
+
+    public boolean inDistanceTolerance(Pose2d observed_pose, Pose2d robot_pose) {
+        Translation2d observed_pos = observed_pose.getTranslation();
+        Translation2d robot_pos = robot_pose.getTranslation();
+        return Math.abs((observed_pos.getDistance(robot_pos)
+             - getDistance(robot_pos)) / getDistance(observed_pos)) <= AlgaeParams.DISTANCE_TOLERANCE;
     }
 
     /**
@@ -98,13 +111,10 @@ public class VisionTarget {
         Translation2d robot_pos = robot_pose.getTranslation();
         Translation2d observed_pos = observed_pose.getTranslation();
         // Estimate angular error
-        double ang_diff = observed_pos.minus(robot_pos).getAngle()
-            .minus(position.minus(robot_pos).getAngle()).getRadians();
         // Estimate distance error, and take the ratio of error to (supposed) actual distance, similar to a percent error
         double dist_diff_ratio = (observed_pos.getDistance(robot_pos) - getDistance(robot_pos)) / getDistance(observed_pos);
 
-        if (Math.abs(ang_diff) < AlgaeParams.ANGULAR_TOLERANCE 
-            && Math.abs(dist_diff_ratio) < AlgaeParams.DISTANCE_TOLERANCE) {
+        if (inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose)) {
             resetTimer();
             if (update_pose) updatePosition(observed_pose);
             return true;

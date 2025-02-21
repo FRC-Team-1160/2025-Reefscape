@@ -24,14 +24,13 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.Constants.VisionConstants;
+import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
@@ -206,9 +205,9 @@ public class SubsystemManager {
     }
 
     public void update() {
-        // Get odometry readings BEFORE running 
-        m_vision.update();
 
+        m_vision.update();
+        // Get odometry readings BEFORE running 
         robot_pose = getPoseEstimate();
 
         switch (m_robot_state.drive_state) {
@@ -221,7 +220,7 @@ public class SubsystemManager {
                 m_drive.setSwerveDrive(m_swerve_pid_controller.calculate(true));
 
             case PID_TRACKING:
-                if (tracked_target != null && tracked_target.marked < VisionConstants.DETECTION_LIMIT) {
+                if (tracked_target != null && tracked_target.timeout < AlgaeParams.DETECTION_LIMIT) {
                     m_swerve_pid_controller.target_pose = tracked_target.getPose();
                     m_drive.setSwerveDrive(
                         m_swerve_pid_controller.calculate(), 

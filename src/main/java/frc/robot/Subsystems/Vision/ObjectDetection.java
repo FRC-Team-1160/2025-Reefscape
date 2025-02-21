@@ -18,15 +18,20 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.Constants.VisionConstants.EstimationParameters;
+import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
+import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 import frc.robot.Robot;
 import frc.robot.RobotUtils;
 
 public class ObjectDetection {
     /** The OV9782 instance. */
-    public PhotonCamera camera;
+    private PhotonCamera left_camera;
+    /** The robot-to-camera transform. */
+    private Transform2d left_camera_transform;
     /** The current robot pose. */
     public Pose2d robot_pose;
     /** Supplier for the robot pose. */
@@ -41,8 +46,10 @@ public class ObjectDetection {
     /** Creates a new ObjectDetection. */
     public ObjectDetection(Supplier<Pose2d> robot_pose_supplier) {
         if (Robot.isReal()) {
-            camera = new PhotonCamera("OV9782");
+            left_camera = new PhotonCamera("OV9782");
         }
+
+        left_camera_transform = new Transform2d(LeftCamera.X, LeftCamera.Y, Rotation2d.fromRadians(LeftCamera.YAW));
 
         NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
 
@@ -104,7 +111,7 @@ public class ObjectDetection {
      * @param x_center The normal distance of the target in meters.
      * @return The calculated pose.
      */
-    public Pose2d getTargetPose(double width, double height, int x_center) {
+    public Pose2d getTargetPose(double width, double height, int x_center, Transform2d camera_transform) {
         double n_dist = getNormalDistance(width, height);
         Transform2d robot_transform = new Transform2d(
             robot_pose.getTranslation(),
@@ -114,9 +121,8 @@ public class ObjectDetection {
             getLateralDistance(n_dist, x_center),
             new Rotation2d()
         );
-        return new Pose2d(
-            robot_transform.plus(target_transform).getTranslation(), 
-            target_transform.getTranslation().getAngle());
+        target_transform = robot_transform.plus(camera_transform).plus(target_transform);
+        return new Pose2d(target_transform.getTranslation(), target_transform.getRotation());
     }
 
 
@@ -150,30 +156,11 @@ public class ObjectDetection {
         adv_tracked_pub.set(target_poses);
     }
 
-    /** @hidden */
-    public void update() {
+    public void updateTrackedObjects(PhotonCamera camera, Transform2d camera_transform) {
 
-        robot_pose = robot_pose_supplier.get();
-        // Publish and exit now if robot is in sim; else, publish later
-        if (Robot.isSimulation()) {
-            publishAdv();
-            return;
-        }
-        if (camera.getPipelineIndex() != 0) {
-            publishAdv();
-            return;
-        }
-        // Increase marked counter
-        for (VisionTarget t : tracked_targets) {
-            if (Math.abs(t.getAngle(robot_pose).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2)  {
-                t.marked++;
-            } else {
-                t.marked = 0;
-            }
-        }
-
-        // DEPRECATED, REPLACE WITH getAllUnreadResults()
         List<PhotonTrackedTarget> targets = camera.getLatestResult().getTargets();
+        // Make a temporary list to keep track of which targets have been matched
+        List<VisionTarget> temp_tracked_targets = tracked_targets;
 
         for (PhotonTrackedTarget target : targets) {
 
@@ -192,7 +179,7 @@ public class ObjectDetection {
 
             int tol = AlgaeParams.EDGE_TOLERANCE;
 
-            Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2);
+            Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2, camera_transform);
             // Keep track of whether current target has been matched with existing object
             boolean matched = false; 
 
@@ -200,18 +187,24 @@ public class ObjectDetection {
             if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol 
                 || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
                 // Attempt to match the current pose with each stored target
-                for (VisionTarget t : tracked_targets) {
-                    if (matched = t.match(target_pose, robot_pose, true)) break;
+                for (VisionTarget t : temp_tracked_targets) {
+                    if (matched = t.match(target_pose, robot_pose, true)) {
+                        // Remove targets from the temporary list if they have been matched
+                        temp_tracked_targets.remove(t);
+                        break;
+                    }
                 }
                 // If current target hasnt been matched, start tracking as new target
                 if (!matched) tracked_targets.add(new VisionTarget(target_pose)); 
 
             } else {
                 // If target bounding box is cut off at camera edges
-                for (VisionTarget t : tracked_targets) {
-                    if (t.getAngle(robot_pose.getTranslation()).minus(target_pose.getRotation()).getDegrees() < 10) {
+                for (VisionTarget tracked : temp_tracked_targets) {
+                    if (tracked.inAngularTolerance(target_pose, robot_pose)) {
                         // Confirm that the target still exists, but calculated position may be inaccurate
-                        t.resetTimer(); 
+                        tracked.resetTimer(); 
+                        // Remove targets from the temporary list of they have been matched
+                        temp_tracked_targets.remove(tracked);
                         break;
                     }
                 }
@@ -220,8 +213,34 @@ public class ObjectDetection {
         }
         // If target was expected in fov and not seen, or has not been seen in too long, stop tracking it
         tracked_targets.removeIf(target -> 
-            target.marked >= AlgaeParams.DETECTION_LIMIT 
+            target.timeout >= AlgaeParams.DETECTION_LIMIT 
                 || target.timer.get() > AlgaeParams.TRACKING_TIMEOUT);
+
+    }
+
+    /** @hidden */
+    public void update() {
+
+        robot_pose = robot_pose_supplier.get();
+        // Publish and exit now if robot is in sim; else, publish later
+        if (Robot.isSimulation()) {
+            publishAdv();
+            return;
+        }
+        if (left_camera.getPipelineIndex() != 0) {
+            publishAdv();
+            return;
+        }
+
+        // Increase timeouts
+        for (VisionTarget t : tracked_targets) {
+            if (Math.abs(t.getAngle(robot_pose).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2) t.timeout++;
+            else t.timeout = 0;
+        }
+
+        updateTrackedObjects(left_camera, left_camera_transform);
+
+        // DEPRECATED, REPLACE WITH getAllUnreadResults()
         
         publishAdv();
 
