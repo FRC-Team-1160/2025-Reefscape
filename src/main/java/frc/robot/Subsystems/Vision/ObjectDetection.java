@@ -300,6 +300,11 @@ public class ObjectDetection {
                 updateTrackedObjects(result, camera_transform_left);
             }
         }
+        if (camera_right.getPipelineIndex() == 1){
+            for(PhotonPipelineResult result : camera_right.getAllUnreadResults()){
+                updateTrackedObjects(result, camera_transform_right);
+            }
+        }
         
         publishAdv();
 
