@@ -69,6 +69,10 @@ public class PoseCaching {
         SmartDashboard.putNumber("n", cache.size());
     }
 
+    public boolean isEmpty(){
+        return (cache.size() == 0);
+    }
+
     public void clearOldPoses(double timestampSeconds) {
         while (!cache.isEmpty()) {
             CachedPose first = cache.getFirst();

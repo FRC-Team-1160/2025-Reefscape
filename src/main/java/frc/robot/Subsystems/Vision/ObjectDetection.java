@@ -6,12 +6,19 @@ package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Supplier;
 
 import org.photonvision.PhotonCamera;
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.TargetCorner;
 
+import com.ctre.phoenix6.swerve.SwerveModule;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.FixedSpaceIndenter;
 
 import org.opencv.calib3d.Calib3d;
@@ -21,12 +28,19 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
+import edu.wpi.first.math.estimator.PoseEstimator;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d; 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.kinematics.Kinematics;
+import edu.wpi.first.math.kinematics.Odometry;
+import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -36,13 +50,15 @@ import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.networktables.StructSubscriber;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants;
 import frc.robot.Constants.Vision;
 import frc.robot.Constants.Vision.CameraDistortion;
 import frc.robot.Constants.Vision.CameraIntrinsics;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Robot;
 
-public class ObjectDetection extends SubsystemBase {
-  public PhotonCamera detector;
+public class ObjectDetection{
+  public PhotonCamera left_camera;
 
   public Pose2d closest_pose;
   private Pose2d robot_pose;
@@ -52,7 +68,8 @@ public class ObjectDetection extends SubsystemBase {
 
   StructArrayPublisher<Translation2d> adv_corners_pub; // jank
 
-  Transform2d robot_to_camera;
+  Transform2d robot_to_left_camera;
+  Transform2d robot_to_right_camera;
 
   MatOfPoint2f temp_mat, dest_mat;
 
@@ -62,6 +79,10 @@ public class ObjectDetection extends SubsystemBase {
   /** in meters */
   double closest_distance;
 
+  public boolean od_stero = true;
+
+  public final record CameraResults(Pose2d closest_pose, Set<Pose2d> poses){}
+
   // Load OpenCV
   static {
     System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
@@ -70,7 +91,7 @@ public class ObjectDetection extends SubsystemBase {
   /** Creates a new ObjectDetection. */
   public ObjectDetection() {
     if (!Robot.isSimulation()) {
-      detector = new PhotonCamera("OV9782");
+      left_camera = new PhotonCamera("OV9782");
     }
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable adv_vision = inst.getTable("adv_vision");
@@ -81,7 +102,7 @@ public class ObjectDetection extends SubsystemBase {
     adv_robot_pose_sub = adv_swerve.getStructTopic("Pose", Pose2d.struct).subscribe(new Pose2d(),
         PubSubOption.keepDuplicates(true));
 
-    robot_to_camera = new Transform2d(Units.inchesToMeters(2.5), Units.inchesToMeters(11), Rotation2d.fromDegrees(-20));
+    robot_to_left_camera = new Transform2d(Units.inchesToMeters(2.5), Units.inchesToMeters(11), Rotation2d.fromDegrees(-20));
 
     // Initialize mats as member fields because creating mats is expensive
     temp_mat = new MatOfPoint2f();
@@ -108,7 +129,7 @@ public class ObjectDetection extends SubsystemBase {
         CameraDistortion.k8);
   }
 
-  public Pose2d getObjectPose(Pose2d robot_pose, double distance, double angle_to_target) {
+  public Pose2d getObjectPose(Pose2d robot_pose, double distance, double angle_to_target, Transform2d robot_to_camera) {
     // Robot's global heading
     double robot_theta = robot_pose.getRotation().getRadians();
 
@@ -197,8 +218,79 @@ public class ObjectDetection extends SubsystemBase {
   //   return getObjectPose3D(robot_pose, result.distance, angle_to_target);
   // }
 
-  @Override
-  public void periodic() {
+  public Optional<CameraResults> readPhotonResults(PhotonCamera camera, Transform2d robot_to_camera){
+    var all_results = camera.getAllUnreadResults();
+    if (all_results.size() != 0){
+      var result = all_results.get(0);
+      if (result.hasTargets()){
+        List<PhotonTrackedTarget> targets = result.getTargets();
+        Set<Pose2d> target_poses = new HashSet<Pose2d>();
+        Set<Target> target_distances = new HashSet<Target>();
+
+        var closest_pose = new Pose2d();
+
+        // calculate poses for each target
+        for (PhotonTrackedTarget target : targets) {
+
+          double minX = Double.MAX_VALUE;
+          double minY = Double.MAX_VALUE;
+          double maxX = Double.MIN_VALUE;
+          double maxY = Double.MIN_VALUE;
+
+          Point[] corner_points = new Point[4];
+
+          for (int i = 0; i < 4; i++) {
+            TargetCorner c = target.getMinAreaRectCorners().get(i);
+            corner_points[i] = new Point(c.x, c.y);
+          }
+
+          temp_mat.fromArray(corner_points);
+
+          for (TargetCorner corner : target.getMinAreaRectCorners()) {
+            minX = Math.min(minX, corner.x);
+            maxX = Math.max(maxX, corner.x);
+            minY = Math.min(minY, corner.y);
+            maxY = Math.max(maxY, corner.y);
+          }
+
+          Calib3d.undistortImagePoints(
+            temp_mat,
+            dest_mat,
+            camera_instrinsics_mat,
+            dist_coeffs_mat);
+
+          for (Point corner : dest_mat.toArray()) {
+            minX = Math.min(minX, corner.x);
+            maxX = Math.max(maxX, corner.x);
+            minY = Math.min(minY, corner.y);
+            maxY = Math.max(maxY, corner.y);
+          }
+
+          double midpoint = (maxX + minX)/2;
+          double width = maxX - minX;
+          double height = maxY - minY;
+
+          double[] temp_dist = getDistance(width, height, midpoint);
+          double distance = temp_dist[0];
+          double offset = -temp_dist[1] + 0.24;
+
+          double angle_to_target = Math.atan(offset / distance);
+          double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
+
+          target_poses.add(getObjectPose(robot_pose, distance, angle_to_target, robot_to_camera));
+          target_distances.add(new Target(distance, offset, direct_distance));
+        }
+
+        // finding the closest pose
+        closest_pose = target_poses.iterator().next();
+
+        return closest_pose == null ? Optional.empty() : Optional.of(new CameraResults(closest_pose, target_poses));
+      }
+    }
+    return Optional.empty();
+  }
+    
+  public void update() {
     // This method will be called once per scheduler run
     // closestDistance = getDistance(413.0, 2.4, 413.0);
 
@@ -209,83 +301,11 @@ public class ObjectDetection extends SubsystemBase {
       adv_closest_pub.set(new Pose3d(closest_pose));
       return;
     }
-
-    var result = detector.getLatestResult();
-    // var result = detector.getAllUnreadResults();
-    List<PhotonTrackedTarget> targets = result.getTargets();
-    ArrayList<Pose2d> target_poses = new ArrayList<Pose2d>();
-    ArrayList<Target> target_distances = new ArrayList<Target>();
-
-    for (PhotonTrackedTarget target : targets) {
-
-      double minX = Double.MAX_VALUE;
-      double minY = Double.MAX_VALUE;
-      double maxX = Double.MIN_VALUE;
-      double maxY = Double.MIN_VALUE;
-
-      Point[] corner_points = new Point[4];
-
-      for (int i = 0; i < 4; i++) {
-        TargetCorner c = target.getMinAreaRectCorners().get(i);
-        corner_points[i] = new Point(c.x, c.y);
-      }
-
-      temp_mat.fromArray(corner_points);
-
-      for (TargetCorner corner : target.getMinAreaRectCorners()) {
-        minX = Math.min(minX, corner.x);
-        maxX = Math.max(maxX, corner.x);
-        minY = Math.min(minY, corner.y);
-        maxY = Math.max(maxY, corner.y);
-      }
-
-      SmartDashboard.putNumber("minXo", minX);
-      SmartDashboard.putNumber("maxXo", maxX);
-      SmartDashboard.putNumber("minYo", minY);
-      SmartDashboard.putNumber("maxYo", maxY);
-
-      SmartDashboard.putNumber("heighto", maxY - minY);
-
-      SmartDashboard.putNumber("k1", dist_coeffs_mat.get(0, 0)[0]);
-
-      Calib3d.undistortImagePoints(
-        temp_mat,
-        dest_mat,
-        camera_instrinsics_mat,
-        dist_coeffs_mat);
-
-      for (Point corner : dest_mat.toArray()) {
-        minX = Math.min(minX, corner.x);
-        maxX = Math.max(maxX, corner.x);
-        minY = Math.min(minY, corner.y);
-        maxY = Math.max(maxY, corner.y);
-      }
-
-      SmartDashboard.putNumber("minX", minX);
-      SmartDashboard.putNumber("maxX", maxX);
-      SmartDashboard.putNumber("minY", minY);
-      SmartDashboard.putNumber("maxY", maxY);
-
-      double midpoint = (maxX + minX)/2;
-      double width = maxX - minX;
-      double height = maxY - minY;
-
-      SmartDashboard.putNumber("height", height);
-
-      double[] temp_dist = getDistance(width, height, midpoint);
-      double distance = temp_dist[0];
-      double offset = -temp_dist[1] + 0.24;
-
-      double angle_to_target = Math.atan(offset / distance);
-      double direct_distance = Math.sqrt(Math.pow(distance, 2) + Math.pow(offset, 2));
-
-      target_poses.add(getObjectPose(robot_pose, distance, angle_to_target));
-      target_distances.add(new Target(distance, offset, direct_distance));
+  
+    if (Robot.isReal()){
+      var result = readPhotonResults(left_camera, robot_to_left_camera);
+      closest_pose = result.get().closest_pose;
     }
-
-    if (target_poses.size() >= 1) {
-      adv_closest_pub.set(new Pose3d(target_poses.get(0)));
-      closest_pose = target_poses.get(0);
-    }
+    adv_closest_pub.set(new Pose3d(closest_pose));
   }
 }

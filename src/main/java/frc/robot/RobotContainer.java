@@ -24,7 +24,8 @@ public class RobotContainer {
   private Joystick second_stick = new Joystick(Constants.IO.COPILOT_PORT);
   private Joystick left_board = new Joystick(Constants.IO.LEFT_BOARD_PORT);
   private Joystick right_board = new Joystick(Constants.IO.RIGHT_BOARD_PORT);
-  private Joystick simp_stick = new Joystick(4);
+
+  private Joystick simp_stick = new Joystick(5);
 
   public final SubsystemManager m_subsystem_manager = new SubsystemManager(
     () -> main_stick.getRawAxis(1), // i think these should be swapped
@@ -89,8 +90,27 @@ public class RobotContainer {
     //   ));
     // }
 
-    // new JoystickButton(main_stick, 3)
-    //   .whileTrue(m_subsystem_manager.algae_alignment_PID);
+    new JoystickButton(main_stick, 3)
+      .whileTrue(m_subsystem_manager.algae_alignment_PID);
+
+
+
+    // temp servo testing
+    // new JoystickButton(simp_stick, 4)
+    // .onTrue(new InstantCommand(() -> m_subsystem_manager.m_servo.setAngle(15)));
+
+    // new JoystickButton(simp_stick, 9)
+    //   .onTrue(new InstantCommand(() -> m_subsystem_manager.m_servo.setAngle(105)));
+
+    // new JoystickButton(simp_stick, 10)
+    //   .onTrue(new InstantCommand(() -> m_subsystem_manager.m_servo.setAngle(165)));
+
+    new JoystickButton(simp_stick, 9)
+      .onTrue(new InstantCommand(() -> m_subsystem_manager.m_servo.setAngle(10)));
+
+    new JoystickButton(simp_stick, 10)
+      .onTrue(new InstantCommand(() -> m_subsystem_manager.m_servo.setAngle(110)));
+
   }
 
   public Command getAutonomousCommand() {

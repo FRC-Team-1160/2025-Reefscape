@@ -52,7 +52,7 @@ public class AlgaeAlignmentPID extends Command {
 
     omega_controller.enableContinuousInput(-Math.PI, Math.PI);
 
-    addRequirements(m_object_detection, m_drivetrain);
+    addRequirements(m_drivetrain);
 
     NetworkTableInstance inst = NetworkTableInstance.getDefault();
     NetworkTable adv_vision = inst.getTable("adv_vision");
