@@ -1,21 +1,14 @@
 package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.function.Supplier;
 
 import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.TargetCorner;
-
-import com.ctre.phoenix6.swerve.SwerveModule;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter.FixedSpaceIndenter;
 
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
@@ -24,21 +17,11 @@ import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint2f;
 import org.opencv.core.Point;
 
-import edu.wpi.first.math.estimator.PoseEstimator;
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d; 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.Kinematics;
-import edu.wpi.first.math.kinematics.Odometry;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
@@ -46,14 +29,11 @@ import edu.wpi.first.networktables.StructPublisher;
 
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.VisionConstants.EstimationParams;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
-import frc.robot.Constants;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 import frc.robot.Constants.VisionConstants.CameraDistortion;
 import frc.robot.Constants.VisionConstants.CameraIntrinsics;
-import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Robot;
 import frc.robot.RobotUtils;
 
@@ -230,11 +210,6 @@ public class ObjectDetection {
         // calculate poses for each target
         for (PhotonTrackedTarget target : pipeline_result.getTargets()) {
 
-            double minX = Double.MAX_VALUE;
-            double minY = Double.MAX_VALUE;
-            double maxX = Double.MIN_VALUE;
-            double maxY = Double.MIN_VALUE;
-
             Point[] corner_points = new Point[4];
 
             for (int i = 0; i < 4; i++) {
@@ -251,6 +226,10 @@ public class ObjectDetection {
                 dist_coeffs_mat);
 
             // Corners are returned in an unordered list; get extrema
+            double minX = Double.MAX_VALUE;
+            double minY = Double.MAX_VALUE;
+            double maxX = Double.MIN_VALUE;
+            double maxY = Double.MIN_VALUE;
 
             for (Point corner : dest_mat.toArray()) {
                 minX = Math.min(minX, corner.x);
@@ -259,18 +238,18 @@ public class ObjectDetection {
                 maxY = Math.max(maxY, corner.y);
             }
 
-            int tol = AlgaeParams.EDGE_TOLERANCE;
+            double width = maxX - minX;
+            double height = maxY - minY;
 
-            Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2, camera_transform);
+            Pose2d target_pose = getTargetPose(width, height, (int)(maxX + minX)/2, camera_transform);
             // Keep track of whether current target has been matched with existing object
             boolean matched = false; 
 
-            // Check that object isnt cut off
-            if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol 
-                || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
+            // Check that object isnt cut off using the height:width ratio
+            if (Math.min(width / height, height / width) >= AlgaeParams.MIN_BOUNDING_RATIO) {
                 // Attempt to match the current pose with each stored target
                 for (VisionTarget t : temp_tracked_targets) {
-                    if (matched = t.match(target_pose, robot_pose, true)) {
+                    if (matched = t.match(target_pose, robot_pose, target.objDetectConf / 2)) {
                         // Remove targets from the temporary list if they have been matched
                         temp_tracked_targets.remove(t);
                         break;

@@ -1,5 +1,6 @@
 package frc.robot.Subsystems.Vision;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -88,9 +89,22 @@ public class VisionTarget {
      * @param new_pose The new pose.
      */
     public void updatePosition(Pose2d new_pose) {
-        position = new_pose.getTranslation();
-        timer.restart();
-        timeout = 0;
+        updatePosition(new_pose, 1);
+    }
+
+    /**
+     * Returns the vision-estimated positoin of the object and resets its timeout.
+     * @param new_pose The estimated pose.
+     * @param weight The relative weight to be given to the new pose. 0 is no weight, and 1 overrides the stored pose.
+     * @return The new calculated pose of the target.
+     */
+    public Pose2d updatePosition(Pose2d new_pose, double weight) {
+        weight = MathUtil.clamp(weight, 0, 1);
+        position = new Translation2d(
+            new_pose.getX() * weight + position.getX() * (1.0 - weight),
+            new_pose.getY() * weight + position.getY() * (1.0 - weight));
+        resetTimer();
+        return getPose();
     }
 
     /**
@@ -110,10 +124,11 @@ public class VisionTarget {
     public boolean inDistanceTolerance(Pose2d observed_pose, Pose2d robot_pose) {
         Translation2d observed_pos = observed_pose.getTranslation();
         Translation2d robot_pos = robot_pose.getTranslation();
-        double proportional_error = Math.abs((observed_pos.getDistance(robot_pos) - getDistance(robot_pos))
+        // Calculate the ratio of the error to the distance; similar to percent error
+        double error_ratio = Math.abs((observed_pos.getDistance(robot_pos) - getDistance(robot_pos))
              / getDistance(observed_pos));
-        return proportional_error >= AlgaeParams.POSITION_TOLERANCE
-             && proportional_error <= 1.0 / AlgaeParams.POSITION_TOLERANCE;
+        // Check both the ratio and the reciprocal meet the threshold
+        return Math.min(error_ratio, 1.0 / error_ratio) >= AlgaeParams.DISTANCE_TOLERANCE;
     }
 
     public boolean inPositionTolerance(Pose2d observed_pose) {
@@ -129,10 +144,22 @@ public class VisionTarget {
      */
     public boolean match(Pose2d observed_pose, Pose2d robot_pose, boolean update_pose) {
         // Check if the given pose has a close enough angle and distance
+        return match(observed_pose, robot_pose, update_pose ? 1 : 0);
+    }
+
+    /**
+     * Returns whether the observed target matches this target's position. Unmarks this target if so.
+     * @param observed_pose The observed target pose.
+     * @param robot_pose The robot's current pose.
+     * @param update_pose Whether or not to update the position of the target with this observation if matched.
+     * @return Whether or not the observed target matches this target.
+     */
+    public boolean match(Pose2d observed_pose, Pose2d robot_pose, double weight) {
+        // Check if the given pose has a close enough angle and distance
         if (inPositionTolerance(observed_pose) ||
             (inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose))) {
-            resetTimer();
-            if (update_pose) updatePosition(observed_pose);
+
+            updatePosition(observed_pose, weight);
             return true;
         }
         return false;

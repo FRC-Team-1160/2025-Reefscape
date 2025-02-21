@@ -105,9 +105,12 @@ public final class Constants {
             public final static double EXPECTED_RANGE = Units.degreesToRadians(40);
             /** Algae width in meters. */
             public final static double TARGET_WIDTH = Units.inchesToMeters(16);
-            /** Range in pixels for which bounding boxes are considered cut off*/
+            /** Range in pixels for which bounding boxes are considered cut off (Maybe deprecated) */
             public final static int EDGE_TOLERANCE = 5;
-            /**  */
+            /** Minimum width : height ratio for which a bounding box is considered not cut off.
+             *  The reciprocal is also checked as the maximum ratio.
+             */
+            public final static double MIN_BOUNDING_RATIO = 0.7;
             /** The maximum range for following targets */
             public final static double MAX_TRACKING_DISTANCE = 4.0;
             /** Time until targets are no longer tracked after not being seen */
@@ -117,7 +120,7 @@ public final class Constants {
             /** Allowed angular error to match targets as the same (in radians). */
             public final static double ANGULAR_TOLERANCE = 0.3;
             /** Minimum PROPORTIONAL distance error to match targets as the same.
-             *  Inverse is also checked as maximum.
+             *  The reciprocal is also checked as the maximum ratio.
              */
             public final static double DISTANCE_TOLERANCE = 0.7;
             /** Allowed ABSOLUTE positional error to match targets as the same. */
