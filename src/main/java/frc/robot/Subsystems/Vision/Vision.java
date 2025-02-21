@@ -124,6 +124,8 @@ public class Vision {
         for(double[] i: Constants.VisionConstants.tags_map){
             apriltags_map.put((int)i[0], new Pose3d(i[1] * 0.0254, i[2] * 0.0254, i[3] * 0.0254, new Rotation3d(0, i[5], i[4])));
         }
+
+        m_camera_mode = CameraMode.kDefault;
     }
 
     public Optional<CameraResults> readPhotonResults(
