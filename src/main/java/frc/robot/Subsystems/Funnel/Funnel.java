@@ -6,28 +6,35 @@ package frc.robot.Subsystems.Funnel;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.FunnelConstants.ServoLeft;
+import frc.robot.Constants.FunnelConstants.ServoRight;
 
 abstract public class Funnel extends SubsystemBase {
-  public static Funnel instance;
-  public Servo thing;
-  private double angle;
 
-  /** Creates a new ServoSystem. */
-  public Funnel() {
-    this.thing = new Servo(0);
-    this.angle = 0;
-  }
+    enum FunnelState {
+        kUp(ServoLeft.UP, ServoRight.UP),
+        kDown(ServoLeft.DOWN, ServoRight.DOWN);
 
-  public void setAngle(double angle){
-    thing.setAngle(angle);
-  }
+        public final double left, right;
+        private FunnelState(double left, double right) {
+            this.left = left;
+            this.right = right;
+        }
+    }
 
-  @Override
-  public void periodic() {
-    // This method will be called once per scheduler run
-    // thing.setAngle(angle);
-    // System.out.println(thing.getAngle());
-    angle++;
-    
-  }
+    /** Creates a new ServoSystem. */
+    public Funnel() {
+        
+    }
+
+    public void setState(FunnelState target) {
+        setLeftServo(target.left);
+        setRightServo(target.right);
+    }
+
+    protected abstract void setLeftServo(double setpoint);
+    protected abstract void setRightServo(double setpoint);
+
+    @Override
+    public void periodic() {}
 }

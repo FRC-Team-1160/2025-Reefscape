@@ -58,13 +58,10 @@ import frc.robot.Robot;
 import frc.robot.RobotUtils;
 
 public class ObjectDetection {
-    /** The OV9782 instance. */
-    private PhotonCamera left_camera;
-    private PhotonCamera right_camera;
-
+    /** The camera instance. */
+    private PhotonCamera camera_left, camera_right;
     /** The robot-to-camera transform. */
-    private Transform2d left_camera_transform;
-    private Transform2d right_camera_transform;
+    private Transform2d camera_transform_left, camera_transform_right;
     /** The current robot pose. */
     public Pose2d robot_pose;
     /** Supplier for the robot pose. */
@@ -87,10 +84,12 @@ public class ObjectDetection {
     /** Creates a new ObjectDetection. */
     public ObjectDetection(Supplier<Pose2d> robot_pose_supplier) {
         if (Robot.isReal()) {
-            left_camera = new PhotonCamera("OV9782");
+            camera_left = new PhotonCamera("OV9782");
+            camera_right = new PhotonCamera("OV9871");
         }
 
-        left_camera_transform = new Transform2d(LeftCamera.X, LeftCamera.Y, Rotation2d.fromRadians(LeftCamera.YAW));
+        camera_transform_left = new Transform2d(LeftCamera.X, LeftCamera.Y, Rotation2d.fromRadians(LeftCamera.YAW));
+        camera_transform_right = new Transform2d(RightCamera.X, RightCamera.Y, Rotation2d.fromRadians(RightCamera.YAW));
 
         NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
 
@@ -212,65 +211,59 @@ public class ObjectDetection {
     /** @hidden */
     public void publishAdv() {
         getClosestTarget().ifPresent(
-            target -> adv_closest_pub.set(new Pose3d(target.getPose())));
+            target -> adv_closest_pub.set(target.getPose3d()));
 
         Pose3d[] target_poses = new Pose3d[tracked_targets.size()];
         for (int i = 0; i < tracked_targets.size(); i++) {
-            target_poses[i] = new Pose3d(tracked_targets.get(i).getPose());
+            target_poses[i] = tracked_targets.get(i).getPose3d();
         }
         adv_tracked_pub.set(target_poses);
     }
 
-    public void updateTrackedObjects(PhotonCamera camera, Transform2d camera_transform) {
+    public void updateTrackedObjects(PhotonPipelineResult pipeline_result, Transform2d camera_transform) {
 
-        List<PhotonTrackedTarget> targets = camera.getLatestResult().getTargets();
+        if (!pipeline_result.hasTargets()) return;
+
         // Make a temporary list to keep track of which targets have been matched
         List<VisionTarget> temp_tracked_targets = new ArrayList<VisionTarget>(tracked_targets);
 
         // calculate poses for each target
-        for (PhotonTrackedTarget target : targets) {
+        for (PhotonTrackedTarget target : pipeline_result.getTargets()) {
 
             double minX = Double.MAX_VALUE;
             double minY = Double.MAX_VALUE;
             double maxX = Double.MIN_VALUE;
             double maxY = Double.MIN_VALUE;
 
-          Point[] corner_points = new Point[4];
+            Point[] corner_points = new Point[4];
 
-          for (int i = 0; i < 4; i++) {
-            TargetCorner c = target.getMinAreaRectCorners().get(i);
-            corner_points[i] = new Point(c.x, c.y);
-          }
+            for (int i = 0; i < 4; i++) {
+                TargetCorner c = target.getMinAreaRectCorners().get(i);
+                corner_points[i] = new Point(c.x, c.y);
+            }
 
-          temp_mat.fromArray(corner_points);
+            temp_mat.fromArray(corner_points);
+
+            Calib3d.undistortImagePoints(
+                temp_mat,
+                dest_mat,
+                camera_instrinsics_mat,
+                dist_coeffs_mat);
 
             // Corners are returned in an unordered list; get extrema
-                for (TargetCorner corner : target.getMinAreaRectCorners()) {
-                    minX = Math.min(minX, corner.x);
-                    maxX = Math.max(maxX, corner.x);
-                    minY = Math.min(minY, corner.y);
-                    maxY = Math.max(maxY, corner.y);
-                }
 
-          Calib3d.undistortImagePoints(
-            temp_mat,
-            dest_mat,
-            camera_instrinsics_mat,
-            dist_coeffs_mat);
-
-          for (Point corner : dest_mat.toArray()) {
-            minX = Math.min(minX, corner.x);
-            maxX = Math.max(maxX, corner.x);
-            minY = Math.min(minY, corner.y);
-            maxY = Math.max(maxY, corner.y);
-          }
+            for (Point corner : dest_mat.toArray()) {
+                minX = Math.min(minX, corner.x);
+                maxX = Math.max(maxX, corner.x);
+                minY = Math.min(minY, corner.y);
+                maxY = Math.max(maxY, corner.y);
+            }
 
             int tol = AlgaeParams.EDGE_TOLERANCE;
 
             Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2, camera_transform);
             // Keep track of whether current target has been matched with existing object
             boolean matched = false; 
-            System.out.println(tracked_targets.size());
 
             // Check that object isnt cut off
             if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol 
@@ -280,13 +273,11 @@ public class ObjectDetection {
                     if (matched = t.match(target_pose, robot_pose, true)) {
                         // Remove targets from the temporary list if they have been matched
                         temp_tracked_targets.remove(t);
-                        System.out.println("matched");
                         break;
                     }
                 }
                 // If current target hasnt been matched, start tracking as new target
                 if (!matched) tracked_targets.add(new VisionTarget(target_pose));
-                if (!matched) System.out.println("unmatched");
 
             } else {
                 // If target bounding box is cut off at camera edges
@@ -318,10 +309,6 @@ public class ObjectDetection {
             publishAdv();
             return;
         }
-        if (left_camera.getPipelineIndex() != 0) {
-            publishAdv();
-            return;
-        }
 
         // Increase timeouts
         for (VisionTarget t : tracked_targets) {
@@ -329,9 +316,11 @@ public class ObjectDetection {
             else t.timeout = 0;
         }
 
-        updateTrackedObjects(left_camera, left_camera_transform);
-
-        // DEPRECATED, REPLACE WITH getAllUnreadResults()
+        if (camera_left.getPipelineIndex() == 0) {
+            for (PhotonPipelineResult result : camera_left.getAllUnreadResults()) {
+                updateTrackedObjects(result, camera_transform_left);
+            }
+        }
         
         publishAdv();
 

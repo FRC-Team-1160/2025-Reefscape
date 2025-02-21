@@ -52,6 +52,11 @@ public final class Constants {
 
         public static final int CLAW_MOTOR_LEFT = 15;
         public static final int CLAW_MOTOR_RIGHT = 16;
+
+        public static final int SERVO_LEFT = 1;
+        public static final int SERVO_RIGHT = 2;
+
+        public static final int BREAK_BEAM = 3;
     }
 
     public static class IOConstants {
@@ -102,6 +107,7 @@ public final class Constants {
             public final static double TARGET_WIDTH = Units.inchesToMeters(16);
             /** Range in pixels for which bounding boxes are considered cut off*/
             public final static int EDGE_TOLERANCE = 5;
+            /**  */
             /** The maximum range for following targets */
             public final static double MAX_TRACKING_DISTANCE = 4.0;
             /** Time until targets are no longer tracked after not being seen */
@@ -110,8 +116,12 @@ public final class Constants {
             public final static int DETECTION_LIMIT = 3;
             /** Allowed angular error to match targets as the same (in radians). */
             public final static double ANGULAR_TOLERANCE = 0.3;
-            /** Allowed PROPORTIONAL distance error to match targets as the same. */
-            public final static double DISTANCE_TOLERANCE = 0.2;
+            /** Minimum PROPORTIONAL distance error to match targets as the same.
+             *  Inverse is also checked as maximum.
+             */
+            public final static double DISTANCE_TOLERANCE = 0.7;
+            /** Allowed ABSOLUTE positional error to match targets as the same. */
+            public final static double POSITION_TOLERANCE = 0.8;
         }
         
         public static class CameraTransforms {
@@ -300,6 +310,19 @@ public final class Constants {
             public static final double kProcessor = 0;
             public static final double kStow = 0;
             public static final double kSource = 0;
+        }
+    }
+
+    public static class FunnelConstants {
+        public static class ServoLeft {
+            public static final double UP = 0;
+            public static final double DOWN = 0;
+        }
+        
+        public static class ServoRight {
+            public static final double UP = 0;
+            public static final double DOWN = 0;
+            
         }
     }
 

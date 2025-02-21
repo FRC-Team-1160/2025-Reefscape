@@ -1,10 +1,11 @@
 package frc.robot.Subsystems.Vision;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 
 public class VisionTarget {
@@ -32,6 +33,18 @@ public class VisionTarget {
      */
     public Pose2d getPose() {
         return new Pose2d(position, new Rotation2d());
+    }
+
+    /**
+     * Returns the object's pose as a Pose3d.
+     * @return The object's pose with a small Z offset.
+     */
+    public Pose3d getPose3d() {
+        return new Pose3d(
+            position.getX(),
+            position.getY(),
+            AlgaeParams.TARGET_WIDTH / 2,
+            new Rotation3d());
     }
 
     /**
@@ -97,13 +110,14 @@ public class VisionTarget {
     public boolean inDistanceTolerance(Pose2d observed_pose, Pose2d robot_pose) {
         Translation2d observed_pos = observed_pose.getTranslation();
         Translation2d robot_pos = robot_pose.getTranslation();
-        double proportional_error = Math.abs((observed_pos.getDistance(robot_pos)
-        - getDistance(robot_pos)) / getDistance(observed_pos));
-        return Math.abs(proportional_error - 1) <= AlgaeParams.DISTANCE_TOLERANCE;
+        double proportional_error = Math.abs((observed_pos.getDistance(robot_pos) - getDistance(robot_pos))
+             / getDistance(observed_pos));
+        return proportional_error >= AlgaeParams.POSITION_TOLERANCE
+             && proportional_error <= 1.0 / AlgaeParams.POSITION_TOLERANCE;
     }
 
     public boolean inPositionTolerance(Pose2d observed_pose) {
-        return observed_pose.getTranslation().minus(position).getNorm() < 1;
+        return observed_pose.getTranslation().minus(position).getNorm() <= AlgaeParams.POSITION_TOLERANCE;
     }
 
     /**
@@ -115,8 +129,8 @@ public class VisionTarget {
      */
     public boolean match(Pose2d observed_pose, Pose2d robot_pose, boolean update_pose) {
         // Check if the given pose has a close enough angle and distance
-        if (inPositionTolerance(observed_pose) || (
-            inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose))) {
+        if (inPositionTolerance(observed_pose) ||
+            (inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose))) {
             resetTimer();
             if (update_pose) updatePosition(observed_pose);
             return true;
