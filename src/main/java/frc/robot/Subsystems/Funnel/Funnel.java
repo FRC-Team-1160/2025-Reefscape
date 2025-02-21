@@ -2,18 +2,18 @@
 // Open Source Software; you can modify and/or share it under the terms of
 // the WPILib BSD license file in the root directory of this project.
 
-package frc.robot.Subsystems;
+package frc.robot.Subsystems.Funnel;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class ServoSystem extends SubsystemBase {
-  public static ServoSystem instance;
+abstract public class Funnel extends SubsystemBase {
+  public static Funnel instance;
   public Servo thing;
   private double angle;
 
   /** Creates a new ServoSystem. */
-  public ServoSystem() {
+  public Funnel() {
     this.thing = new Servo(0);
     this.angle = 0;
   }

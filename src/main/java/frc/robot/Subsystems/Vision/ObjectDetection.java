@@ -220,15 +220,13 @@ public class ObjectDetection {
         // Make a temporary list to keep track of which targets have been matched
         List<VisionTarget> temp_tracked_targets = tracked_targets;
 
-            var closest_pose = new Pose2d();
-
         // calculate poses for each target
         for (PhotonTrackedTarget target : targets) {
 
-                double minX = Double.MAX_VALUE;
-                double minY = Double.MAX_VALUE;
-                double maxX = Double.MIN_VALUE;
-                double maxY = Double.MIN_VALUE;
+            double minX = Double.MAX_VALUE;
+            double minY = Double.MAX_VALUE;
+            double maxX = Double.MIN_VALUE;
+            double maxY = Double.MIN_VALUE;
 
           Point[] corner_points = new Point[4];
 

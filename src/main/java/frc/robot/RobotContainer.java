@@ -33,14 +33,6 @@ public class RobotContainer {
     configureBindings();
   }
 
-  public void updateSubsystemManager() {
-    if (RobotState.isEnabled()) {
-      m_subsystem_manager.update();
-    } else if (RobotState.isAutonomous()) {
-      m_subsystem_manager.update();
-    }
-  }
-
     private void configureBindings() {
         new JoystickButton(main_stick, 8).onTrue(
             new InstantCommand(m_subsystem_manager.m_drive::resetGyroAngle));
