@@ -51,6 +51,7 @@ import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.LimelightResults;
 import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.Robot;
+import frc.robot.RobotUtils;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 
@@ -65,10 +66,19 @@ public class Vision {
 
     PhotonCamera camera_left, camera_right;
     PhotonPoseEstimator pose_estimator_left, pose_estimator_right;
-    VisionPoseCache pose_cache_left, pose_cache_right;
+    VisionPoseCache pose_cache_left, pose_cache_right, pose_cache_limelight;
     // A REFERENCE to the SwerveDrivePoseEstimator contained in SubsystemManager so that vision can update with 3 args
     SwerveDrivePoseEstimator main_pose_estimator;
     Supplier<Pose2d> robot_pose_supplier;
+
+    // apriltags sightline stuff
+    HashMap<Integer, Pose3d>  apriltags_map;
+    List<Pose3d> apriltag_poses;
+
+    // Limelight stuff
+    int count;
+    double limelight_pose_timestamp;
+    Pose2d limelight_pose;
 
     /** Creates a new Vision. */
     public Vision(SwerveDrivePoseEstimator main_pose_estimator, Supplier<Pose2d> robot_pose_supplier) {
@@ -112,6 +122,12 @@ public class Vision {
 
         pose_estimator_right.setReferencePose(new Pose2d());
 
+        // apriltag sightline stuff
+        apriltags_map = new HashMap<Integer, Pose3d>();
+        apriltag_poses = new ArrayList<Pose3d>();
+        for(double[] i:Constants.VisionConstants.tags_map){
+            apriltags_map.put((int)i[0], new Pose3d(i[1] * 0.0254, i[2] * 0.0254, i[3] * 0.0254, new Rotation3d(0, i[5], i[4])));
+        }
     }
 
     public Optional<CameraResults> readPhotonResults(
@@ -182,6 +198,43 @@ public class Vision {
                 used_ids.addAll(result.ids);
             }
         );
+
+        // limelight stuff
+        // smart cropping:
+        LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
+        if(limelightResult.valid){
+            // non-dynamic
+            LimelightHelpers.setPipelineIndex("", 1);
+            count = 0;
+        }
+        if(!limelightResult.valid && count >=25){
+            LimelightHelpers.setPipelineIndex("", 0);
+        }
+
+
+        if (limelightResult != null && limelightResult.valid){
+            limelight_pose_timestamp = limelightResult.timestamp_LIMELIGHT_publish;
+            if (RobotUtils.isRedAlliance()){
+                limelight_pose = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("").pose;
+                limelight_pose_timestamp = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("").timestampSeconds;
+            } else {
+                limelight_pose = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("").pose;
+                limelight_pose_timestamp = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("").timestampSeconds;
+            }
+            pose_cache_limelight.addPose(limelight_pose, main_pose_estimator.getEstimatedPosition(), limelight_pose_timestamp);
+
+             RawFiducial[] fiducials = LimelightHelpers.getRawFiducials("");
+            // if (fiducials != null){
+            //     limelight_pose_stddev.times(fiducials[0].ambiguity);
+            // }
+            // store it in apriltag 
+            for (RawFiducial fudicial:fiducials){
+                apriltag_poses.add(apriltags_map.get(fudicial));
+            }
+        }
+        if ( pose_cache_limelight != null){
+            main_pose_estimator.addVisionMeasurement(limelight_pose, limelight_pose_timestamp, pose_cache_limelight.getStdevs());
+        }
 
         adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
     }

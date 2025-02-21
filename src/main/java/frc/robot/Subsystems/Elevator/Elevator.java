@@ -29,10 +29,6 @@ abstract public class Elevator extends SubsystemBase {
     }
 
     public Elevator() {
-        ele_target = getElevatorHeight();
-        ele_setpoint = getElevatorHeight();
-        wrist_target = getWristAngle();
-        wrist_setpoint = getWristAngle();
         claw_speed = 0;
         shooter_speed = 0;
     }

@@ -60,8 +60,11 @@ import frc.robot.RobotUtils;
 public class ObjectDetection {
     /** The OV9782 instance. */
     private PhotonCamera left_camera;
+    private PhotonCamera right_camera;
+
     /** The robot-to-camera transform. */
     private Transform2d left_camera_transform;
+    private Transform2d right_camera_transform;
     /** The current robot pose. */
     public Pose2d robot_pose;
     /** Supplier for the robot pose. */
@@ -74,7 +77,11 @@ public class ObjectDetection {
     public List<VisionTarget> tracked_targets;
 
     MatOfPoint2f temp_mat, dest_mat;
-
+    // Load OpenCV
+    static {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+    }
+    
     Mat camera_instrinsics_mat, dist_coeffs_mat;
 
     /** Creates a new ObjectDetection. */
