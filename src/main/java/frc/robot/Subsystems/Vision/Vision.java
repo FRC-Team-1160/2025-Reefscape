@@ -61,6 +61,20 @@ public class Vision {
     double limelight_pose_timestamp;
     Pose2d limelight_pose;
 
+    CameraMode m_camera_mode;
+
+    public enum CameraMode {
+        kDefault(0, 0),
+        kStereoAprilTag(1, 0),
+        kStereoAlgae(0, 1);
+        
+        public int left, right;
+        private CameraMode(int left, int right) {
+            this.left = left;
+            this.right = right;
+        }
+    }
+
     /** Creates a new Vision. */
     public Vision(SwerveDrivePoseEstimator main_pose_estimator, Supplier<Pose2d> robot_pose_supplier) {
 
@@ -110,6 +124,8 @@ public class Vision {
         for(double[] i: Constants.VisionConstants.tags_map){
             apriltags_map.put((int)i[0], new Pose3d(i[1] * 0.0254, i[2] * 0.0254, i[3] * 0.0254, new Rotation3d(0, i[5], i[4])));
         }
+
+        m_camera_mode = CameraMode.kDefault;
     }
 
     public Optional<CameraResults> readPhotonResults(
@@ -155,6 +171,22 @@ public class Vision {
                 cache.getWeightedStdevs());
         }
         return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, fiducials));
+    }
+
+    /**
+     * Switch the pipelines of the two OV cameras.
+     * @param mode The mode for the two cameras.
+     */
+    public void setCameraPipelines(CameraMode mode) {
+        if (mode == m_camera_mode) return;
+        // Don't reset if already on this pipeline.
+        if (camera_left.getPipelineIndex() != mode.left) camera_left.setPipelineIndex(mode.left);
+        if (camera_right.getPipelineIndex() != mode.right) camera_right.setPipelineIndex(mode.right);
+        m_camera_mode = mode;
+    }
+
+    public CameraMode getCameraMode() {
+        return m_camera_mode;
     }
 
     // Vision is marked as a non-subsystem to allow it to run before subsystem periodic methods
