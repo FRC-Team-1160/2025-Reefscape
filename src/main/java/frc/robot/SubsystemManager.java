@@ -20,6 +20,7 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -303,6 +304,24 @@ public class SubsystemManager {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                 }, 
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING);
+        }
+
+        public Command alignSource() {
+            return new FunctionalCommand(
+                () -> {
+                    m_robot_state.drive_state = DriveStates.PID_ALIGNING;
+                    m_swerve_pid_controller.target_pose = m_swerve_pid_controller.getNearestSourcePose();
+                    m_swerve_pid_controller.reset_speeds = true;
+                    m_swerve_pid_controller.target_distance = 0;
+                    m_swerve_pid_controller.rotation_offset = Rotation2d.kPi;
+                },
+                () -> {},
+                canceled -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    m_swerve_pid_controller.rotation_offset = Rotation2d.kZero;
+                },
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING
+            );
         }
 
         public Command trackAlgae() {

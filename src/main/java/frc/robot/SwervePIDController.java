@@ -36,6 +36,7 @@ public class SwervePIDController {
 
     public Pose2d target_pose;
 	public double target_distance;
+    public Rotation2d rotation_offset;
 
     public boolean reset_speeds;
 
@@ -92,11 +93,13 @@ public class SwervePIDController {
         }
 
         FieldPositions.source = new Pose2d[] {
+            // right source
             new Pose2d(
                 CoralStation.CENTER_X,
                 CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
             ),
+            // left source
             new Pose2d(
                 CoralStation.CENTER_X,
                 FieldConstants.WIDTH - CoralStation.CENTER_Y,
@@ -130,6 +133,14 @@ public class SwervePIDController {
     public Pose2d getNearestReefPose() {
         SmartDashboard.putNumber("reefclosest", getNearestReefFace());
         return FieldPositions.reef[getNearestReefFace()];
+    }
+
+    public Pose2d getNearestSourcePose() {
+        if (robot_pose_supplier.get().getY() >= 0 && robot_pose_supplier.get().getY() <= Constants.FieldConstants.WIDTH / 2){
+            return FieldPositions.source[0];
+        }else{
+            return FieldPositions.source[1];
+        }
     }
 
     /**
@@ -194,6 +205,8 @@ public class SwervePIDController {
     public ChassisSpeeds calculate(Rotation2d rotationOffset, boolean useTargetAngle) {
         Pose2d robot_pose = robot_pose_supplier.get();
 
+        this.rotation_offset = rotationOffset;
+
         // Instantiate goal pose at the target pointing in our desired goal-to-target angle
         Pose2d goal_pose = new Pose2d(
             target_pose.getTranslation(),
@@ -203,7 +216,7 @@ public class SwervePIDController {
         // Update the angular PID controller with new measurements and calculate desired angular speed
         double desired_ang_speed = ang_pid_controller.calculate(
             robot_pose.getRotation().getRadians(), 
-            goal_pose.getRotation().plus(rotationOffset).getRadians());
+            goal_pose.getRotation().plus(rotation_offset).getRadians());
 
         /* Shift the pose backwards by the target distance using a -x transform
            Add extra space for turning to goal distance if robot is not pointing towards target,
