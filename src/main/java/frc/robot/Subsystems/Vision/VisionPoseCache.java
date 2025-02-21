@@ -38,8 +38,8 @@ public class VisionPoseCache {
     public void addPose(Pose2d pose, Pose2d referencePose, double timestampSeconds) {
         clearOldPoses(timestampSeconds);
         if (cache.isEmpty() || Math.abs(timestampSeconds - cache.getLast().timestamp) > 1e-3) {
-            // We take the difference between the actual pose and the vision estimate to account for robot motion
-            // Theoretically, caching and tracing odometry readings for reference pose would be more correct
+            // We take the difference between the actual pose and the vision estimate to account for robot motion.
+            // Theoretically, caching and tracing odometry readings for reference pose would be more correct.
             Transform2d diff = pose.minus(referencePose);
             // Take rolling sum and sum of squares for stdev calculation
             sums[0] += diff.getX();
@@ -51,7 +51,7 @@ public class VisionPoseCache {
             sum_squares[2] += Math.pow(diff.getRotation().getRadians(), 2);
 
             // Check if current pose is older than the top of the cache; if so, insert it one index deep
-            // This assumes that no more than 2 results are provided per batch, which may occur during a loop overrun 
+            // This assumes that no more than 2 results are provided per batch, which may occur during a loop overrun.
             cache.add(cache.size() - (cache.isEmpty() || timestampSeconds > cache.getLast().timestamp ? 0 : 1),
                 new CachedPose(diff.getX(), diff.getY(), diff.getRotation().getRadians(), timestampSeconds));
 
@@ -85,8 +85,9 @@ public class VisionPoseCache {
         }
     }
 
-    // The standard deviation can be calculated with no iterative passes using the sum and sum of squares
-    // Theoretically, taking a linear regression would account for change over time giving marginal time range and accuracy improvements
+    // The standard deviation can be calculated with no iterative passes using the sum and sum of squares.
+    /* Theoretically, taking a linear regression would account for change over time,
+       giving marginal time range and accuracy improvements */
     private double calcStdev(int i) {
         return cache.isEmpty() ? 0 : Math.sqrt((sum_squares[i] - (sums[i] * sums[i] / cache.size())) / cache.size());
     }

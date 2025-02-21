@@ -32,6 +32,7 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.SubsystemManager.RobotState.DriveStates;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO;
@@ -47,7 +48,8 @@ public class SubsystemManager {
     public class RobotState {
         enum DriveStates {
             DRIVER_CONTROL,
-            PID_CONTROL,
+            PID_TRACKING,
+            PID_ALIGNING,
             PATHPLANNER_CONTROL
         }
 
@@ -65,11 +67,9 @@ public class SubsystemManager {
     public ObjectDetection m_object_detection;
 
     public SwervePIDController m_swerve_pid_controller;
-
     public PathplannerController m_pathplanner_controller;
 
     public RobotState m_robot_state = new RobotState();
-
     public Commands commands = new Commands();
 
     public Supplier<Double> getStickX, getStickY, getStickA, getStickEl;
@@ -120,7 +120,7 @@ public class SubsystemManager {
             m_drive.getModulePositions(), 
             robot_pose, 
             new Matrix<>(Nat.N3(), Nat.N1(), new double[] {0.02, 0.02, 0.02}), 
-            null);
+            new Matrix<>(Nat.N3(), Nat.N1(), new double[] {0.05, 0.05, 0.05}));
 
 
         // Vision needs to be initialized afterwards to have access to pose_estimator
@@ -163,12 +163,7 @@ public class SubsystemManager {
                     AutoConstants.rotation_kI, 
                     AutoConstants.rotation_kD)),
             config,
-            () -> { 
-            if (true) return false;
-            var alliance = DriverStation.getAlliance();
-            if (alliance.isPresent()) return alliance.get() == DriverStation.Alliance.Red;
-            return false;
-            },
+            () -> RobotUtils.isRedAlliance(),
             m_drive // Reference to drive subsystem to set requirements; unfortunately required to instantiate
         );
 
@@ -222,10 +217,14 @@ public class SubsystemManager {
                 m_drive.setSwerveDrive(m_pathplanner_controller.generated_speeds);
                 break;
 
-            case PID_CONTROL:
+            case PID_ALIGNING:
+                m_drive.setSwerveDrive(m_swerve_pid_controller.calculate(true));
+
+            case PID_TRACKING:
                 if (tracked_target != null && tracked_target.marked < VisionConstants.DETECTION_LIMIT) {
+                    m_swerve_pid_controller.target_pose = tracked_target.getPose();
                     m_drive.setSwerveDrive(
-                        m_swerve_pid_controller.calculate(tracked_target.getPose()), 
+                        m_swerve_pid_controller.calculate(), 
                         false);
                     break;
                 } else {
@@ -235,11 +234,11 @@ public class SubsystemManager {
 
             default:
                 double stick_x = MathUtil.applyDeadband(-getStickX.get(), 0.1, 1)
-                    * SwerveConstants.DRIVE_SPEED;
+                     * SwerveConstants.DRIVE_SPEED;
                 double stick_y = MathUtil.applyDeadband(-getStickY.get(), 0.1, 1)
-                    * SwerveConstants.DRIVE_SPEED;
+                     * SwerveConstants.DRIVE_SPEED;
                 double stick_a = MathUtil.applyDeadband(-getStickA.get(), 0.1, 1)
-                    * SwerveConstants.TURN_SPEED;
+                     * SwerveConstants.TURN_SPEED;
 
                 double stick_el = getStickEl.get();
 
@@ -269,6 +268,7 @@ public class SubsystemManager {
         orchestra.clearInstruments();
 
         List<TalonFX> instruments = new ArrayList<TalonFX>();
+
         try {
             instruments.addAll(((DriveTrainRealIO) m_drive).getTalons());
         } catch (Exception e) {
@@ -280,25 +280,42 @@ public class SubsystemManager {
             e.printStackTrace();
         }
 
-        int t = 0;
         // Increment track number by 1 when adding; reset when max tracks reached
-        for (TalonFX talon : instruments) { 
-            orchestra.addInstrument(talon, t++ % tracks);
+        for (int i = 0; i < instruments.size(); i++) { 
+            orchestra.addInstrument(instruments.get(i), i % tracks);
         }
-
     }
     
     public class Commands {
 
+        public Command alignReef() {
+            return new FunctionalCommand(
+                () -> {
+                    m_robot_state.drive_state = DriveStates.PID_ALIGNING;
+                    m_swerve_pid_controller.target_pose = m_swerve_pid_controller.getNearestReefPose();
+                }, 
+                () -> {}, 
+                canceled -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                }, 
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING);
+        }
+
         public Command trackAlgae() {
             return new FunctionalCommand(
-                () -> {m_robot_state.drive_state = RobotState.DriveStates.PID_CONTROL;
-                    tracked_target = m_vision.m_object_detection.getClosestTarget();
-                    m_swerve_pid_controller.reset_speeds = true; // Reset pid speeds to real measured for acceleration calculations
+                () -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.PID_TRACKING;
+                    m_vision.m_object_detection.getClosestTarget().ifPresent(
+                        target -> tracked_target = target);
+                    // Reset pid speeds to real measured for acceleration calculations
+                    m_swerve_pid_controller.reset_speeds = true;
                 },
                 () -> {}, 
-                canceled -> {m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;}, 
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_CONTROL || tracked_target == null);
+                canceled -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    tracked_target = null;
+                }, 
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_TRACKING || tracked_target == null);
         }
 
         public Command pathCmdWrapper(Command path_cmd) {
@@ -311,7 +328,7 @@ public class SubsystemManager {
                     m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
                     m_pathplanner_controller.current_command = cmd_supplier.get();
                     m_pathplanner_controller.cmdInitialize();
-                }, 
+                },
                 m_pathplanner_controller::cmdExecute, 
                 (canceled) -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
@@ -330,7 +347,8 @@ public class SubsystemManager {
                 () -> {
                     setupOrchestra(tracks);
                     orchestra.loadMusic("Music/" + filename + ".chrp");
-                    orchestra.play();},
+                    orchestra.play();
+                },
                 () -> {},
                 canceled -> orchestra.stop(),
                 () -> !orchestra.isPlaying());

@@ -99,7 +99,6 @@ public abstract class DriveTrain extends SubsystemBase {
      */
 
     public void setSwerveDrive(ChassisSpeeds chassis_speeds, boolean discretize) {
-        SmartDashboard.putNumber("in_a", chassis_speeds.omegaRadiansPerSecond);
 
         if (discretize) chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
@@ -300,8 +299,6 @@ public abstract class DriveTrain extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("gyro", getGyroAngle().getDegrees());
-        SmartDashboard.putNumber("pose_angle", odom_pose.getRotation().getDegrees());
         for (SwerveModule module : modules) {
             module.update();
         }

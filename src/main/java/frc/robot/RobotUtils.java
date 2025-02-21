@@ -19,9 +19,21 @@ public final class RobotUtils {
         return MathUtil.clamp(x, -maxAbs, maxAbs);
     }
 
-    public static double allianceFlip(double x) {
-        if (DriverStation.getAlliance().isEmpty()) return x;
-        return DriverStation.getAlliance().get() == Alliance.Red ? FieldConstants.LENGTH - x : x;
+    public static boolean isRedAlliance() {
+        if (DriverStation.getAlliance().isEmpty()) return false;
+        return DriverStation.getAlliance().get() == Alliance.Red;
+    }
+
+    public static double allianceFlipX(double x) {
+        return isRedAlliance() ? FieldConstants.LENGTH - x : x;
+    }
+
+    public static double allianceFlipY(double y) {
+        return isRedAlliance() ? FieldConstants.WIDTH - y : y;
+    }
+
+    public static double allianceNegate(double x) {
+        return isRedAlliance() ? -x : x;
     }
 
 }

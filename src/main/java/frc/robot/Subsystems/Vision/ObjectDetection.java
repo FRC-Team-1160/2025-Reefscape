@@ -2,6 +2,7 @@ package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Supplier;
 
 import org.photonvision.PhotonCamera;
@@ -18,6 +19,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import frc.robot.Constants.VisionConstants;
+import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.Constants.VisionConstants.EstimationParameters;
 import frc.robot.Robot;
 import frc.robot.RobotUtils;
@@ -122,15 +124,15 @@ public class ObjectDetection {
      * Returns the closest target to the robot. Accounts for robot orientation.
      * @return The best target object.
      */
-    public VisionTarget getClosestTarget() {
+    public Optional<VisionTarget> getClosestTarget() {
         robot_pose = robot_pose_supplier.get();
-        double min_dist = VisionConstants.MAX_TRACKING_DISTANCE; // Only return if closest target is within range
-        VisionTarget closest = null;
-        for (VisionTarget t : tracked_targets) {
-            if (t.getDistance(robot_pose) < min_dist) {
+        double min_dist = AlgaeParams.MAX_TRACKING_DISTANCE; // Only return if closest target is within range
+        Optional<VisionTarget> closest = Optional.empty();
+        for (VisionTarget target : tracked_targets) {
+            if (target.getDistance(robot_pose) < min_dist) {
                 // Take into account both distance and rotational distance
-                min_dist = t.getDistance(robot_pose) + t.getAngle(robot_pose).getRotations();
-                closest = t;
+                min_dist = target.getDistance(robot_pose) + target.getAngle(robot_pose).getRotations();
+                closest = Optional.of(target);
             }
         }
         return closest;
@@ -138,7 +140,9 @@ public class ObjectDetection {
     
     /** @hidden */
     public void publishAdv() {
-        if (getClosestTarget() != null) adv_closest_pub.set(getClosestTarget().getPose());
+        getClosestTarget().ifPresent(
+            target -> adv_closest_pub.set(target.getPose()));
+
         Pose3d[] target_poses = new Pose3d[tracked_targets.size()];
         for (int i = 0; i < tracked_targets.size(); i++) {
             target_poses[i] = new Pose3d(tracked_targets.get(i).getPose());
@@ -161,13 +165,14 @@ public class ObjectDetection {
         }
         // Increase marked counter
         for (VisionTarget t : tracked_targets) {
-            if (Math.abs(t.getAngle(robot_pose).getRadians()) < VisionConstants.EXPECTED_RANGE / 2)  {
+            if (Math.abs(t.getAngle(robot_pose).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2)  {
                 t.marked++;
             } else {
                 t.marked = 0;
             }
         }
 
+        // DEPRECATED, REPLACE WITH getAllUnreadResults()
         List<PhotonTrackedTarget> targets = camera.getLatestResult().getTargets();
 
         for (PhotonTrackedTarget target : targets) {
@@ -185,7 +190,7 @@ public class ObjectDetection {
                 maxY = Math.max(maxY, corner.y);
             }
 
-            int tol = VisionConstants.EDGE_TOLERANCE;
+            int tol = AlgaeParams.EDGE_TOLERANCE;
 
             Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2);
             // Keep track of whether current target has been matched with existing object
@@ -194,14 +199,9 @@ public class ObjectDetection {
             // Check that object isnt cut off
             if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol 
                 || minY > tol && maxX < VisionConstants.SCREEN_HEIGHT - tol) {
-
+                // Attempt to match the current pose with each stored target
                 for (VisionTarget t : tracked_targets) {
-                    if (t.getDistance(target_pose) < VisionConstants.TARGET_WIDTH/2) {
-                        // If object matches position, update position of tracked object
-                        t.updatePosition(target_pose); 
-                        matched = true;
-                        break;
-                    }
+                    if (matched = t.match(target_pose, robot_pose, true)) break;
                 }
                 // If current target hasnt been matched, start tracking as new target
                 if (!matched) tracked_targets.add(new VisionTarget(target_pose)); 
@@ -215,13 +215,13 @@ public class ObjectDetection {
                         break;
                     }
                 }
-
             }
 
         }
         // If target was expected in fov and not seen, or has not been seen in too long, stop tracking it
         tracked_targets.removeIf(target -> 
-            target.marked >= VisionConstants.DETECTION_LIMIT || target.timer.get() > VisionConstants.TRACKING_TIMEOUT);
+            target.marked >= AlgaeParams.DETECTION_LIMIT 
+                || target.timer.get() > AlgaeParams.TRACKING_TIMEOUT);
         
         publishAdv();
 

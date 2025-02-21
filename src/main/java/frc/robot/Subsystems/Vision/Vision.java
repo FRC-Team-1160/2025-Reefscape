@@ -73,6 +73,7 @@ public class Vision {
                 new Rotation3d(LeftCamera.ROLL, LeftCamera.PITCH, LeftCamera.YAW)
             )
         );
+
         pose_estimator_left.setReferencePose(new Pose2d());
 
         pose_estimator_right = new PhotonPoseEstimator(
@@ -82,6 +83,7 @@ public class Vision {
                 new Rotation3d(RightCamera.ROLL, RightCamera.PITCH, RightCamera.YAW)
             )
         );
+
         pose_estimator_right.setReferencePose(new Pose2d());
 
     }
@@ -138,20 +140,22 @@ public class Vision {
 
         if (Robot.isSimulation()) return;
 
-        List<Pose2d> vision_poses = new ArrayList<>();
+        List<Pose2d> vision_poses = new ArrayList<Pose2d>();
         HashSet<Integer> used_ids = new HashSet<Integer>();
 
         readPhotonResults(camera_left, pose_estimator_left, pose_cache_left).ifPresent(
             result -> {
                 vision_poses.add(result.pose);
                 used_ids.addAll(result.ids);
-            });
+            }
+        );
 
         readPhotonResults(camera_right, pose_estimator_right, pose_cache_right).ifPresent(
             result -> {
                 vision_poses.add(result.pose);
                 used_ids.addAll(result.ids);
-            });
+            }
+        );
 
         adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
     }

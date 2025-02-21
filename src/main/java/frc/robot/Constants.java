@@ -94,18 +94,25 @@ public final class Constants {
         public static final int SCREEN_HEIGHT = 480;
         /**Horizontal FOV of the camera in radians. */
         public final static double CAMERA_X_FOV = Units.degreesToRadians(70);
-        /**Range in which tracked targets are marked for deletion if not seen.*/
-        public final static double EXPECTED_RANGE = Units.degreesToRadians(40);
-        /**Algae width in meters. */
-        public final static double TARGET_WIDTH = Units.inchesToMeters(16);
-        /**Range in pixels for which bounding boxes are considered cut off*/
-        public final static int EDGE_TOLERANCE = 5;
-        /**The maximum range for following targets */
-        public final static double MAX_TRACKING_DISTANCE = 4.0;
-        /**Time until targets are no longer tracked after not being seen */
-        public final static double TRACKING_TIMEOUT = 15.0;
-        /**Number of undetected frames before target is no longer tracked. */
-        public final static int DETECTION_LIMIT = 3;
+
+        public class AlgaeParams {
+            /** Range in which tracked targets are marked for deletion if not seen.*/
+            public final static double EXPECTED_RANGE = Units.degreesToRadians(40);
+            /** Algae width in meters. */
+            public final static double TARGET_WIDTH = Units.inchesToMeters(16);
+            /** Range in pixels for which bounding boxes are considered cut off*/
+            public final static int EDGE_TOLERANCE = 5;
+            /** The maximum range for following targets */
+            public final static double MAX_TRACKING_DISTANCE = 4.0;
+            /** Time until targets are no longer tracked after not being seen */
+            public final static double TRACKING_TIMEOUT = 15.0;
+            /** Number of undetected frames before target is no longer tracked. */
+            public final static int DETECTION_LIMIT = 3;
+            /** Allowed angular error to match targets as the same (in radians). */
+            public final static double ANGULAR_TOLERANCE = 0.3;
+            /** Allowed PROPORTIONAL distance error to match targets as the same. */
+            public final static double DISTANCE_TOLERANCE = 0.2;
+        }
         
         public static class CameraTransforms {
             public static class LeftCamera {
@@ -283,14 +290,26 @@ public final class Constants {
 
     public static class FieldConstants {
 
-        public static final double WIDTH = 8.05;
-        public static final double LENGTH = 17.55;
+        public static final double WIDTH = Units.inchesToMeters(317);
+        public static final double LENGTH = Units.inchesToMeters(690.875);
 
         public static class Reef {
-            public static final double INNER_RADIUS = 1.66 / 2;
-            public static final double CENTER_X = Units.feetToMeters(12) + INNER_RADIUS;
+            public static final double INNER_RADIUS = Units.inchesToMeters(65.5) / 2;
+            public static final double CENTER_X = RobotUtils.allianceFlipX(Units.feetToMeters(12) + INNER_RADIUS);
             public static final double CENTER_Y = FieldConstants.WIDTH / 2;
             public static final int NUM_SIDES = 6;
+        }
+
+        public static class CoralStation {
+            public static final double CENTER_X = RobotUtils.allianceFlipX(Units.inchesToMeters(33.51));
+            public static final double CENTER_Y = Units.inchesToMeters(25.8);
+            public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Units.degreesToRadians(54));
+        }
+
+        public static class AlgaeProcessor {
+            public static final double CENTER_X = RobotUtils.allianceFlipX(Units.inchesToMeters(235.73));
+            public static final double CENTER_Y = RobotUtils.allianceFlipY(0);
+            public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Math.PI / 2);
         }
 
         public static class AprilTags {
@@ -307,16 +326,6 @@ public final class Constants {
         public static final double MAX_ACCEL = 3.0;
         public static final double MAX_ANG_SPEED = 4.0;
         public static final double MAX_ANG_ACCEL = 6.0;
-
-        public static class ReefPaths {
-            public static final double START_DISTANCE = 0.7;
-            public static final double END_DISTANCE = 0.2;
-
-            public static final double H_OFFSET = 0;
-            
-            public static final double IDEAL_START_SPEED = 1.2;
-            public static final double MAX_ACCEL = 2;
-        }
     }
 
 }

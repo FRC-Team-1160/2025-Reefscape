@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
+import frc.robot.Constants.VisionConstants.AlgaeParams;
 
 public class VisionTarget {
 
@@ -12,12 +13,12 @@ public class VisionTarget {
     public int marked;
 
     /** Creates a new Target. */
-    public VisionTarget(Pose2d position){
+    public VisionTarget(Pose2d position) {
         this(position.getTranslation());
     }
 
     /** Creates a new Target. */
-    public VisionTarget(Translation2d position){
+    public VisionTarget(Translation2d position) {
         this.position = position;
         timer = new Timer();
         timer.start();
@@ -47,7 +48,7 @@ public class VisionTarget {
      * @return The calculated distance in meters.
      */
     public double getDistance(Translation2d other_pose) {
-        return position.minus(other_pose).getNorm();
+        return position.getDistance(other_pose);
     }
 
     /**
@@ -84,5 +85,30 @@ public class VisionTarget {
     public void resetTimer() {
         timer.restart();
         marked = 0;
+    }
+
+    /**
+     * Returns whether the observed target matches this target's position. Unmarks this target if so.
+     * @param observed_pose The observed target pose.
+     * @param robot_pose The robot's current pose.
+     * @param update_pose Whether or not to update the position of the target with this observation if matched.
+     * @return Whether or not the observed target matches this target.
+     */
+    public boolean match(Pose2d observed_pose, Pose2d robot_pose, boolean update_pose) {
+        Translation2d robot_pos = robot_pose.getTranslation();
+        Translation2d observed_pos = observed_pose.getTranslation();
+        // Estimate angular error
+        double ang_diff = observed_pos.minus(robot_pos).getAngle()
+            .minus(position.minus(robot_pos).getAngle()).getRadians();
+        // Estimate distance error, and take the ratio of error to (supposed) actual distance, similar to a percent error
+        double dist_diff_ratio = (observed_pos.getDistance(robot_pos) - getDistance(robot_pos)) / getDistance(observed_pos);
+
+        if (Math.abs(ang_diff) < AlgaeParams.ANGULAR_TOLERANCE 
+            && Math.abs(dist_diff_ratio) < AlgaeParams.DISTANCE_TOLERANCE) {
+            resetTimer();
+            if (update_pose) updatePosition(observed_pose);
+            return true;
+        }
+        return false;
     }
 }
