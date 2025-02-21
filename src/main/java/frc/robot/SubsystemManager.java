@@ -299,9 +299,11 @@ public class SubsystemManager {
             return new FunctionalCommand(
                 () -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
-                    m_swerve_pid_controller.target_pose = m_swerve_pid_controller.getNearestReefPose();
                     m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.target_distance = 0.2;
+                    m_swerve_pid_controller.configure(
+                        m_swerve_pid_controller.getNearestReefPose(),
+                        0.2,
+                        Rotation2d.kZero);
                     m_vision.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 }, 
                 () -> {}, 
@@ -316,10 +318,11 @@ public class SubsystemManager {
             return new FunctionalCommand(
                 () -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
-                    m_swerve_pid_controller.target_pose = m_swerve_pid_controller.getNearestSourcePose();
                     m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.target_distance = 0;
-                    m_swerve_pid_controller.rotation_offset = Rotation2d.kPi;
+                    m_swerve_pid_controller.configure(
+                        m_swerve_pid_controller.getNearestSourcePose(), 
+                        0.2, 
+                        Rotation2d.kPi);
                 },
                 () -> {},
                 canceled -> {
@@ -338,7 +341,7 @@ public class SubsystemManager {
                         target -> tracked_target = target);
                     // Reset pid speeds to real measured for acceleration calculations
                     m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.target_distance = 0.8;
+                    m_swerve_pid_controller.configure(null, 0.8, Rotation2d.kZero);
                 },
                 () -> {}, 
                 canceled -> {

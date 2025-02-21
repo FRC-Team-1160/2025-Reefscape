@@ -47,6 +47,9 @@ public class RobotContainer {
         
         new JoystickButton(second_stick, 3)
             .whileTrue(m_subsystem_manager.commands.alignReef());
+        
+        new JoystickButton(second_stick, 4)
+            .whileTrue(m_subsystem_manager.commands.alignSource());
 
         new JoystickButton(main_stick, 7)
             .toggleOnFalse(m_subsystem_manager.commands.playMusic("chords"));

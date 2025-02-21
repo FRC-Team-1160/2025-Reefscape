@@ -178,7 +178,7 @@ public class Vision {
      * @param mode The mode for the two cameras.
      */
     public void setCameraPipelines(CameraMode mode) {
-        if (mode == m_camera_mode) return;
+        if (mode == m_camera_mode || Robot.isSimulation()) return;
         // Don't reset if already on this pipeline.
         if (camera_left.getPipelineIndex() != mode.left) camera_left.setPipelineIndex(mode.left);
         if (camera_right.getPipelineIndex() != mode.right) camera_right.setPipelineIndex(mode.right);

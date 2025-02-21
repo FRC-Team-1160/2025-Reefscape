@@ -93,18 +93,19 @@ public class SwervePIDController {
         }
 
         FieldPositions.source = new Pose2d[] {
+
             // right source
             new Pose2d(
                 CoralStation.CENTER_X,
                 CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
-            ),
+            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kZero)),
             // left source
             new Pose2d(
                 CoralStation.CENTER_X,
                 FieldConstants.WIDTH - CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(-CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
-            )
+            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kZero))
         };
 
         FieldPositions.processor = new Pose2d(
@@ -131,16 +132,17 @@ public class SwervePIDController {
     }
 
     public Pose2d getNearestReefPose() {
-        SmartDashboard.putNumber("reefclosest", getNearestReefFace());
         return FieldPositions.reef[getNearestReefFace()];
     }
 
     public Pose2d getNearestSourcePose() {
-        if (robot_pose_supplier.get().getY() >= 0 && robot_pose_supplier.get().getY() <= Constants.FieldConstants.WIDTH / 2){
-            return FieldPositions.source[0];
-        }else{
-            return FieldPositions.source[1];
-        }
+        return FieldPositions.source[robot_pose_supplier.get().getY() < FieldConstants.WIDTH / 2 ? 0 : 1];
+    }
+
+    public void configure(Pose2d target_pose, Double target_distance, Rotation2d rotation_offset) {
+        if (target_pose != null) this.target_pose = target_pose;
+        if (target_distance != null) this.target_distance = target_distance;
+        if (rotation_offset != null) this.rotation_offset = rotation_offset;
     }
 
     /**
@@ -184,7 +186,7 @@ public class SwervePIDController {
      * @return The calculated chassis speeds.
      */
     public ChassisSpeeds calculate() {
-        return calculate(Rotation2d.kZero, false);
+        return calculate(false);
     }
 
     /**
@@ -193,19 +195,7 @@ public class SwervePIDController {
      * @return The calculated chassis speeds.
      */
     public ChassisSpeeds calculate(boolean useTargetAngle) {
-        if (useTargetAngle) return calculate(Rotation2d.kZero, true);
-        else return calculate();
-    }
-
-    /**
-     * Calculate the chassis speeds to position PID to the target pose. Accepts a modifier to be applied to the angle.
-     * @param angleModifier A function callback to modify the target angle, which points towards the target by default.
-     * @return The calculated chassis speeds.
-     */
-    public ChassisSpeeds calculate(Rotation2d rotationOffset, boolean useTargetAngle) {
         Pose2d robot_pose = robot_pose_supplier.get();
-
-        this.rotation_offset = rotationOffset;
 
         // Instantiate goal pose at the target pointing in our desired goal-to-target angle
         Pose2d goal_pose = new Pose2d(
@@ -229,7 +219,7 @@ public class SwervePIDController {
                     Tracking.MAX_ALIGN_SEPARATION))),
                 0,
                 // Apply the rotational offset
-                rotationOffset
+                rotation_offset
             )
         );
 
