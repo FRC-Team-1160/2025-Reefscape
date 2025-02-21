@@ -4,6 +4,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 
 public class VisionTarget {
@@ -96,8 +97,13 @@ public class VisionTarget {
     public boolean inDistanceTolerance(Pose2d observed_pose, Pose2d robot_pose) {
         Translation2d observed_pos = observed_pose.getTranslation();
         Translation2d robot_pos = robot_pose.getTranslation();
-        return Math.abs((observed_pos.getDistance(robot_pos)
-             - getDistance(robot_pos)) / getDistance(observed_pos)) <= AlgaeParams.DISTANCE_TOLERANCE;
+        double proportional_error = Math.abs((observed_pos.getDistance(robot_pos)
+        - getDistance(robot_pos)) / getDistance(observed_pos));
+        return Math.abs(proportional_error - 1) <= AlgaeParams.DISTANCE_TOLERANCE;
+    }
+
+    public boolean inPositionTolerance(Pose2d observed_pose) {
+        return observed_pose.getTranslation().minus(position).getNorm() < 1;
     }
 
     /**
@@ -108,8 +114,9 @@ public class VisionTarget {
      * @return Whether or not the observed target matches this target.
      */
     public boolean match(Pose2d observed_pose, Pose2d robot_pose, boolean update_pose) {
-        // Check if the given pose has a close enough angle and distance     
-        if (inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose)) {
+        // Check if the given pose has a close enough angle and distance
+        if (inPositionTolerance(observed_pose) || (
+            inAngularTolerance(observed_pose, robot_pose) && inDistanceTolerance(observed_pose, robot_pose))) {
             resetTimer();
             if (update_pose) updatePosition(observed_pose);
             return true;

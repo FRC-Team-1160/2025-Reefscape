@@ -70,7 +70,7 @@ public class ObjectDetection {
     /** Supplier for the robot pose. */
     Supplier<Pose2d> robot_pose_supplier;
     /** AdvantageScope publisher. */
-    StructPublisher<Pose2d> adv_closest_pub;
+    StructPublisher<Pose3d> adv_closest_pub;
     /** AdvantageScope publisher. */
     StructArrayPublisher<Pose3d> adv_tracked_pub;
     /** List of targets that are being tracked. */
@@ -81,7 +81,7 @@ public class ObjectDetection {
     static {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
     }
-    
+
     Mat camera_instrinsics_mat, dist_coeffs_mat;
 
     /** Creates a new ObjectDetection. */
@@ -94,7 +94,7 @@ public class ObjectDetection {
 
         NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
 
-        adv_closest_pub = adv_vision.getStructTopic("Closest", Pose2d.struct).publish();
+        adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
         adv_tracked_pub = adv_vision.getStructArrayTopic("Tracked", Pose3d.struct).publish();
 
         this.robot_pose_supplier = robot_pose_supplier;
@@ -212,7 +212,7 @@ public class ObjectDetection {
     /** @hidden */
     public void publishAdv() {
         getClosestTarget().ifPresent(
-            target -> adv_closest_pub.set(target.getPose()));
+            target -> adv_closest_pub.set(new Pose3d(target.getPose())));
 
         Pose3d[] target_poses = new Pose3d[tracked_targets.size()];
         for (int i = 0; i < tracked_targets.size(); i++) {
@@ -225,7 +225,7 @@ public class ObjectDetection {
 
         List<PhotonTrackedTarget> targets = camera.getLatestResult().getTargets();
         // Make a temporary list to keep track of which targets have been matched
-        List<VisionTarget> temp_tracked_targets = tracked_targets;
+        List<VisionTarget> temp_tracked_targets = new ArrayList<VisionTarget>(tracked_targets);
 
         // calculate poses for each target
         for (PhotonTrackedTarget target : targets) {
@@ -270,6 +270,7 @@ public class ObjectDetection {
             Pose2d target_pose = getTargetPose(maxX - minX, maxY - minY, (int)(maxX + minX)/2, camera_transform);
             // Keep track of whether current target has been matched with existing object
             boolean matched = false; 
+            System.out.println(tracked_targets.size());
 
             // Check that object isnt cut off
             if (minX > tol && maxX < VisionConstants.SCREEN_WIDTH - tol 
@@ -279,11 +280,13 @@ public class ObjectDetection {
                     if (matched = t.match(target_pose, robot_pose, true)) {
                         // Remove targets from the temporary list if they have been matched
                         temp_tracked_targets.remove(t);
+                        System.out.println("matched");
                         break;
                     }
                 }
                 // If current target hasnt been matched, start tracking as new target
-                if (!matched) tracked_targets.add(new VisionTarget(target_pose)); 
+                if (!matched) tracked_targets.add(new VisionTarget(target_pose));
+                if (!matched) System.out.println("unmatched");
 
             } else {
                 // If target bounding box is cut off at camera edges
