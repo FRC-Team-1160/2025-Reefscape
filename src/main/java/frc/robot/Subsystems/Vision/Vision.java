@@ -54,6 +54,7 @@ public class Vision {
     // apriltags sightline stuff
     HashMap<Integer, Pose3d>  apriltags_map;
     List<Pose3d> apriltag_poses;
+    StructArrayPublisher<Pose3d> apriltags_array_pub;
 
     // Limelight stuff
     int count;
@@ -76,6 +77,7 @@ public class Vision {
         NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
         adv_poses_pub = adv_vision.getStructArrayTopic("Poses", Pose2d.struct).publish();
         adv_tags_pub = adv_vision.getStructArrayTopic("Used Tags", Pose3d.struct).publish();
+        apriltags_array_pub = adv_vision.getStructArrayTopic("apriltags", Pose3d.struct).publish();
 
         camera_left = new PhotonCamera("OV9782");
         camera_right = new PhotonCamera("OV9281");
@@ -217,5 +219,10 @@ public class Vision {
         }
 
         adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
+        
+        // publish aprlitag poses
+        if (apriltag_poses != null){
+            apriltags_array_pub.set((new HashSet<Pose3d>(apriltag_poses)).toArray(new Pose3d[0]));
+        }
     }
 }
