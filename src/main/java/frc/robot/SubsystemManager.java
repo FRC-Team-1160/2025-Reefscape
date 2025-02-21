@@ -25,6 +25,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
@@ -218,7 +219,7 @@ public class SubsystemManager {
 
             case PID_ALIGNING:
                 m_drive.setSwerveDrive(m_swerve_pid_controller.calculate(true));
-
+                break;
             case PID_TRACKING:
                 if (tracked_target != null && tracked_target.timeout < AlgaeParams.DETECTION_LIMIT) {
                     m_swerve_pid_controller.target_pose = tracked_target.getPose();
@@ -292,6 +293,8 @@ public class SubsystemManager {
                 () -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
                     m_swerve_pid_controller.target_pose = m_swerve_pid_controller.getNearestReefPose();
+                    m_swerve_pid_controller.reset_speeds = true;
+                    m_swerve_pid_controller.target_distance = 0.2;
                 }, 
                 () -> {}, 
                 canceled -> {
@@ -308,6 +311,7 @@ public class SubsystemManager {
                         target -> tracked_target = target);
                     // Reset pid speeds to real measured for acceleration calculations
                     m_swerve_pid_controller.reset_speeds = true;
+                    m_swerve_pid_controller.target_distance = 0.8;
                 },
                 () -> {}, 
                 canceled -> {

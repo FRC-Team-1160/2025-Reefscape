@@ -146,7 +146,7 @@ public final class Constants {
             }
         }
 
-        public static class EstimationParameters {
+        public static class EstimationParams {
             public static final double a = 261.3;
             public static final double b = -0.044;
         }
@@ -179,18 +179,18 @@ public final class Constants {
         public static final double MAX_STEER_SPEED = 2;
 
         public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 1.0 : 3.0;
-        public static final double TURN_SPEED = 1.0;
+        public static final double TURN_SPEED = 2.0;
 
         public static class Tracking {
             public static final double MAX_SPEED = 2.0;
-            public static final double MAX_ACCEL = 3.0;
+            public static final double MAX_ACCEL = 4.0;
             public static final double MAX_ANG_SPEED = 4.0;
             public static final double MAX_ANG_ACCEL = 6.0;
 
             public static final double DEFAULT_DISTANCE = 0.5;
 
             public static final double MAX_ALIGN_SEPARATION = 2.0;
-            public static final double ALIGN_SEPARATION_TOLERANCE = 0.1;
+            public static final double ALIGN_SEPARATION_TOLERANCE = 0.2;
 
             public static final double ANGLE_TOLERANCE = Units.degreesToRadians(5);
             public static final double DISTANCE_TOLERANCE = 0.1;

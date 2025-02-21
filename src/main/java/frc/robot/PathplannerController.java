@@ -57,7 +57,6 @@ public class PathplannerController {
      */
     public void cmdExecute() {
         current_command.execute();
-        
     }
 
     /**

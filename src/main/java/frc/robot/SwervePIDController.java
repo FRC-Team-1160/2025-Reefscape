@@ -11,6 +11,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
@@ -87,7 +88,7 @@ public class SwervePIDController {
                         Rotation2d.kPi
                     )
                 );
-            angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
+            angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
         FieldPositions.source = new Pose2d[] {
@@ -127,6 +128,7 @@ public class SwervePIDController {
     }
 
     public Pose2d getNearestReefPose() {
+        SmartDashboard.putNumber("reefclosest", getNearestReefFace());
         return FieldPositions.reef[getNearestReefFace()];
     }
 
@@ -199,17 +201,17 @@ public class SwervePIDController {
                 target_pose.getTranslation().minus(robot_pose.getTranslation()).getAngle());
 
         // Update the angular PID controller with new measurements and calculate desired angular speed
-        double desired_ang_speed = ang_pid_controller.atSetpoint() ? 0 :
-            ang_pid_controller.calculate(
-                robot_pose.getRotation().getRadians(), 
-                goal_pose.getRotation().plus(rotationOffset).getRadians());
+        double desired_ang_speed = ang_pid_controller.calculate(
+            robot_pose.getRotation().getRadians(), 
+            goal_pose.getRotation().plus(rotationOffset).getRadians());
 
         /* Shift the pose backwards by the target distance using a -x transform
            Add extra space for turning to goal distance if robot is not pointing towards target,
            with a small amount of tolerance */
         goal_pose = goal_pose.transformBy(new Transform2d(
                 -(target_distance + Math.abs(MathUtil.applyDeadband(
-                    ang_pid_controller.getError(),
+                    // Multiply by two because the maximum error, facing backwards, is 0.5 rotations
+                    Units.radiansToRotations(ang_pid_controller.getError()) * 2,
                     Tracking.ALIGN_SEPARATION_TOLERANCE,
                     Tracking.MAX_ALIGN_SEPARATION))),
                 0,
@@ -221,7 +223,8 @@ public class SwervePIDController {
         adv_goal_pose_pub.set(goal_pose);
 
         // Find goal to robot translation
-        Translation2d goal_off = robot_pose.getTranslation().minus(goal_pose.getTranslation());
+        Translation2d goal_off = robot_pose.getTranslation().minus(goal_pose.getTranslation())
+            .rotateBy(robot_pose.getRotation().unaryMinus());
 
         // Get PID forward speed and normalize
         goal_off = goal_off.times(dist_pid_controller.calculate(goal_off.getNorm(), 0) / goal_off.getNorm());
