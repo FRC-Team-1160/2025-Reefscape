@@ -225,6 +225,10 @@ public class SubsystemManager {
             case PID_TRACKING:
                 if (tracked_target != null && tracked_target.timeout < AlgaeParams.DETECTION_LIMIT) {
                     m_swerve_pid_controller.target_pose = tracked_target.getPose();
+
+                    if (tracked_target.getDistance(robot_pose) < 1.5)
+                        m_vision.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
+
                     m_drive.setSwerveDrive(
                         m_swerve_pid_controller.calculate(), 
                         false);
@@ -297,10 +301,12 @@ public class SubsystemManager {
                     m_swerve_pid_controller.target_pose = m_swerve_pid_controller.getNearestReefPose();
                     m_swerve_pid_controller.reset_speeds = true;
                     m_swerve_pid_controller.target_distance = 0.2;
+                    m_vision.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 }, 
                 () -> {}, 
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
                 }, 
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING);
         }
@@ -319,6 +325,7 @@ public class SubsystemManager {
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     tracked_target = null;
+                    m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
                 }, 
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_TRACKING || tracked_target == null);
         }
