@@ -24,7 +24,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.LimelightHelpers.RawFiducial;
@@ -115,8 +115,8 @@ public class Vision {
         // apriltag sightline stuff
         apriltags_map = new Pose3d[VisionConstants.APRILTAG_POSES.length + 1];
         apriltags_map[0] = null;
-        for(int i = 1; i <= VisionConstants.APRILTAG_POSES.length; i++) {
-            apriltags_map[i] = new Pose3d(
+        for(int i = 0; i < VisionConstants.APRILTAG_POSES.length; i++) {
+            apriltags_map[i + 1] = new Pose3d(
                 VisionConstants.APRILTAG_POSES[i][0],
                 VisionConstants.APRILTAG_POSES[i][1],
                 VisionConstants.APRILTAG_POSES[i][2],
@@ -180,6 +180,7 @@ public class Vision {
         // Run MegaTag 2; always use blue origin
         PoseEstimate mt2_estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
 
+        if (mt2_estimate == null) return Optional.empty();
         if (mt2_estimate.tagCount == 0) return Optional.empty();
         
         pose_cache_limelight.addPose(mt2_estimate.pose, robot_pose_supplier.get(), mt2_estimate.timestampSeconds);

@@ -111,7 +111,7 @@ public class SwervePIDController {
         FieldPositions.processor = new Pose2d(
             AlgaeProcessor.CENTER_X,
             AlgaeProcessor.CENTER_Y,
-            Rotation2d.fromRadians(AlgaeProcessor.ANGLE_RADIANS)
+            Rotation2d.fromRadians(AlgaeProcessor.ANGLE_RADIANS).plus(Rotation2d.kPi)
         );
     }
 
