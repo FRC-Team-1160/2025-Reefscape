@@ -20,10 +20,12 @@ import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -84,6 +86,7 @@ public class SubsystemManager {
     public VisionTarget tracked_target;
 
     StructPublisher<Pose2d> adv_pose_pub;
+    StructArrayPublisher<Pose3d> adv_components_pub;
 
     public Orchestra orchestra;
 
@@ -181,6 +184,7 @@ public class SubsystemManager {
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
         NetworkTable adv_swerve = inst.getTable("adv_swerve");
         adv_pose_pub = adv_swerve.getStructTopic("Pose", Pose2d.struct).publish();
+        adv_components_pub = adv_swerve.getStructArrayTopic("Component Poses", Pose3d.struct).publish();
     }
 
     /**
@@ -261,6 +265,12 @@ public class SubsystemManager {
 
     public void publishAdv() {
         adv_pose_pub.set(getPoseEstimate());
+        adv_components_pub.set(new Pose3d[] {
+            new Pose3d(),
+            new Pose3d(),
+            new Pose3d(),
+            new Pose3d()
+        });
     }
 
 
