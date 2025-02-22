@@ -1,5 +1,6 @@
 package frc.robot;
 
+import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -16,6 +17,8 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import frc.robot.Constants.FieldConstants.AlgaeProcessor;
 import frc.robot.Constants.FieldConstants.CoralStation;
 import frc.robot.Constants.FieldConstants.Reef;
@@ -24,6 +27,10 @@ import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants.Tracking;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Angle;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Distance;
+import frc.robot.SubsystemManager.RobotState.DriveStates;
+import frc.robot.Subsystems.Elevator.Elevator.TargetState;
+import frc.robot.Subsystems.Vision.Vision;
+import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
 public class SwervePIDController {
 
@@ -104,15 +111,15 @@ public class SwervePIDController {
             new Pose2d(
                 CoralStation.CENTER_X,
                 FieldConstants.WIDTH - CoralStation.CENTER_Y,
-                Rotation2d.fromRadians(-CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
-            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kZero))
+                Rotation2d.fromRadians(-CoralStation.ANGLE_RADIANS)
+            ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kPi))
         };
 
         FieldPositions.processor = new Pose2d(
             AlgaeProcessor.CENTER_X,
             AlgaeProcessor.CENTER_Y,
-            Rotation2d.fromRadians(AlgaeProcessor.ANGLE_RADIANS).plus(Rotation2d.kPi)
-        );
+            Rotation2d.fromRadians(AlgaeProcessor.ANGLE_RADIANS)
+        ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kPi));
     }
 
     /**

@@ -16,6 +16,7 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
+import edu.wpi.first.math.geometry.Rotation2d;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorConfigs;
 import frc.robot.Constants.ElevatorConstants.WristConfigs;
@@ -107,8 +108,8 @@ public class ElevatorRealIO extends Elevator {
         return ele_motor_left.getPosition().getValueAsDouble();
     }
 
-    public double getWristAngle() {
-        return wrist_motor.getPosition().getValueAsDouble();
+    public Rotation2d getWristAngle() {
+        return Rotation2d.fromRotations(wrist_motor.getPosition().getValueAsDouble());
     }
 
     public List<TalonFX> getTalons() {

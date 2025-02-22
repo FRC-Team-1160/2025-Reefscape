@@ -1,6 +1,9 @@
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Rotation;
+
 import java.io.IOException;
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -22,6 +25,8 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
@@ -34,14 +39,17 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
+import frc.robot.SubsystemManager.RobotState.ElevatorStates;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO;
 import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Elevator.ElevatorSimIO;
+import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
@@ -266,13 +274,16 @@ public class SubsystemManager {
     public void publishAdv() {
         adv_pose_pub.set(getPoseEstimate());
         adv_components_pub.set(new Pose3d[] {
-            new Pose3d(),
-            new Pose3d(),
-            new Pose3d(),
-            new Pose3d()
+            ComponentZeroPoses.ELEVATOR_STAGE.transformBy(
+                new Transform3d(0, 0, m_elevator.getElevatorHeight() / 2, new Rotation3d())),
+            ComponentZeroPoses.CARRIAGE.transformBy(
+                new Transform3d(0, 0, m_elevator.getElevatorHeight(), new Rotation3d())),
+            ComponentZeroPoses.ALGAE_INTAKE.transformBy(
+                new Transform3d(0, 0, m_elevator.getElevatorHeight(), 
+                    new Rotation3d(0, -m_elevator.getWristAngle().getRadians(), 0))),
+            ComponentZeroPoses.FUNNEL
         });
     }
-
 
     public void setupOrchestra() {
         setupOrchestra(Integer.MAX_VALUE);
@@ -306,59 +317,57 @@ public class SubsystemManager {
     public class Commands {
 
         public Command alignReef() {
-            return new FunctionalCommand(
-                () -> {
-                    m_robot_state.drive_state = DriveStates.PID_ALIGNING;
-                    m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.configure(
-                        m_swerve_pid_controller.getNearestReefPose(),
-                        0.2,
-                        Rotation2d.kZero);
-                    m_vision.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
-                }, 
-                () -> {}, 
-                canceled -> {
-                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
-                }, 
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING);
+            return getAlignCommand(
+                m_swerve_pid_controller.getNearestReefPose(),
+                0.2, 
+                TargetState.kL4);
         }
 
         public Command alignSource() {
-            return new FunctionalCommand(
-                () -> {
-                    m_robot_state.drive_state = DriveStates.PID_ALIGNING;
-                    m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.configure(
-                        m_swerve_pid_controller.getNearestSourcePose(), 
-                        0.2, 
-                        Rotation2d.kPi);
-                },
-                () -> {},
-                canceled -> {
-                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    m_swerve_pid_controller.rotation_offset = Rotation2d.kZero;
-                },
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING
-            );
+            return getAlignCommand(
+                m_swerve_pid_controller.getNearestSourcePose(), 
+                0.2, 
+                TargetState.kSource);
         }
 
         public Command alignProcessor() {
+            return getAlignCommand(
+                m_swerve_pid_controller.getProcessorPose(), 
+                0.5,
+                Rotation2d.kPi,
+                TargetState.kProcessor);
+        }
+
+        public Command getAlignCommand(Pose2d target_pose, double target_distance, TargetState elevator_state) {
+            return getAlignCommand(target_pose, target_distance, Rotation2d.kZero, elevator_state);
+        }
+
+        public Command getAlignCommand(
+            Pose2d target_pose, 
+            double target_distance, 
+            Rotation2d offset, 
+            TargetState elevator_state
+        ) {
             return new FunctionalCommand(
                 () -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
                     m_swerve_pid_controller.reset_speeds = true;
                     m_swerve_pid_controller.configure(
-                        m_swerve_pid_controller.getProcessorPose(), 
-                        -0.6, 
-                        Rotation2d.kPi);
+                        target_pose, 
+                        target_distance,
+                        Rotation2d.kZero);
+                    m_elevator.setState(elevator_state);
+                    m_vision.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 },
                 () -> {},
                 canceled -> {
-                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    m_swerve_pid_controller.rotation_offset = Rotation2d.kZero;
+                    if (canceled) {
+                        m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                        m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
+                    }
                 },
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
+                    || m_elevator.m_current_state != elevator_state
             );
         }
 
@@ -371,8 +380,9 @@ public class SubsystemManager {
                     // Reset pid speeds to real measured for acceleration calculations
                     m_swerve_pid_controller.reset_speeds = true;
                     m_swerve_pid_controller.configure(null, 0.8, Rotation2d.kZero);
+                    m_elevator.setState(TargetState.kIntake);
                 },
-                () -> {}, 
+                () -> {},
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     tracked_target = null;

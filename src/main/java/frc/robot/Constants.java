@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -15,11 +16,17 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public final class Constants {
 
-
     public static class RobotConstants {
         public static final double LOOP_TIME_SECONDS = 0.02;
 
         public static final double BASE_WIDTH = Units.inchesToMeters(29.5);
+
+        public static final class ComponentZeroPoses {
+            public static final Pose3d ELEVATOR_STAGE = new Pose3d(0.141, 0, 0.125, new Rotation3d());
+            public static final Pose3d CARRIAGE = new Pose3d(0.14, 0, 0.145, new Rotation3d());
+            public static final Pose3d ALGAE_INTAKE = new Pose3d(0.237, 0, 0.432, new Rotation3d());
+            public static final Pose3d FUNNEL = new Pose3d(0.09, 0, 0.6, new Rotation3d());
+        }
     }
 
     public static final class PortConstants {
@@ -273,7 +280,10 @@ public final class Constants {
         /**Max speed of elevator in meters per second. */
         public static final double MAX_SPEED = 0.05;
 
-        public static final double MAX_EXTENSION = 1;
+        public static final double MAX_EXTENSION = 1.6;
+
+        public static final double MIN_WRIST_ANGLE = Units.degreesToRadians(-20);
+        public static final double MAX_WRIST_ANGLE = Units.degreesToRadians(50);
 
         public static class ElevatorConfigs {
             public static final double kP = 0;
@@ -295,24 +305,27 @@ public final class Constants {
             public static final double kG = 0;
         }
 
+        // TUNE
         public static class ElevatorSetpoints {
-            public static final double kL1 = 0;
-            public static final double kL2 = 0;
-            public static final double kL3 = 0;
-            public static final double kL4 = 0;
-            public static final double kProcessor = 0;
-            public static final double kStow = 0;
-            public static final double kSource = 0;
+            public static final double kL1 = 0.5;
+            public static final double kL2 = 0.8;
+            public static final double kL3 = 1.1;
+            public static final double kL4 = 1.6;
+            public static final double kProcessor = 0.0;
+            public static final double kStow = 0.0;
+            public static final double kSource = 0.3;
+            public static final double kIntake = 0;
         }
-
+        // TUNE
         public static class WristSetpoints {
-            public static final double kL1 = 0;
-            public static final double kL2 = 0;
-            public static final double kL3 = 0;
-            public static final double kL4 = 0;
-            public static final double kProcessor = 0;
-            public static final double kStow = 0;
-            public static final double kSource = 0;
+            public static final double kL1 = Units.degreesToRadians(45);
+            public static final double kL2 = Units.degreesToRadians(45);
+            public static final double kL3 = Units.degreesToRadians(45);
+            public static final double kL4 = Units.degreesToRadians(45);
+            public static final double kProcessor = Units.degreesToRadians(0);
+            public static final double kStow = Units.degreesToRadians(50);
+            public static final double kSource = Units.degreesToRadians(45);
+            public static final double kIntake = Units.degreesToRadians(0);
         }
     }
 
