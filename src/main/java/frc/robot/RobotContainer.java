@@ -45,6 +45,9 @@ public class RobotContainer {
         new JoystickButton(main_stick, 3)
             .whileTrue(m_subsystem_manager.commands.trackAlgae());
         
+        new JoystickButton(second_stick, 2)
+            .whileTrue(m_subsystem_manager.commands.alignProcessor());
+
         new JoystickButton(second_stick, 3)
             .whileTrue(m_subsystem_manager.commands.alignReef());
         

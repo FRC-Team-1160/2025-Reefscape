@@ -333,6 +333,25 @@ public class SubsystemManager {
             );
         }
 
+        public Command alignProcessor() {
+            return new FunctionalCommand(
+                () -> {
+                    m_robot_state.drive_state = DriveStates.PID_ALIGNING;
+                    m_swerve_pid_controller.reset_speeds = true;
+                    m_swerve_pid_controller.configure(
+                        m_swerve_pid_controller.getProcessorPose(), 
+                        -0.6, 
+                        Rotation2d.kPi);
+                },
+                () -> {},
+                canceled -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    m_swerve_pid_controller.rotation_offset = Rotation2d.kZero;
+                },
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING
+            );
+        }
+
         public Command trackAlgae() {
             return new FunctionalCommand(
                 () -> {

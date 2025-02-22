@@ -135,6 +135,10 @@ public class SwervePIDController {
         return FieldPositions.reef[getNearestReefFace()];
     }
 
+    public Pose2d getProcessorPose(){
+        return FieldPositions.processor;
+    }
+
     public Pose2d getNearestSourcePose() {
         return FieldPositions.source[robot_pose_supplier.get().getY() < FieldConstants.WIDTH / 2 ? 0 : 1];
     }
