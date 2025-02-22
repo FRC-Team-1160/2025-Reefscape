@@ -4,6 +4,7 @@ import java.util.LinkedList;
 
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.numbers.N1;
@@ -97,11 +98,7 @@ public class VisionPoseCache {
      * @return The x, y, and angular standard deviations in meters and radians.
      */
     public Matrix<N3, N1> getStdevs() {
-        return new Matrix<>(Nat.N3(), Nat.N1(), new double[] {
-                calcStdev(0),
-                calcStdev(1),
-                calcStdev(2)
-            });
+        return VecBuilder.fill(calcStdev(0), calcStdev(1), calcStdev(2));
     }
 
     /**

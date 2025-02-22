@@ -1,13 +1,12 @@
 package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
-
-import java.util.HashMap;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
@@ -26,12 +25,11 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 
-import frc.robot.Constants;
 import frc.robot.LimelightHelpers;
-import frc.robot.LimelightHelpers.LimelightResults;
+import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.Robot;
-import frc.robot.RobotUtils;
+import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 
@@ -39,7 +37,7 @@ public class Vision {
 
     public ObjectDetection m_object_detection;
     // Convenience class for organizing readings from cameras
-    private record CameraResults(Pose2d pose, Set<Integer> ids) {}
+    private record CameraResults(Pose2d pose, Collection<Integer> ids) {}
 
     StructArrayPublisher<Pose2d> adv_poses_pub;
     StructArrayPublisher<Pose3d> adv_tags_pub;
@@ -51,17 +49,11 @@ public class Vision {
     SwerveDrivePoseEstimator main_pose_estimator;
     Supplier<Pose2d> robot_pose_supplier;
 
-    // apriltags sightline stuff
-    HashMap<Integer, Pose3d>  apriltags_map;
-    List<Pose3d> apriltag_poses;
-    StructArrayPublisher<Pose3d> apriltags_array_pub;
-
-    // Limelight stuff
-    int count;
-    double limelight_pose_timestamp;
-    Pose2d limelight_pose;
+    Pose3d[] apriltags_map;
 
     CameraMode m_camera_mode;
+
+    Pose2d robot_pose;
 
     public enum CameraMode {
         kDefault(0, 0),
@@ -85,13 +77,13 @@ public class Vision {
 
         pose_cache_left = new VisionPoseCache();
         pose_cache_right = new VisionPoseCache();
+        pose_cache_limelight = new VisionPoseCache();
 
         if (Robot.isSimulation()) return; // Exit if in simulation
 
         NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
         adv_poses_pub = adv_vision.getStructArrayTopic("Poses", Pose2d.struct).publish();
         adv_tags_pub = adv_vision.getStructArrayTopic("Used Tags", Pose3d.struct).publish();
-        apriltags_array_pub = adv_vision.getStructArrayTopic("apriltags", Pose3d.struct).publish();
 
         camera_left = new PhotonCamera("OV9782");
         camera_right = new PhotonCamera("OV9281");
@@ -118,11 +110,22 @@ public class Vision {
 
         pose_estimator_right.setReferencePose(new Pose2d());
 
+        LimelightHelpers.setPipelineIndex("", 0);
+
         // apriltag sightline stuff
-        apriltags_map = new HashMap<Integer, Pose3d>();
-        apriltag_poses = new ArrayList<Pose3d>();
-        for(double[] i: Constants.VisionConstants.tags_map){
-            apriltags_map.put((int)i[0], new Pose3d(i[1] * 0.0254, i[2] * 0.0254, i[3] * 0.0254, new Rotation3d(0, i[5], i[4])));
+        apriltags_map = new Pose3d[VisionConstants.APRILTAG_POSES.length + 1];
+        apriltags_map[0] = null;
+        for(int i = 1; i <= VisionConstants.APRILTAG_POSES.length; i++) {
+            apriltags_map[i] = new Pose3d(
+                VisionConstants.APRILTAG_POSES[i][0],
+                VisionConstants.APRILTAG_POSES[i][1],
+                VisionConstants.APRILTAG_POSES[i][2],
+                new Rotation3d(
+                    0,
+                    VisionConstants.APRILTAG_POSES[i][4],
+                    VisionConstants.APRILTAG_POSES[i][3]
+                )
+            );
         }
 
         m_camera_mode = CameraMode.kDefault;
@@ -135,7 +138,7 @@ public class Vision {
 
         Pose2d pose = null;
         // Using a set prevents repetition
-        Set<Integer> fiducials = new HashSet<Integer>();
+        ArrayList<Integer> fiducials = new ArrayList<Integer>();
         List<PhotonPipelineResult> photon_results = camera.getAllUnreadResults();
 
         // 2025: getAllUnreadResults() returns all estimations since the last check
@@ -149,10 +152,7 @@ public class Vision {
             pose = estimate.estimatedPose.toPose2d();
 
             // Cache pose for fluctuation calculations
-            cache.addPose(
-                pose,
-                robot_pose_supplier.get(), 
-                estimate.timestampSeconds);
+            cache.addPose(pose, robot_pose_supplier.get(), estimate.timestampSeconds);
 
             // Check if result has multiple tags; store ambiguity and read used apriltag IDs
             if (result.multitagResult.isPresent()) {
@@ -173,6 +173,31 @@ public class Vision {
         return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, fiducials));
     }
 
+    public Optional<CameraResults> readLimelightResults() {
+        // Limelight MegaTag2 uses the robot yaw
+        LimelightHelpers.SetRobotOrientation(
+            "", robot_pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+        // Run MegaTag 2; always use blue origin
+        PoseEstimate mt2_estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
+
+        if (mt2_estimate.tagCount == 0) return Optional.empty();
+        
+        pose_cache_limelight.addPose(mt2_estimate.pose, robot_pose_supplier.get(), mt2_estimate.timestampSeconds);
+
+        main_pose_estimator.addVisionMeasurement(
+            mt2_estimate.pose, 
+            mt2_estimate.timestampSeconds,
+            pose_cache_limelight.getWeightedStdevs());
+
+        ArrayList<Integer> ids = new ArrayList<Integer>();
+
+        for (RawFiducial tag : mt2_estimate.rawFiducials) {
+            ids.add(tag.id);
+        }
+
+        return Optional.of(new CameraResults(mt2_estimate.pose, ids));
+    }
+
     /**
      * Switch the pipelines of the two OV cameras.
      * @param mode The mode for the two cameras.
@@ -191,6 +216,7 @@ public class Vision {
 
     // Vision is marked as a non-subsystem to allow it to run before subsystem periodic methods
     public void update() {
+        robot_pose = robot_pose_supplier.get();
         // Object detection is still updated during simulation
         m_object_detection.update();
 
@@ -213,48 +239,21 @@ public class Vision {
             }
         );
 
-        // limelight stuff
-        // smart cropping:
-        LimelightResults limelightResult = LimelightHelpers.getLatestResults("");
-        if(limelightResult.valid){
-            // non-dynamic
-            LimelightHelpers.setPipelineIndex("", 1);
-            count = 0;
-        }
-        if(!limelightResult.valid && count >=25){
-            LimelightHelpers.setPipelineIndex("", 0);
-        }
-
-
-        if (limelightResult != null && limelightResult.valid){
-            limelight_pose_timestamp = limelightResult.timestamp_LIMELIGHT_publish;
-            if (RobotUtils.isRedAlliance()){
-                limelight_pose = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("").pose;
-                limelight_pose_timestamp = LimelightHelpers.getBotPoseEstimate_wpiRed_MegaTag2("").timestampSeconds;
-            } else {
-                limelight_pose = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("").pose;
-                limelight_pose_timestamp = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("").timestampSeconds;
+        readLimelightResults().ifPresent(
+            result -> {
+                vision_poses.add(result.pose);
+                used_ids.addAll(used_ids);
             }
-            pose_cache_limelight.addPose(limelight_pose, main_pose_estimator.getEstimatedPosition(), limelight_pose_timestamp);
+        );
 
-             RawFiducial[] fiducials = LimelightHelpers.getRawFiducials("");
-            // if (fiducials != null){
-            //     limelight_pose_stddev.times(fiducials[0].ambiguity);
-            // }
-            // store it in apriltag 
-            for (RawFiducial fudicial:fiducials){
-                apriltag_poses.add(apriltags_map.get(fudicial));
-            }
-        }
-        if ( pose_cache_limelight != null){
-            main_pose_estimator.addVisionMeasurement(limelight_pose, limelight_pose_timestamp, pose_cache_limelight.getStdevs());
+        Pose3d[] used_tag_poses = new Pose3d[used_ids.size()];
+
+        int i = 0;
+        for (int id : used_ids) {
+            used_tag_poses[i++] = apriltags_map[id];
         }
 
         adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
-        
-        // publish aprlitag poses
-        if (apriltag_poses != null){
-            apriltags_array_pub.set((new HashSet<Pose3d>(apriltag_poses)).toArray(new Pose3d[0]));
-        }
+        adv_tags_pub.set(used_tag_poses);        
     }
 }
