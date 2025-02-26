@@ -3,6 +3,8 @@ package frc.robot.Subsystems.Elevator;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
 import frc.robot.Constants.ElevatorConstants;
@@ -10,8 +12,6 @@ import frc.robot.Constants.ElevatorConstants.ElevatorSetpoints;
 import frc.robot.Constants.ElevatorConstants.WristSetpoints;
 
 abstract public class Elevator extends SubsystemBase {
-
-    public double ele_setpoint, wrist_setpoint, claw_speed, shooter_speed;
 
     public TargetState m_current_state;
 
@@ -21,10 +21,15 @@ abstract public class Elevator extends SubsystemBase {
         kProcessor(ElevatorSetpoints.kProcessor, WristSetpoints.kProcessor),
         kSource(ElevatorSetpoints.kSource, WristSetpoints.kSource),
         kIntake(ElevatorSetpoints.kIntake, WristSetpoints.kIntake),
+        kIntakePrepare(ElevatorSetpoints.kIntakePrepare, WristSetpoints.kIntakePrepare),
+        kBarge(ElevatorSetpoints.kBarge, WristSetpoints.kBarge),
         kL1(ElevatorSetpoints.kL1, WristSetpoints.kL1), 
         kL2(ElevatorSetpoints.kL2, WristSetpoints.kL2), 
         kL3(ElevatorSetpoints.kL3, WristSetpoints.kL3), 
-        kL4(ElevatorSetpoints.kL4, WristSetpoints.kL4);
+        kL4(ElevatorSetpoints.kL4, WristSetpoints.kL4),
+        kL2Algae(ElevatorSetpoints.kL2Algae, WristSetpoints.kL2Algae),
+        kL3Algae(ElevatorSetpoints.kL3Algae, WristSetpoints.kL3Algae);
+
 
         public final double elevator_setpoint, wrist_setpoint;
         private TargetState(double elevator_setpoint, double wrist_setpoint) {
@@ -34,8 +39,6 @@ abstract public class Elevator extends SubsystemBase {
     }
 
     public Elevator() {
-        claw_speed = 0;
-        shooter_speed = 0;
         m_current_state = TargetState.kStow;
     }
 
@@ -46,9 +49,6 @@ abstract public class Elevator extends SubsystemBase {
     public void setState(TargetState state) {
         SmartDashboard.putString("Elevator State", state.toString());
         m_current_state = state;
-        ele_setpoint = state.elevator_setpoint;
-        wrist_setpoint = state.wrist_setpoint;
-        if (Robot.isReal()) return;
         setElevatorSetpoint(state.elevator_setpoint);
         setWristSetpoint(state.wrist_setpoint);
     }
@@ -58,9 +58,7 @@ abstract public class Elevator extends SubsystemBase {
      * @param setpoint The setpoint in meters. 0 is the lowest elevator height.
      */
     public void setElevatorSetpoint(double setpoint) {
-        ele_setpoint = MathUtil.clamp(setpoint, 0, ElevatorConstants.MAX_EXTENSION);
-        SmartDashboard.putNumber("ele_setpoint", ele_setpoint);
-        setElePID(ele_setpoint);
+        runEleMotionMagic(MathUtil.clamp(setpoint, 0, ElevatorConstants.MAX_EXTENSION));
     }
 
     /**
@@ -68,36 +66,31 @@ abstract public class Elevator extends SubsystemBase {
      * @param setpoint The setpoint in meters. 0 is the lowest elevator height.
      */
     public void setWristSetpoint(double setpoint) {
-        wrist_setpoint = MathUtil.clamp(setpoint, ElevatorConstants.MIN_WRIST_ANGLE, ElevatorConstants.MAX_WRIST_ANGLE);
-        setWristPID(wrist_setpoint);
-    }
-
-    public void changeSetpoint(double setpoint) {
-        ele_setpoint += setpoint;
-        setElevatorSetpoint(ele_setpoint);
-    }
-
-    public void runShooter(double speed) {
-        shooter_speed = speed;
-        setShooterSpeed(speed);
+        runWristMotionMagic(MathUtil.clamp(
+                setpoint, 
+                ElevatorConstants.MIN_WRIST_ANGLE, 
+                ElevatorConstants.MAX_WRIST_ANGLE));
     }
 
     // VoltageOut() methods
     public abstract void runElevator(double speed);
     public abstract void runWrist(double speed);
     // PID set methods
-    protected abstract void setElePID(double setpoint);
-    protected abstract void setWristPID(double setpoint);
+    protected abstract void runEleMotionMagic(double setpoint);
+    protected abstract void runWristMotionMagic(double setpoint);
     // Spark set methods
-    protected abstract void setClawSpeed(double speed);
-    protected abstract void setShooterSpeed(double speed);
+    public abstract void runIntake(double speed);
+    public abstract void runShooter(double speed);
     // Getters
     public abstract double getElevatorHeight();
     public abstract Rotation2d getWristAngle();
 
+    public abstract Command intakeCmd();
+    public abstract Command intakeAlgaeCmd();
+
     @Override
     public void periodic() {
 
-    } 
+    }
 
 }

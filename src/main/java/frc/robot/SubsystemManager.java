@@ -21,6 +21,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Nat;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
@@ -51,6 +52,7 @@ import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Elevator.ElevatorSimIO;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
+import frc.robot.Subsystems.Funnel.FunnelRealIO;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.VisionTarget;
@@ -116,12 +118,13 @@ public class SubsystemManager {
                 }
             }
             m_elevator = new ElevatorRealIO();
-            for (TalonFX talon : ((ElevatorRealIO) m_elevator).getTalons()) {
-                if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
-                    m_elevator = new ElevatorSimIO();
-                    break;
-                }
-            }
+            // for (TalonFX talon : ((ElevatorRealIO) m_elevator).getTalons()) {
+            //     if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
+            //         m_elevator = new ElevatorSimIO();
+            //         break;
+            //     }
+            // }
+            m_funnel = new FunnelRealIO();
         } else {
             m_drive = new DriveTrainSimIO();
             m_elevator = new ElevatorSimIO();
@@ -133,8 +136,8 @@ public class SubsystemManager {
             m_drive.getGyroAngle(), 
             m_drive.getModulePositions(), 
             robot_pose, 
-            new Matrix<>(Nat.N3(), Nat.N1(), new double[] {0.02, 0.02, 0.02}), 
-            new Matrix<>(Nat.N3(), Nat.N1(), new double[] {0.05, 0.05, 0.05}));
+            VecBuilder.fill(0.02, 0.02, 0.02), 
+            VecBuilder.fill(0.05, 0.05, 0.05));
 
 
         // Vision needs to be initialized afterwards to have access to pose_estimator
@@ -381,6 +384,7 @@ public class SubsystemManager {
                     m_swerve_pid_controller.reset_speeds = true;
                     m_swerve_pid_controller.configure(null, 0.8, Rotation2d.kZero);
                     m_elevator.setState(TargetState.kIntake);
+                    m_vision.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
                 },
                 () -> {},
                 canceled -> {
@@ -388,7 +392,8 @@ public class SubsystemManager {
                     tracked_target = null;
                     m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
                 }, 
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_TRACKING || tracked_target == null);
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_TRACKING || tracked_target == null
+            );
         }
 
         public Command pathCmdWrapper(Command path_cmd) {

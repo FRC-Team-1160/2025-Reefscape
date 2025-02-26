@@ -56,9 +56,9 @@ public class Vision {
     Pose2d robot_pose;
 
     public enum CameraMode {
-        kDefault(0, 0),
-        kStereoAprilTag(1, 0),
-        kStereoAlgae(0, 1);
+        kDefault(1, 0),
+        kStereoAprilTag(0, 0),
+        kStereoAlgae(1, 1);
         
         public int left, right;
         private CameraMode(int left, int right) {
@@ -128,7 +128,7 @@ public class Vision {
             );
         }
 
-        m_camera_mode = CameraMode.kDefault;
+        setCameraPipelines(CameraMode.kDefault);
     }
 
     public Optional<CameraResults> readPhotonResults(
@@ -204,6 +204,7 @@ public class Vision {
      * @param mode The mode for the two cameras.
      */
     public void setCameraPipelines(CameraMode mode) {
+        SmartDashboard.putString("Camera Mode", mode.toString());
         if (mode == m_camera_mode || Robot.isSimulation()) return;
         // Don't reset if already on this pipeline.
         if (camera_left.getPipelineIndex() != mode.left) camera_left.setPipelineIndex(mode.left);

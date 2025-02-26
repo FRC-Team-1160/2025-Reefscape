@@ -21,8 +21,6 @@ public class PathplannerController {
 
     public PathConstraints PATH_CONSTRAINTS;
 
-    PathPlannerPath[] reef_paths;
-
     /** Creates a new PathplannerController. */
     public PathplannerController(Supplier<Pose2d> robot_pose_supplier) {
         this.robot_pose_supplier = robot_pose_supplier;

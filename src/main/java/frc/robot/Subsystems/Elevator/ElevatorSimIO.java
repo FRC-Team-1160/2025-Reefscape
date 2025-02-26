@@ -2,12 +2,14 @@ package frc.robot.Subsystems.Elevator;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.RobotConstants;
 
 public class ElevatorSimIO extends Elevator {
 
-    private double ele_pos, wrist_pos, ele_speed, wrist_speed, claw_speed, shooter_speed;
+    private double ele_pos, wrist_pos, ele_speed, wrist_speed, ele_setpoint, wrist_setpoint, claw_speed, shooter_speed;
 
     private boolean ele_pid, wrist_pid;
 
@@ -26,7 +28,7 @@ public class ElevatorSimIO extends Elevator {
         wrist_pid = false;
     }
 
-    protected void setElePID(double setpoint) {
+    protected void runEleMotionMagic(double setpoint) {
         ele_pid = true;
         if (Math.abs(ele_pos - setpoint) > 0.05) {
             ele_speed = 1.5 * (setpoint > ele_pos ? 1 : -1);
@@ -35,7 +37,7 @@ public class ElevatorSimIO extends Elevator {
         }
     }
 
-    protected void setWristPID(double setpoint) {
+    protected void runWristMotionMagic(double setpoint) {
         wrist_pid = true;
         if (Math.abs(wrist_pos - setpoint) > 0.05) {
             wrist_speed = (setpoint > wrist_pos) ? 1 : -1;
@@ -47,11 +49,11 @@ public class ElevatorSimIO extends Elevator {
         }
     }
 
-    protected void setClawSpeed(double speed) {
+    public void runIntake(double speed) {
         claw_speed = speed;
     }
 
-    protected void setShooterSpeed(double speed) {
+    public void runShooter(double speed) {
         shooter_speed = speed;
     }
 
@@ -61,6 +63,14 @@ public class ElevatorSimIO extends Elevator {
 
     public Rotation2d getWristAngle() {
         return Rotation2d.fromRadians(wrist_pos);
+    }
+
+    public Command intakeCmd() {
+        return Commands.none();
+    }
+
+    public Command intakeAlgaeCmd() {
+        return Commands.none();
     }
 
     @Override

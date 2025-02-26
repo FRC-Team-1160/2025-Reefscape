@@ -17,6 +17,7 @@ public class RobotContainer {
     private Joystick second_stick = new Joystick(IOConstants.COPILOT_PORT);
     private Joystick left_board = new Joystick(IOConstants.LEFT_BOARD_PORT);
     private Joystick right_board = new Joystick(IOConstants.RIGHT_BOARD_PORT);
+    private Joystick simp_stick = new Joystick(4);
 
     public final SubsystemManager m_subsystem_manager = new SubsystemManager(
         () -> main_stick.getRawAxis(1), // i think these should be swapped
@@ -42,24 +43,78 @@ public class RobotContainer {
                 () -> m_subsystem_manager.m_elevator.runShooter(0.5),
                 () -> m_subsystem_manager.m_elevator.runShooter(0)));
 
-        new JoystickButton(main_stick, 3)
+        new JoystickButton(simp_stick, 4)
             .whileTrue(m_subsystem_manager.commands.trackAlgae());
         
-        new JoystickButton(second_stick, 2)
-            .whileTrue(m_subsystem_manager.commands.alignProcessor());
+        // new JoystickButton(second_stick, 2)
+        //     .whileTrue(m_subsystem_manager.commands.alignProcessor());
 
-        new JoystickButton(second_stick, 3)
+        new JoystickButton(simp_stick, 3)
             .whileTrue(m_subsystem_manager.commands.alignReef());
         
-        new JoystickButton(second_stick, 4)
-            .whileTrue(m_subsystem_manager.commands.alignSource());
+        new JoystickButton(simp_stick, 1)
+            .onTrue(m_subsystem_manager.m_elevator.intakeAlgaeCmd());
 
-        new JoystickButton(main_stick, 7)
-            .toggleOnFalse(m_subsystem_manager.commands.playMusic("chords"));
+        new JoystickButton(simp_stick, 5)
+            .whileTrue(new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runIntake(-0.5), 
+                () -> m_subsystem_manager.m_elevator.runIntake(0)));
 
-        new JoystickButton(main_stick, 6)
-            .toggleOnFalse(m_subsystem_manager.commands.playMusic("megalo"));
+        new JoystickButton(simp_stick, 6)
+        .whileTrue(new StartEndCommand(
+            () -> m_subsystem_manager.m_elevator.runIntake(0.7), 
+            () -> m_subsystem_manager.m_elevator.runIntake(0)));
+        
+        // new JoystickButton(second_stick, 4)
+        //     .whileTrue(m_subsystem_manager.commands.alignSource());
+        
+        new JoystickButton(main_stick, 6).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runShooter(-0.25), 
+                () -> m_subsystem_manager.m_elevator.runShooter(0))
+        );
 
+        new JoystickButton(main_stick, 7).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runShooter(0.25), 
+                () -> m_subsystem_manager.m_elevator.runShooter(0))
+        );
+
+        new JoystickButton(main_stick, 10).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runIntake(0.5), 
+                () -> m_subsystem_manager.m_elevator.runIntake(0))
+        );
+
+        new JoystickButton(main_stick, 11).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runIntake(-0.5), 
+                () -> m_subsystem_manager.m_elevator.runIntake(0))
+        );
+
+        new JoystickButton(second_stick, 6).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runElevator(6), 
+                () -> m_subsystem_manager.m_elevator.runElevator(0))
+        );
+
+        new JoystickButton(second_stick, 7).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runElevator(-6), 
+                () -> m_subsystem_manager.m_elevator.runElevator(0))
+        );
+
+        new JoystickButton(second_stick, 11).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runWrist(1.5), 
+                () -> m_subsystem_manager.m_elevator.runWrist(0))
+        );
+
+        new JoystickButton(second_stick, 10).whileTrue(
+            new StartEndCommand(
+                () -> m_subsystem_manager.m_elevator.runWrist(-1.5), 
+                () -> m_subsystem_manager.m_elevator.runWrist(0))
+        );
     }
 
 

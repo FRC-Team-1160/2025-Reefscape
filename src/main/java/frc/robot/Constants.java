@@ -46,22 +46,21 @@ public final class Constants {
         public static final int BACK_LEFT_CODER = 5;
         public static final int BACK_RIGHT_CODER = 7;
 
-        public static final int ELEVATOR_MOTOR_LEFT = 9;
-        public static final int ELEVATOR_MOTOR_RIGHT = 10;
+        // public static final int ELEVATOR_MOTOR_LEFT = 9;
+        public static final int ELEVATOR_MOTOR = 17;
 
-        public static final int WRIST_MOTOR = 11;
+        public static final int WRIST_MOTOR = 14;
 
         public static final int CLIMBER_MOTOR_LEFT = 12;
         public static final int CLIMBER_MOTOR_RIGHT = 13;
 
         // Krakens get CAN ID priority because theyre simply better
-        public static final int SHOOTER_MOTOR = 14;
+        public static final int SHOOTER_MOTOR = 30;
 
-        public static final int CLAW_MOTOR_LEFT = 15;
-        public static final int CLAW_MOTOR_RIGHT = 16;
+        public static final int INTAKE_MOTOR = 27;
 
-        public static final int SERVO_LEFT = 1;
-        public static final int SERVO_RIGHT = 2;
+        public static final int SERVO_LEFT = 0;
+        public static final int SERVO_RIGHT = 1;
 
         public static final int BREAK_BEAM = 3;
     }
@@ -224,7 +223,7 @@ public final class Constants {
         public static final double MAX_STEER_SPEED = 2;
 
         public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 1.0 : 3.0;
-        public static final double TURN_SPEED = 2.0;
+        public static final double TURN_SPEED = 1.0;
 
         public static class Tracking {
             public static final double MAX_SPEED = 2.0;
@@ -255,10 +254,10 @@ public final class Constants {
         }
 
         public static class DriveMotorConfigs {
-            public static final double kP = 0.3;
+            public static final double kP = 0.1;
             public static final double kI = 0;
             public static final double kD = 0;
-            public static final double kS = 0;
+            public static final double kS = 0.13;
             public static final double kV = 0.5; 
             public static final double kA = 0;
             public static final double kG = 0;
@@ -267,11 +266,17 @@ public final class Constants {
         public static class SteerMotorConfigs {
             public static final double kP = 10;
             public static final double kI = 0;
-            public static final double kD = 0.7;
-            public static final double kS = 0; //doesnt work?
+            public static final double kD = 0.1;
+            public static final double kS = 0.13; //doesnt work?
             public static final double kV = 0;
             public static final double kA = 0;
             public static final double kG = 0;
+        }
+
+        public static class SteerMotionMagic {
+            public static final double VELOCITY = 3;
+            public static final double ACCELERATION = 15;
+            public static final double JERK = 150;
         }
     }
 
@@ -289,10 +294,16 @@ public final class Constants {
             public static final double kP = 0;
             public static final double kI = 0;
             public static final double kD = 0;
-            public static final double kS = 0;
-            public static final double kV = 0;
+            public static final double kS = 0.16;
+            public static final double kV = 1.3;
             public static final double kA = 0;
-            public static final double kG = 0.2;
+            public static final double kG = 0.32;
+        }
+
+        public static class ElevatorMotionMagic {
+            public static final double VELOCITY = 1;
+            public static final double ACCELERATION = 2;
+            public static final double JERK = 0;
         }
 
         public static class WristConfigs {
@@ -305,16 +316,26 @@ public final class Constants {
             public static final double kG = 0;
         }
 
+        public static class WristMotionMagic {
+            public static final double VELOCITY = 0.5;
+            public static final double ACCELERATION = 2;
+            public static final double JERK = 20;
+        }
+
         // TUNE
         public static class ElevatorSetpoints {
             public static final double kL1 = 0.5;
             public static final double kL2 = 0.8;
             public static final double kL3 = 1.1;
             public static final double kL4 = 1.6;
+            public static final double kL2Algae = 0.8;
+            public static final double kL3Algae = 1.1;
             public static final double kProcessor = 0.0;
             public static final double kStow = 0.0;
             public static final double kSource = 0.3;
             public static final double kIntake = 0;
+            public static final double kIntakePrepare = 0.5;
+            public static final double kBarge = 1.6;
         }
         // TUNE
         public static class WristSetpoints {
@@ -322,10 +343,14 @@ public final class Constants {
             public static final double kL2 = Units.degreesToRadians(45);
             public static final double kL3 = Units.degreesToRadians(45);
             public static final double kL4 = Units.degreesToRadians(45);
+            public static final double kL2Algae = Units.degreesToRadians(30);
+            public static final double kL3Algae = Units.degreesToRadians(30);
             public static final double kProcessor = Units.degreesToRadians(0);
             public static final double kStow = Units.degreesToRadians(50);
             public static final double kSource = Units.degreesToRadians(45);
             public static final double kIntake = Units.degreesToRadians(0);
+            public static final double kIntakePrepare = Units.degreesToRadians(20);
+            public static final double kBarge = Units.degreesToRadians(50);
         }
     }
 

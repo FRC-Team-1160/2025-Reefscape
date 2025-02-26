@@ -1,0 +1,8 @@
+package frc.robot.Subsystems.Climber;
+
+public class ClimberSimIO extends Climber {
+    
+    public ClimberSimIO() {
+
+    }
+}

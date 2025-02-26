@@ -295,7 +295,7 @@ public class ObjectDetection {
             else t.timeout = 0;
         }
 
-        if (camera_left.getPipelineIndex() == 0) {
+        if (camera_left.getPipelineIndex() == 1) {
             for (PhotonPipelineResult result : camera_left.getAllUnreadResults()) {
                 updateTrackedObjects(result, camera_transform_left);
             }
