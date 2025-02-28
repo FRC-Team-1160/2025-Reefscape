@@ -139,6 +139,7 @@ public class SwervePIDController {
     }
 
     public Pose2d getNearestReefPose() {
+        SmartDashboard.putNumber("Nearest reef", getNearestReefFace());
         return FieldPositions.reef[getNearestReefFace()];
     }
 

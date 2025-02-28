@@ -48,9 +48,10 @@ public class RobotContainer {
         
         // new JoystickButton(second_stick, 2)
         //     .whileTrue(m_subsystem_manager.commands.alignProcessor());
-
-        new JoystickButton(simp_stick, 3)
-            .whileTrue(m_subsystem_manager.commands.alignReef());
+        if (Robot.isSimulation()) {
+            new JoystickButton(second_stick, 3)
+                .whileTrue(m_subsystem_manager.commands.alignReef());
+        }
         
         new JoystickButton(simp_stick, 1)
             .onTrue(m_subsystem_manager.m_elevator.intakeAlgaeCmd());

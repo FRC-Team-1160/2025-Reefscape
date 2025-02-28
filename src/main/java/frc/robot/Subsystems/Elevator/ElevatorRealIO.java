@@ -140,33 +140,22 @@ public class ElevatorRealIO extends Elevator {
         return Rotation2d.fromRotations(wrist_motor.getPosition().getValueAsDouble());
     }
 
-    public Command intakeCmd() {
+    public Command intakeCoralCmd() {
         return Commands.sequence(
-            new WaitCommand(0.5),
-            new FunctionalCommand(
-                () -> runIntake(0.25),
-                () -> { if (intake_motor.getOutputCurrent() > 10) intake_current_timer.restart(); }, 
-                cancelled -> {
-                    runIntake(0);
-                    intake_current_timer.stop();
-                }, 
-                () -> intake_current_timer.hasElapsed(1)
-            )
-        );
+            new InstantCommand(() -> runShooter(0.25)),
+            new WaitCommand(0.2),
+            new WaitUntilCommand(() -> shooter_motor.getOutputCurrent() > 10),
+            new WaitCommand(1.0)
+        ).finallyDo(() -> runShooter(0));
     }
 
     public Command intakeAlgaeCmd() {
         return Commands.sequence(
-            new InstantCommand(() -> runIntake(0.7)),
+            new InstantCommand(() -> runShooter(0.7)),
             new WaitCommand(0.2),
-            new WaitUntilCommand(() -> intake_motor.getOutputCurrent() > 11),
-            new InstantCommand(() -> runIntake(0.2)),
-            new WaitCommand(1.4),
-            // new WaitUntilCommand(() -> intake_motor.getOutputCurrent() < 12),
-            new InstantCommand(() -> runIntake(0))
-        );
-
-
+            new WaitUntilCommand(() -> shooter_motor.getOutputCurrent() > 11),
+            new WaitCommand(1.4)
+        ).finallyDo(() -> runShooter(0));
     }
 
     public List<TalonFX> getTalons() {

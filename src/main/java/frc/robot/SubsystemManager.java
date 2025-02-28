@@ -1,9 +1,6 @@
 package frc.robot;
 
-import static edu.wpi.first.units.Units.Rotation;
-
 import java.io.IOException;
-import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
@@ -42,6 +39,7 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
+import frc.robot.RobotUtils.ArticulatedPose;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
 import frc.robot.SubsystemManager.RobotState.ElevatorStates;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
@@ -118,12 +116,12 @@ public class SubsystemManager {
                 }
             }
             m_elevator = new ElevatorRealIO();
-            // for (TalonFX talon : ((ElevatorRealIO) m_elevator).getTalons()) {
-            //     if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
-            //         m_elevator = new ElevatorSimIO();
-            //         break;
-            //     }
-            // }
+            for (TalonFX talon : ((ElevatorRealIO) m_elevator).getTalons()) {
+                if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
+                    m_elevator = new ElevatorSimIO();
+                    break;
+                }
+            }
             m_funnel = new FunnelRealIO();
         } else {
             m_drive = new DriveTrainSimIO();
@@ -203,6 +201,7 @@ public class SubsystemManager {
      * @return The updated pose estimate.
      */
     public Pose2d getPoseEstimate() {
+        SmartDashboard.putNumber("estimate x", pose_estimator.getEstimatedPosition().getX());
         return pose_estimator.updateWithTime(
             Timer.getTimestamp(), 
             m_drive.getGyroAngle(), 
@@ -275,17 +274,8 @@ public class SubsystemManager {
     }
 
     public void publishAdv() {
-        adv_pose_pub.set(getPoseEstimate());
-        adv_components_pub.set(new Pose3d[] {
-            ComponentZeroPoses.ELEVATOR_STAGE.transformBy(
-                new Transform3d(0, 0, m_elevator.getElevatorHeight() / 2, new Rotation3d())),
-            ComponentZeroPoses.CARRIAGE.transformBy(
-                new Transform3d(0, 0, m_elevator.getElevatorHeight(), new Rotation3d())),
-            ComponentZeroPoses.ALGAE_INTAKE.transformBy(
-                new Transform3d(0, 0, m_elevator.getElevatorHeight(), 
-                    new Rotation3d(0, -m_elevator.getWristAngle().getRadians(), 0))),
-            ComponentZeroPoses.FUNNEL
-        });
+        new ArticulatedPose(getPoseEstimate(), m_elevator.getElevatorHeight(), m_elevator.getWristAngle().getRadians())
+            .publish(adv_pose_pub, adv_components_pub);
     }
 
     public void setupOrchestra() {
@@ -321,32 +311,32 @@ public class SubsystemManager {
 
         public Command alignReef() {
             return getAlignCommand(
-                m_swerve_pid_controller.getNearestReefPose(),
+                m_swerve_pid_controller::getNearestReefPose,
                 0.2, 
                 TargetState.kL4);
         }
 
         public Command alignSource() {
             return getAlignCommand(
-                m_swerve_pid_controller.getNearestSourcePose(), 
+                m_swerve_pid_controller::getNearestSourcePose, 
                 0.2, 
+                Rotation2d.kPi,
                 TargetState.kSource);
         }
 
         public Command alignProcessor() {
             return getAlignCommand(
-                m_swerve_pid_controller.getProcessorPose(), 
+                m_swerve_pid_controller::getProcessorPose, 
                 0.5,
-                Rotation2d.kPi,
                 TargetState.kProcessor);
         }
 
-        public Command getAlignCommand(Pose2d target_pose, double target_distance, TargetState elevator_state) {
+        public Command getAlignCommand(Supplier<Pose2d> target_pose, double target_distance, TargetState elevator_state) {
             return getAlignCommand(target_pose, target_distance, Rotation2d.kZero, elevator_state);
         }
 
         public Command getAlignCommand(
-            Pose2d target_pose, 
+            Supplier<Pose2d> target_pose, 
             double target_distance, 
             Rotation2d offset, 
             TargetState elevator_state
@@ -356,7 +346,7 @@ public class SubsystemManager {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
                     m_swerve_pid_controller.reset_speeds = true;
                     m_swerve_pid_controller.configure(
-                        target_pose, 
+                        target_pose.get(), 
                         target_distance,
                         Rotation2d.kZero);
                     m_elevator.setState(elevator_state);

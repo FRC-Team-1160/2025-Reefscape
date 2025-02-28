@@ -85,7 +85,7 @@ abstract public class Elevator extends SubsystemBase {
     public abstract double getElevatorHeight();
     public abstract Rotation2d getWristAngle();
 
-    public abstract Command intakeCmd();
+    public abstract Command intakeCoralCmd();
     public abstract Command intakeAlgaeCmd();
 
     @Override

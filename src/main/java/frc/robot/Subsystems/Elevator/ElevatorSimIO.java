@@ -65,7 +65,7 @@ public class ElevatorSimIO extends Elevator {
         return Rotation2d.fromRadians(wrist_pos);
     }
 
-    public Command intakeCmd() {
+    public Command intakeCoralCmd() {
         return Commands.none();
     }
 
