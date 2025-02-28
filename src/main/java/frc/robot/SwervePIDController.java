@@ -100,7 +100,6 @@ public class SwervePIDController {
         }
 
         FieldPositions.source = new Pose2d[] {
-
             // right source
             new Pose2d(
                 CoralStation.CENTER_X,

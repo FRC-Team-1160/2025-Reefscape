@@ -30,7 +30,9 @@ public class ElevatorSimIO extends Elevator {
 
     protected void runEleMotionMagic(double setpoint) {
         ele_pid = true;
-        if (Math.abs(ele_pos - setpoint) > 0.05) {
+        if (ele_setpoint == setpoint) return;
+        ele_setpoint = setpoint;
+        if (Math.abs(ele_pos - setpoint) > 0.1) {
             ele_speed = 1.5 * (setpoint > ele_pos ? 1 : -1);
         } else {
             ele_speed = 0;
@@ -39,7 +41,9 @@ public class ElevatorSimIO extends Elevator {
 
     protected void runWristMotionMagic(double setpoint) {
         wrist_pid = true;
-        if (Math.abs(wrist_pos - setpoint) > 0.05) {
+        if (wrist_setpoint == setpoint) return;
+        wrist_setpoint = setpoint;
+        if (Math.abs(wrist_pos - setpoint) > 0.1) {
             wrist_speed = (setpoint > wrist_pos) ? 1 : -1;
             System.out.println("wrist_speed");
             System.out.println(wrist_speed);
@@ -87,7 +91,7 @@ public class ElevatorSimIO extends Elevator {
             if (ele_speed < 0) ele_speed = 0;
         }
 
-        if (ele_pid && (Math.abs(ele_pos - ele_setpoint) <= 0.05)) ele_speed = 0;
+        if (ele_pid && (Math.abs(ele_pos - ele_setpoint) <= 0.1)) ele_speed = 0;
 
         wrist_pos += wrist_speed * RobotConstants.LOOP_TIME_SECONDS;
 
@@ -100,7 +104,7 @@ public class ElevatorSimIO extends Elevator {
             if (wrist_speed < 0) wrist_speed = 0;
         }
 
-        if (wrist_pid && (Math.abs(wrist_pos - wrist_setpoint) <= 0.05)) wrist_speed = 0;
+        if (wrist_pid && (Math.abs(wrist_pos - wrist_setpoint) <= 0.1)) wrist_speed = 0;
 
     }
 }

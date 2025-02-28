@@ -348,7 +348,7 @@ public class SubsystemManager {
                     m_swerve_pid_controller.configure(
                         target_pose.get(), 
                         target_distance,
-                        Rotation2d.kZero);
+                        offset);
                     m_elevator.setState(elevator_state);
                     m_vision.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 },

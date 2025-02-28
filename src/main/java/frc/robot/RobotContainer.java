@@ -51,6 +51,15 @@ public class RobotContainer {
         if (Robot.isSimulation()) {
             new JoystickButton(second_stick, 3)
                 .whileTrue(m_subsystem_manager.commands.alignReef());
+
+            new JoystickButton(second_stick,2)
+                .whileTrue(m_subsystem_manager.commands.alignSource());
+
+            new JoystickButton(second_stick, 4)
+                .whileTrue(m_subsystem_manager.commands.alignProcessor());
+
+            new JoystickButton(main_stick, 3)
+                .whileTrue(m_subsystem_manager.commands.trackAlgae());
         }
         
         new JoystickButton(simp_stick, 1)
