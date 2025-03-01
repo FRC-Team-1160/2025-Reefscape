@@ -12,7 +12,7 @@ public class DriveTrainRealIO extends DriveTrain {
 
     private AHRS gyro;
 
-    public DriveTrainRealIO(){
+    protected DriveTrainRealIO(){
         gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
     }
 

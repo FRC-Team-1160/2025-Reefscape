@@ -15,11 +15,14 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
 
 public abstract class DriveTrain extends SubsystemBase {
+
+    public static final DriveTrain instance = Robot.isReal() ? new DriveTrainRealIO() : new DriveTrainSimIO();
 
     /** The drive train's SwerveModule objects. */
     public SwerveModule[] modules;
@@ -35,7 +38,7 @@ public abstract class DriveTrain extends SubsystemBase {
     protected StructPublisher<Rotation2d> gyro_pub;
 
     /** Creates a new DriveTrain. */
-    public DriveTrain() {
+    protected DriveTrain() {
         kinematics = new SwerveDriveKinematics(
                 new Translation2d(SwerveConstants.OFFSET, SwerveConstants.OFFSET), // front left
                 new Translation2d(SwerveConstants.OFFSET, -SwerveConstants.OFFSET), // front right

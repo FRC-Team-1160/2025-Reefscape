@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
+import org.littletonrobotics.junction.AutoLogOutput;
 
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -39,15 +40,16 @@ import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
+import frc.robot.RobotContainer.JoystickInputs;
 import frc.robot.RobotUtils.ArticulatedPose;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
 import frc.robot.SubsystemManager.RobotState.ElevatorStates;
+import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO;
 import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Elevator.ElevatorRealIO;
-import frc.robot.Subsystems.Elevator.ElevatorSimIO;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.FunnelRealIO;
@@ -56,6 +58,8 @@ import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.VisionTarget;
 
 public class SubsystemManager {
+
+    public static final SubsystemManager instance = new SubsystemManager();
 
     public class RobotState {
         enum DriveStates {
@@ -73,19 +77,10 @@ public class SubsystemManager {
         public ElevatorStates elevator_state = ElevatorStates.FULL_CONTROL;
     }
 
-    public DriveTrain m_drive;
-    public Elevator m_elevator;
-    public Vision m_vision;
-    public ObjectDetection m_object_detection;
-    public Funnel m_funnel;
-
-    public SwervePIDController m_swerve_pid_controller;
-    public PathplannerController m_pathplanner_controller;
+    public int x;
 
     public RobotState m_robot_state = new RobotState();
     public Commands commands = new Commands();
-
-    public Supplier<Double> getStickX, getStickY, getStickA, getStickEl;
 
     public Pose2d robot_pose;
 
@@ -99,88 +94,16 @@ public class SubsystemManager {
     public Orchestra orchestra;
 
     /** Creates a new SubsystemManager. */
-    public SubsystemManager(
-        Supplier<Double> getStickX, 
-        Supplier<Double> getStickY, 
-        Supplier<Double> getStickA, 
-        Supplier<Double> getStickEl) {
-
-        // Initialize subsystems
-        if (Robot.isReal()) {
-            // If motors aren't connected, assume mechanism isn't attached/working and run it as simulation
-            m_drive = new DriveTrainRealIO();
-            for (TalonFX talon : ((DriveTrainRealIO) m_drive).getTalons()) {
-                if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
-                    m_drive = new DriveTrainSimIO();
-                    break;
-                }
-            }
-            m_elevator = new ElevatorRealIO();
-            for (TalonFX talon : ((ElevatorRealIO) m_elevator).getTalons()) {
-                if (talon.getConnectedMotor().getValue() == ConnectedMotorValue.Unknown) {
-                    m_elevator = new ElevatorSimIO();
-                    break;
-                }
-            }
-            m_funnel = new FunnelRealIO();
-        } else {
-            m_drive = new DriveTrainSimIO();
-            m_elevator = new ElevatorSimIO();
-        }
+    private SubsystemManager() {
 
         robot_pose = new Pose2d();
         pose_estimator = new SwerveDrivePoseEstimator(
-            m_drive.kinematics, 
-            m_drive.getGyroAngle(), 
-            m_drive.getModulePositions(), 
+            DriveTrain.instance.kinematics, 
+            DriveTrain.instance.getGyroAngle(), 
+            DriveTrain.instance.getModulePositions(), 
             robot_pose, 
             VecBuilder.fill(0.02, 0.02, 0.02), 
             VecBuilder.fill(0.05, 0.05, 0.05));
-
-
-        // Vision needs to be initialized afterwards to have access to pose_estimator
-        m_vision = new Vision(pose_estimator, this::getPoseEstimate);
-
-        this.getStickX = getStickX;
-        this.getStickY = getStickY;
-        this.getStickA = getStickA;
-        this.getStickEl = getStickEl;
-
-        m_swerve_pid_controller = new SwervePIDController(
-            this::getPoseEstimate, 
-            this::getPidReferenceSpeeds, 
-            1);
-
-        m_pathplanner_controller = new PathplannerController(this::getPoseEstimate);
-
-        // Configure Autobuilder
-        RobotConfig config;
-        try {
-            config = RobotConfig.fromGUISettings();
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-            return;
-        }
-
-        AutoBuilder.configure(
-            pose_estimator::getEstimatedPosition,
-            pose_estimator::resetPose,
-            m_drive::getOdomSpeeds,
-            // Pathplanner commands are redirected to the PathplannerController instance
-            (speeds, feedforwards) -> m_pathplanner_controller.acceptGeneratedSpeeds(speeds),
-            new PPHolonomicDriveController(
-                new PIDConstants(
-                    AutoConstants.translation_kP, 
-                    AutoConstants.translation_kI,
-                    AutoConstants.translation_kD),
-                new PIDConstants(
-                    AutoConstants.rotation_kP, 
-                    AutoConstants.rotation_kI, 
-                    AutoConstants.rotation_kD)),
-            config,
-            () -> RobotUtils.isRedAlliance(),
-            m_drive // Reference to drive subsystem to set requirements; unfortunately required to instantiate
-        );
 
         setupDashboard();
 
@@ -200,12 +123,12 @@ public class SubsystemManager {
      * Returns the estimated pose. Updates PoseEstimator with odometry readings for most accurate estimate.
      * @return The updated pose estimate.
      */
+    @AutoLogOutput
     public Pose2d getPoseEstimate() {
-        SmartDashboard.putNumber("estimate x", pose_estimator.getEstimatedPosition().getX());
         return pose_estimator.updateWithTime(
             Timer.getTimestamp(), 
-            m_drive.getGyroAngle(), 
-            m_drive.getModulePositions());
+            DriveTrain.instance.getGyroAngle(), 
+            DriveTrain.instance.getModulePositions());
     }
 
     /**
@@ -214,38 +137,38 @@ public class SubsystemManager {
      */
     public ChassisSpeeds getPidReferenceSpeeds() {
         // If starting a new pid, use measured speeds for smooth transition; else, use target speeds for accurate acceleration
-        if (m_swerve_pid_controller.reset_speeds) {
-            m_swerve_pid_controller.reset_speeds = false;
-            return m_drive.getOdomSpeeds();
+        if (SwervePIDController.instance.reset_speeds) {
+            SwervePIDController.instance.reset_speeds = false;
+            return DriveTrain.instance.getOdomSpeeds();
         } else {
-            return m_drive.getTargetOdomSpeeds();
+            return DriveTrain.instance.getTargetOdomSpeeds();
         }
     }
 
-    public void update() {
+    public void update(JoystickInputs stick_inputs) {
 
-        m_vision.update();
+        Vision.instance.update();
         // Get odometry readings BEFORE running 
         robot_pose = getPoseEstimate();
 
         switch (m_robot_state.drive_state) {
 
             case PATHPLANNER_CONTROL:
-                m_drive.setSwerveDrive(m_pathplanner_controller.generated_speeds);
+                DriveTrain.instance.setSwerveDrive(PathplannerController.instance.generated_speeds);
                 break;
 
             case PID_ALIGNING:
-                m_drive.setSwerveDrive(m_swerve_pid_controller.calculate(true));
+                DriveTrain.instance.setSwerveDrive(SwervePIDController.instance.calculate(true));
                 break;
             case PID_TRACKING:
                 if (tracked_target != null && tracked_target.timeout < AlgaeParams.DETECTION_LIMIT) {
-                    m_swerve_pid_controller.target_pose = tracked_target.getPose();
+                    SwervePIDController.instance.target_pose = tracked_target.getPose();
 
                     if (tracked_target.getDistance(robot_pose) < 1.5)
-                        m_vision.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
+                        Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
 
-                    m_drive.setSwerveDrive(
-                        m_swerve_pid_controller.calculate(), 
+                    DriveTrain.instance.setSwerveDrive(
+                        SwervePIDController.instance.calculate(), 
                         false);
                     break;
                 } else {
@@ -254,28 +177,30 @@ public class SubsystemManager {
                 }
 
             default:
-                double stick_x = MathUtil.applyDeadband(-getStickX.get(), 0.1, 1)
+                double stick_x = MathUtil.applyDeadband(-stick_inputs.drive_x(), 0.1, 1)
                      * SwerveConstants.DRIVE_SPEED;
-                double stick_y = MathUtil.applyDeadband(-getStickY.get(), 0.1, 1)
+                double stick_y = MathUtil.applyDeadband(-stick_inputs.drive_y(), 0.1, 1)
                      * SwerveConstants.DRIVE_SPEED;
-                double stick_a = MathUtil.applyDeadband(-getStickA.get(), 0.1, 1)
+                double stick_a = MathUtil.applyDeadband(-stick_inputs.drive_a(), 0.1, 1)
                      * SwerveConstants.TURN_SPEED;
 
-                double stick_el = getStickEl.get();
+                double stick_el = stick_inputs.elevator();
 
                 double stick_speed = RobotUtils.hypot(stick_x, stick_y);
                 // Renormalize movement if combined vector is overspeed
                 stick_x *= Math.min(SwerveConstants.DRIVE_SPEED / stick_speed, 1);
                 stick_y *= Math.min(SwerveConstants.DRIVE_SPEED / stick_speed, 1);
 
-                m_drive.setSwerveDrive(stick_x, stick_y, stick_a);
+                DriveTrain.instance.setSwerveDrive(stick_x, stick_y, stick_a);
         }
         publishAdv();
     }
 
     public void publishAdv() {
-        new ArticulatedPose(getPoseEstimate(), m_elevator.getElevatorHeight(), m_elevator.getWristAngle().getRadians())
-            .publish(adv_pose_pub, adv_components_pub);
+        new ArticulatedPose(getPoseEstimate(), 
+            Elevator.instance.getElevatorHeight(), 
+            Elevator.instance.getWristAngle().getRadians()
+        ).publish(adv_pose_pub, adv_components_pub);
     }
 
     public void setupOrchestra() {
@@ -291,12 +216,12 @@ public class SubsystemManager {
         List<TalonFX> instruments = new ArrayList<TalonFX>();
 
         try {
-            instruments.addAll(((DriveTrainRealIO) m_drive).getTalons());
+            instruments.addAll(((DriveTrainRealIO) DriveTrain.instance).getTalons());
         } catch (Exception e) {
             e.printStackTrace();
         }
         try {
-            instruments.addAll(((ElevatorRealIO) m_elevator).getTalons());
+            instruments.addAll(((ElevatorRealIO) Elevator.instance).getTalons());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -311,14 +236,14 @@ public class SubsystemManager {
 
         public Command alignReef() {
             return getAlignCommand(
-                m_swerve_pid_controller::getNearestReefPose,
+                SwervePIDController.instance::getNearestReefPose,
                 0.2, 
                 TargetState.kL4);
         }
 
         public Command alignSource() {
             return getAlignCommand(
-                m_swerve_pid_controller::getNearestSourcePose, 
+                SwervePIDController.instance::getNearestSourcePose, 
                 0.2, 
                 Rotation2d.kPi,
                 TargetState.kSource);
@@ -326,7 +251,7 @@ public class SubsystemManager {
 
         public Command alignProcessor() {
             return getAlignCommand(
-                m_swerve_pid_controller::getProcessorPose, 
+                SwervePIDController.instance::getProcessorPose, 
                 0.5,
                 TargetState.kProcessor);
         }
@@ -344,23 +269,23 @@ public class SubsystemManager {
             return new FunctionalCommand(
                 () -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
-                    m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.configure(
+                    SwervePIDController.instance.reset_speeds = true;
+                    SwervePIDController.instance.configure(
                         target_pose.get(), 
                         target_distance,
                         offset);
-                    m_elevator.setState(elevator_state);
-                    m_vision.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
+                    Elevator.instance.setState(elevator_state);
+                    Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 },
                 () -> {},
                 canceled -> {
                     if (canceled) {
                         m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                        m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
+                        Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
                     }
                 },
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
-                    || m_elevator.m_current_state != elevator_state
+                || Elevator.instance.m_current_state != elevator_state
             );
         }
 
@@ -368,19 +293,19 @@ public class SubsystemManager {
             return new FunctionalCommand(
                 () -> {
                     m_robot_state.drive_state = RobotState.DriveStates.PID_TRACKING;
-                    m_vision.m_object_detection.getClosestTarget().ifPresent(
+                    ObjectDetection.instance.getClosestTarget().ifPresent(
                         target -> tracked_target = target);
                     // Reset pid speeds to real measured for acceleration calculations
-                    m_swerve_pid_controller.reset_speeds = true;
-                    m_swerve_pid_controller.configure(null, 0.8, Rotation2d.kZero);
-                    m_elevator.setState(TargetState.kIntake);
-                    m_vision.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
+                    SwervePIDController.instance.reset_speeds = true;
+                    SwervePIDController.instance.configure(null, 0.8, Rotation2d.kZero);
+                    Elevator.instance.setState(TargetState.kIntake);
+                    Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
                 },
                 () -> {},
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     tracked_target = null;
-                    m_vision.setCameraPipelines(Vision.CameraMode.kDefault);
+                    Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
                 }, 
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_TRACKING || tracked_target == null
             );
@@ -394,15 +319,15 @@ public class SubsystemManager {
             return new FunctionalCommand(
                 () -> {
                     m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
-                    m_pathplanner_controller.current_command = cmd_supplier.get();
-                    m_pathplanner_controller.cmdInitialize();
+                    PathplannerController.instance.current_command = cmd_supplier.get();
+                    PathplannerController.instance.cmdInitialize();
                 },
-                m_pathplanner_controller::cmdExecute, 
+                PathplannerController.instance::cmdExecute, 
                 (canceled) -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    m_pathplanner_controller.cmdEnd(canceled);
+                    PathplannerController.instance.cmdEnd(canceled);
                 },
-                () -> m_pathplanner_controller.cmdIsFinished() || 
+                () -> PathplannerController.instance.cmdIsFinished() || 
                     m_robot_state.drive_state != RobotState.DriveStates.PATHPLANNER_CONTROL);
         }
 

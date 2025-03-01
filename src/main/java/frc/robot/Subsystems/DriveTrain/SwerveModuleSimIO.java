@@ -14,7 +14,7 @@ public class SwerveModuleSimIO extends SwerveModule {
     public PIDController sim_angle_pid;
     public PIDController sim_velocity_pid;
 
-    public SwerveModuleSimIO() {
+    protected SwerveModuleSimIO() {
         angle = new Rotation2d();
         speed = 0;
 

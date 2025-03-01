@@ -29,13 +29,15 @@ import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.Robot;
+import frc.robot.SubsystemManager;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
 import frc.robot.Constants.VisionConstants.CameraTransforms.RightCamera;
 
 public class Vision {
 
-    public ObjectDetection m_object_detection;
+    public static final Vision instance = new Vision();
+
     // Convenience class for organizing readings from cameras
     private record CameraResults(Pose2d pose, Collection<Integer> ids) {}
 
@@ -45,9 +47,6 @@ public class Vision {
     PhotonCamera camera_left, camera_right;
     PhotonPoseEstimator pose_estimator_left, pose_estimator_right;
     VisionPoseCache pose_cache_left, pose_cache_right, pose_cache_limelight;
-    // A REFERENCE to the SwerveDrivePoseEstimator contained in SubsystemManager so that vision can update with 3 args
-    SwerveDrivePoseEstimator main_pose_estimator;
-    Supplier<Pose2d> robot_pose_supplier;
 
     Pose3d[] apriltags_map;
 
@@ -68,12 +67,7 @@ public class Vision {
     }
 
     /** Creates a new Vision. */
-    public Vision(SwerveDrivePoseEstimator main_pose_estimator, Supplier<Pose2d> robot_pose_supplier) {
-
-        this.main_pose_estimator = main_pose_estimator;
-        this.robot_pose_supplier = robot_pose_supplier;
-
-        m_object_detection = new ObjectDetection(robot_pose_supplier);
+    private Vision() {
 
         pose_cache_left = new VisionPoseCache();
         pose_cache_right = new VisionPoseCache();
@@ -152,7 +146,7 @@ public class Vision {
             pose = estimate.estimatedPose.toPose2d();
 
             // Cache pose for fluctuation calculations
-            cache.addPose(pose, robot_pose_supplier.get(), estimate.timestampSeconds);
+            cache.addPose(pose, SubsystemManager.instance.getPoseEstimate(), estimate.timestampSeconds);
 
             // Check if result has multiple tags; store ambiguity and read used apriltag IDs
             if (result.multitagResult.isPresent()) {
@@ -165,7 +159,7 @@ public class Vision {
                 fiducials.add(result.getBestTarget().fiducialId);
             }
             // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
-            if (pose != null) main_pose_estimator.addVisionMeasurement(
+            if (pose != null) SubsystemManager.instance.pose_estimator.addVisionMeasurement(
                 pose, 
                 estimate.timestampSeconds, 
                 cache.getWeightedStdevs());
@@ -183,9 +177,12 @@ public class Vision {
         if (mt2_estimate == null) return Optional.empty();
         if (mt2_estimate.tagCount == 0) return Optional.empty();
         
-        pose_cache_limelight.addPose(mt2_estimate.pose, robot_pose_supplier.get(), mt2_estimate.timestampSeconds);
+        pose_cache_limelight.addPose(
+            mt2_estimate.pose, 
+            SubsystemManager.instance.getPoseEstimate(), 
+            mt2_estimate.timestampSeconds);
 
-        main_pose_estimator.addVisionMeasurement(
+        SubsystemManager.instance.pose_estimator.addVisionMeasurement(
             mt2_estimate.pose, 
             mt2_estimate.timestampSeconds,
             pose_cache_limelight.getWeightedStdevs());
@@ -218,9 +215,9 @@ public class Vision {
 
     // Vision is marked as a non-subsystem to allow it to run before subsystem periodic methods
     public void update() {
-        robot_pose = robot_pose_supplier.get();
+        robot_pose = SubsystemManager.instance.getPoseEstimate();
         // Object detection is still updated during simulation
-        m_object_detection.update();
+        ObjectDetection.instance.update();
 
         if (Robot.isSimulation()) return;
 

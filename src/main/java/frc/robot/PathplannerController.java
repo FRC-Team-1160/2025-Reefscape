@@ -12,18 +12,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.PathConstants;
 
 public class PathplannerController {
+
+    public static final PathplannerController instance = new PathplannerController();
     
     public ChassisSpeeds generated_speeds;
 
     public Command current_command;
 
-    public Supplier<Pose2d> robot_pose_supplier;
-
     public PathConstraints PATH_CONSTRAINTS;
 
     /** Creates a new PathplannerController. */
-    public PathplannerController(Supplier<Pose2d> robot_pose_supplier) {
-        this.robot_pose_supplier = robot_pose_supplier;
+    private PathplannerController() {
 
         generated_speeds = new ChassisSpeeds();
         current_command = new Command() {};

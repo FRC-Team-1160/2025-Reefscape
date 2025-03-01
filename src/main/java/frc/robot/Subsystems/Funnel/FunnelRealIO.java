@@ -8,7 +8,7 @@ public class FunnelRealIO extends Funnel {
 
     public Servo servo_left, servo_right;
 
-    public FunnelRealIO() {
+    protected FunnelRealIO() {
         servo_left = new Servo(5);
         servo_right = new Servo(6);
     }
@@ -24,7 +24,5 @@ public class FunnelRealIO extends Funnel {
     @Override
     public void periodic() {
         super.periodic();
-        SmartDashboard.putNumber("servo_left", servo_left.getAngle());
-        SmartDashboard.putNumber("servo_right", servo_right.getAngle());
     }
 }

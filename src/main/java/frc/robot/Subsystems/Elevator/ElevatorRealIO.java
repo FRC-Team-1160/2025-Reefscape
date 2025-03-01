@@ -52,7 +52,7 @@ public class ElevatorRealIO extends Elevator {
 
     private Timer intake_current_timer;
 
-    public ElevatorRealIO() {
+    protected ElevatorRealIO() {
         ele_motor = new TalonFX(PortConstants.ELEVATOR_MOTOR);
         wrist_motor = new TalonFX(PortConstants.WRIST_MOTOR);
 
@@ -164,7 +164,6 @@ public class ElevatorRealIO extends Elevator {
 
     @Override
     public void periodic() {
-        SmartDashboard.putNumber("coral current", shooter_motor.getOutputCurrent());
         if (limit_switch.get()) {
             if (update_zero) {
                 // ele_motor.getConfigurator().apply(new FeedbackConfigs().withFeedbackRotorOffset(

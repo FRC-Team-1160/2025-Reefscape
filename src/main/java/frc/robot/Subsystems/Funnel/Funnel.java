@@ -6,10 +6,13 @@ package frc.robot.Subsystems.Funnel;
 
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Robot;
 import frc.robot.Constants.FunnelConstants.ServoLeft;
 import frc.robot.Constants.FunnelConstants.ServoRight;
 
 abstract public class Funnel extends SubsystemBase {
+
+    public static final Funnel instance = Robot.isReal() ? new FunnelRealIO() : new FunnelSimIO();
 
     enum FunnelState {
         kUp(ServoLeft.UP, ServoRight.UP),
@@ -23,9 +26,7 @@ abstract public class Funnel extends SubsystemBase {
     }
 
     /** Creates a new ServoSystem. */
-    public Funnel() {
-        
-    }
+    protected Funnel() {}
 
     public void setState(FunnelState target) {
         setLeftServo(target.left);

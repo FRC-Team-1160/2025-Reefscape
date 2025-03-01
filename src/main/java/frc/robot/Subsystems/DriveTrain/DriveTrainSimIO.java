@@ -7,7 +7,7 @@ public class DriveTrainSimIO extends DriveTrain {
     
     Rotation2d angle;
 
-    public DriveTrainSimIO() {
+    protected DriveTrainSimIO() {
         angle = new Rotation2d();
     }
 

@@ -9,7 +9,7 @@ public abstract class SwerveModule {
 
     public SwerveModuleState target_state;
 
-    public SwerveModule() {
+    protected SwerveModule() {
         target_state = new SwerveModuleState();
 
     }

@@ -36,16 +36,17 @@ import frc.robot.Constants.VisionConstants.CameraDistortion;
 import frc.robot.Constants.VisionConstants.CameraIntrinsics;
 import frc.robot.Robot;
 import frc.robot.RobotUtils;
+import frc.robot.SubsystemManager;
 
 public class ObjectDetection {
+
+    public static final ObjectDetection instance = new ObjectDetection();
     /** The camera instance. */
     private PhotonCamera camera_left, camera_right;
     /** The robot-to-camera transform. */
     private Transform2d camera_transform_left, camera_transform_right;
     /** The current robot pose. */
     public Pose2d robot_pose;
-    /** Supplier for the robot pose. */
-    Supplier<Pose2d> robot_pose_supplier;
     /** AdvantageScope publisher. */
     StructPublisher<Pose3d> adv_closest_pub;
     /** AdvantageScope publisher. */
@@ -62,7 +63,9 @@ public class ObjectDetection {
     Mat camera_instrinsics_mat, dist_coeffs_mat;
 
     /** Creates a new ObjectDetection. */
-    public ObjectDetection(Supplier<Pose2d> robot_pose_supplier) {
+    private ObjectDetection() {
+        System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
+
         if (Robot.isReal()) {
             camera_left = new PhotonCamera("OV9782");
             camera_right = new PhotonCamera("OV9871");
@@ -76,8 +79,6 @@ public class ObjectDetection {
         adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
         adv_tracked_pub = adv_vision.getStructArrayTopic("Tracked", Pose3d.struct).publish();
 
-        this.robot_pose_supplier = robot_pose_supplier;
-
         tracked_targets = new ArrayList<VisionTarget>();
 
         // Generate 3 random vision targets for testing
@@ -89,7 +90,7 @@ public class ObjectDetection {
             }
         }
 
-        // Initialize mats as member fields because creating mats is expensive
+    // Initialize mats as member fields because creating mats is expensive
     temp_mat = new MatOfPoint2f();
     dest_mat = new MatOfPoint2f();
 
@@ -175,7 +176,7 @@ public class ObjectDetection {
      * @return The best target object.
      */
     public Optional<VisionTarget> getClosestTarget() {
-        robot_pose = robot_pose_supplier.get();
+        robot_pose = SubsystemManager.instance.getPoseEstimate();
         double min_dist = AlgaeParams.MAX_TRACKING_DISTANCE; // Only return if closest target is within range
         Optional<VisionTarget> closest = Optional.empty();
         for (VisionTarget target : tracked_targets) {
@@ -282,7 +283,7 @@ public class ObjectDetection {
     /** @hidden */
     public void update() {
 
-        robot_pose = robot_pose_supplier.get();
+        robot_pose = SubsystemManager.instance.getPoseEstimate();
         // Publish and exit now if robot is in sim; else, publish later
         if (Robot.isSimulation()) {
             publishAdv();

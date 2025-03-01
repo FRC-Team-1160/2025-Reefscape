@@ -13,32 +13,46 @@ import frc.robot.Constants.ElevatorConstants.WristSetpoints;
 
 abstract public class Elevator extends SubsystemBase {
 
+    public static final Elevator instance = Robot.isReal() ? new ElevatorRealIO() : new ElevatorSimIO();
+
     public TargetState m_current_state;
 
     // An enum to represent different target states for the elevator, containing elevator and wrist setpoints
     public enum TargetState {
-        kStow(ElevatorSetpoints.kStow, WristSetpoints.kStow), 
-        kProcessor(ElevatorSetpoints.kProcessor, WristSetpoints.kProcessor),
-        kSource(ElevatorSetpoints.kSource, WristSetpoints.kSource),
-        kIntake(ElevatorSetpoints.kIntake, WristSetpoints.kIntake),
-        kIntakePrepare(ElevatorSetpoints.kIntakePrepare, WristSetpoints.kIntakePrepare),
-        kBarge(ElevatorSetpoints.kBarge, WristSetpoints.kBarge),
-        kL1(ElevatorSetpoints.kL1, WristSetpoints.kL1), 
-        kL2(ElevatorSetpoints.kL2, WristSetpoints.kL2), 
-        kL3(ElevatorSetpoints.kL3, WristSetpoints.kL3), 
-        kL4(ElevatorSetpoints.kL4, WristSetpoints.kL4),
-        kL2Algae(ElevatorSetpoints.kL2Algae, WristSetpoints.kL2Algae),
-        kL3Algae(ElevatorSetpoints.kL3Algae, WristSetpoints.kL3Algae);
+        kStow(ElevatorSetpoints.kStow, WristSetpoints.kStow, AlignTarget.kNone), 
+        kProcessor(ElevatorSetpoints.kProcessor, WristSetpoints.kProcessor, AlignTarget.kProcessor),
+        kSource(ElevatorSetpoints.kSource, WristSetpoints.kSource, AlignTarget.kSource),
+        kIntake(ElevatorSetpoints.kIntake, WristSetpoints.kIntake, AlignTarget.kGround),
+        kIntakePrepare(ElevatorSetpoints.kIntakePrepare, WristSetpoints.kIntakePrepare, AlignTarget.kGround),
+        kBarge(ElevatorSetpoints.kBarge, WristSetpoints.kBarge, AlignTarget.kNone),
+        kL1(ElevatorSetpoints.kL1, WristSetpoints.kL1, AlignTarget.kCoral), 
+        kL2(ElevatorSetpoints.kL2, WristSetpoints.kL2, AlignTarget.kCoral), 
+        kL3(ElevatorSetpoints.kL3, WristSetpoints.kL3, AlignTarget.kCoral), 
+        kL4(ElevatorSetpoints.kL4, WristSetpoints.kL4, AlignTarget.kCoral),
+        kL2Algae(ElevatorSetpoints.kL2Algae, WristSetpoints.kL2Algae, AlignTarget.kAlgae),
+        kL3Algae(ElevatorSetpoints.kL3Algae, WristSetpoints.kL3Algae, AlignTarget.kAlgae);
 
 
         public final double elevator_setpoint, wrist_setpoint;
-        private TargetState(double elevator_setpoint, double wrist_setpoint) {
+        public final AlignTarget target_position;
+
+        private TargetState(double elevator_setpoint, double wrist_setpoint, AlignTarget target_position) {
             this.elevator_setpoint = elevator_setpoint;
             this.wrist_setpoint = wrist_setpoint;
+            this.target_position = target_position;
+        }
+
+        public enum AlignTarget {
+            kNone,
+            kProcessor,
+            kSource,
+            kCoral,
+            kAlgae,
+            kGround
         }
     }
 
-    public Elevator() {
+    protected Elevator() {
         m_current_state = TargetState.kStow;
     }
 

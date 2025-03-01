@@ -34,12 +34,11 @@ import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
 public class SwervePIDController {
 
+    public static final SwervePIDController instance = new SwervePIDController();
+
 	StructPublisher<Pose2d> adv_goal_pose_pub;
 
 	PIDController dist_pid_controller, ang_pid_controller;
-
-	Supplier<Pose2d> robot_pose_supplier;
-	Supplier<ChassisSpeeds> robot_speeds_supplier;
 
     public Pose2d target_pose;
 	public double target_distance;
@@ -52,14 +51,7 @@ public class SwervePIDController {
         static Pose2d processor;
     }
 
-    public SwervePIDController(Supplier<Pose2d> robot_pose_supplier, Supplier<ChassisSpeeds> robot_speeds_supplier) {
-        this(robot_pose_supplier, robot_speeds_supplier, 0.5);
-    }
-
-    public SwervePIDController(
-        Supplier<Pose2d> robot_pose_supplier, 
-        Supplier<ChassisSpeeds> robot_speeds_supplier, 
-        double target_distance) {
+    private SwervePIDController() {
 
         target_pose = new Pose2d();
 
@@ -70,10 +62,7 @@ public class SwervePIDController {
         ang_pid_controller.setTolerance(Tracking.ANGLE_TOLERANCE);
         ang_pid_controller.enableContinuousInput(-Math.PI, Math.PI);
 
-        this.robot_pose_supplier = robot_pose_supplier;
-        this.robot_speeds_supplier = robot_speeds_supplier;
-
-        this.target_distance = target_distance;
+        target_distance = 0;
 
         NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
         adv_goal_pose_pub = adv_vision.getStructTopic("Goal Pose", Pose2d.struct).publish();
@@ -127,7 +116,7 @@ public class SwervePIDController {
      */
     @AutoLogOutput
     public int getNearestReefFace() {
-        Translation2d robot_position = robot_pose_supplier.get().getTranslation();
+        Translation2d robot_position = SubsystemManager.instance.getPoseEstimate().getTranslation();
         Rotation2d reef_angle = new Translation2d(
                 Reef.CENTER_X,
                 Reef.CENTER_Y
@@ -138,7 +127,6 @@ public class SwervePIDController {
     }
 
     public Pose2d getNearestReefPose() {
-        SmartDashboard.putNumber("Nearest reef", getNearestReefFace());
         return FieldPositions.reef[getNearestReefFace()];
     }
 
@@ -147,7 +135,7 @@ public class SwervePIDController {
     }
 
     public Pose2d getNearestSourcePose() {
-        return FieldPositions.source[robot_pose_supplier.get().getY() < FieldConstants.WIDTH / 2 ? 0 : 1];
+        return FieldPositions.source[SubsystemManager.instance.getPoseEstimate().getY() < FieldConstants.WIDTH / 2 ? 0 : 1];
     }
 
     public void configure(Pose2d target_pose, Double target_distance, Rotation2d rotation_offset) {
@@ -162,7 +150,7 @@ public class SwervePIDController {
      * @return The constrained robot-relative chassis speeds.
      */
     public ChassisSpeeds applyMovementConstraints(ChassisSpeeds target_speeds) {
-        ChassisSpeeds current_speeds = robot_speeds_supplier.get();
+        ChassisSpeeds current_speeds = SubsystemManager.instance.getPidReferenceSpeeds();
         // Redefine vectors as Translation2d's for easier math
         Translation2d current_speeds_vector = new Translation2d(
             current_speeds.vxMetersPerSecond,
@@ -206,7 +194,7 @@ public class SwervePIDController {
      * @return The calculated chassis speeds.
      */
     public ChassisSpeeds calculate(boolean useTargetAngle) {
-        Pose2d robot_pose = robot_pose_supplier.get();
+        Pose2d robot_pose = SubsystemManager.instance.getPoseEstimate();
 
         // Instantiate goal pose at the target pointing in our desired goal-to-target angle
         Pose2d goal_pose = new Pose2d(

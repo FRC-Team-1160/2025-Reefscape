@@ -13,7 +13,7 @@ public class ElevatorSimIO extends Elevator {
 
     private boolean ele_pid, wrist_pid;
 
-    public ElevatorSimIO() {
+    protected ElevatorSimIO() {
         ele_pid = false;
         wrist_pid = false;
     }
@@ -45,9 +45,6 @@ public class ElevatorSimIO extends Elevator {
         wrist_setpoint = setpoint;
         if (Math.abs(wrist_pos - setpoint) > 0.1) {
             wrist_speed = (setpoint > wrist_pos) ? 1 : -1;
-            System.out.println("wrist_speed");
-            System.out.println(wrist_speed);
-
         } else {
             wrist_speed = 0;
         }
