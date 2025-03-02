@@ -256,27 +256,21 @@ public final class Constants {
         public static class DriveMotorConfigs {
             public static final double kP = 0.1;
             public static final double kI = 0;
-            public static final double kD = 0;
-            public static final double kS = 0.13;
-            public static final double kV = 0.5; 
+            public static final double kD = 0.0;
+            public static final double kS = 0.14;
+            public static final double kV = 0.6; 
             public static final double kA = 0;
             public static final double kG = 0;
         }
 
         public static class SteerMotorConfigs {
-            public static final double kP = 10;
+            public static final double kP = 8;
             public static final double kI = 0;
             public static final double kD = 0.1;
             public static final double kS = 0.13; //doesnt work?
             public static final double kV = 0;
             public static final double kA = 0;
             public static final double kG = 0;
-        }
-
-        public static class SteerMotionMagic {
-            public static final double VELOCITY = 3;
-            public static final double ACCELERATION = 15;
-            public static final double JERK = 150;
         }
     }
 
@@ -291,35 +285,39 @@ public final class Constants {
         public static final double MAX_WRIST_ANGLE = Units.degreesToRadians(50);
 
         public static class ElevatorConfigs {
-            public static final double kP = 0;
+            public static final double kP = 4;
             public static final double kI = 0;
-            public static final double kD = 0;
-            public static final double kS = 0.16;
-            public static final double kV = 1.3;
-            public static final double kA = 0;
-            public static final double kG = 0.32;
+            public static final double kD = 0.3;
+            public static final double kS = 0.15;
+            public static final double kV = 1.8;
+            public static final double kA = 0.1;
+            public static final double kG = 0.4;
         }
 
         public static class ElevatorMotionMagic {
-            public static final double VELOCITY = 1;
-            public static final double ACCELERATION = 2;
+            public static final double VELOCITY = 3;
+            public static final double ACCELERATION = 6;
             public static final double JERK = 0;
+            public static final double EXPO_kV = 0;
+            public static final double EXPO_kA = 0;
         }
 
         public static class WristConfigs {
-            public static final double kP = 0;
+            public static final double kP = 5;
             public static final double kI = 0;
-            public static final double kD = 0;
-            public static final double kS = 0;
-            public static final double kV = 0;
+            public static final double kD = 0.5;
+            public static final double kS = 0.1;
+            public static final double kV = 7.5;
             public static final double kA = 0;
-            public static final double kG = 0;
+            public static final double kG = 0.18;
         }
 
         public static class WristMotionMagic {
-            public static final double VELOCITY = 0.5;
-            public static final double ACCELERATION = 2;
-            public static final double JERK = 20;
+            public static final double VELOCITY = 0.3;
+            public static final double ACCELERATION = 1;
+            public static final double JERK = 0;
+            public static final double EXPO_kV = 0;
+            public static final double EXPO_kA = 0;
         }
 
         // TUNE
@@ -339,31 +337,28 @@ public final class Constants {
         }
         // TUNE
         public static class WristSetpoints {
-            public static final double kL1 = Units.degreesToRadians(45);
-            public static final double kL2 = Units.degreesToRadians(45);
-            public static final double kL3 = Units.degreesToRadians(45);
-            public static final double kL4 = Units.degreesToRadians(45);
-            public static final double kL2Algae = Units.degreesToRadians(30);
-            public static final double kL3Algae = Units.degreesToRadians(30);
-            public static final double kProcessor = Units.degreesToRadians(0);
-            public static final double kStow = Units.degreesToRadians(50);
-            public static final double kSource = Units.degreesToRadians(45);
-            public static final double kIntake = Units.degreesToRadians(0);
-            public static final double kIntakePrepare = Units.degreesToRadians(20);
-            public static final double kBarge = Units.degreesToRadians(50);
+            public static final double kReefCoral = 0.16;
+            public static final double kReefAlgae = 0.08;
+            public static final double kProcessor = 0.12;
+            public static final double kStow = 0.19;
+            public static final Double kSource = null;
+            public static final double kIntake = 0;
+            public static final double kIntakePrepare = 0.05;
+            public static final double kBarge = 0.16;
         }
     }
 
     public static class FunnelConstants {
         public static class ServoLeft {
-            public static final double UP = 0;
-            public static final double DOWN = 0;
+            public static final double UP = 30;
+            public static final double DOWN = 150;
+            public static final double START = 150;
         }
         
         public static class ServoRight {
-            public static final double UP = 0;
-            public static final double DOWN = 0;
-            
+            public static final double UP = 150;
+            public static final double DOWN = 30;
+            public static final double START = 30;
         }
     }
 

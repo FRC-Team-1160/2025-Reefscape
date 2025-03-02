@@ -38,11 +38,12 @@ import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorConfigs;
 import frc.robot.Constants.ElevatorConstants.ElevatorMotionMagic;
 import frc.robot.Constants.ElevatorConstants.WristConfigs;
+import frc.robot.Constants.ElevatorConstants.WristMotionMagic;
 
 
 public class ElevatorRealIO extends Elevator {
 
-    private TalonFX ele_motor, wrist_motor;
+    protected TalonFX ele_motor, wrist_motor;
 
     private SparkMax intake_motor, shooter_motor;
 
@@ -74,14 +75,14 @@ public class ElevatorRealIO extends Elevator {
         ele_configs.MotionMagic = new MotionMagicConfigs()
             .withMotionMagicCruiseVelocity(ElevatorMotionMagic.VELOCITY)
             .withMotionMagicAcceleration(ElevatorMotionMagic.ACCELERATION)
-            .withMotionMagicJerk(ElevatorMotionMagic.JERK);
+            .withMotionMagicJerk(ElevatorMotionMagic.JERK)
+            .withMotionMagicExpo_kV(ElevatorMotionMagic.EXPO_kV)
+            .withMotionMagicExpo_kA(ElevatorMotionMagic.EXPO_kA);   
 
-        ele_configs.Feedback.SensorToMechanismRatio = 12;
+        ele_configs.Feedback.SensorToMechanismRatio = 15;
         ele_configs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
         ele_configs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-
-        ele_configs.Feedback.FeedbackRotorOffset = 0;
 
         ele_motor.getConfigurator().apply(ele_configs);
 
@@ -97,6 +98,15 @@ public class ElevatorRealIO extends Elevator {
 
         wrist_configs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
 
+        wrist_configs.Feedback.SensorToMechanismRatio = 72;
+
+        wrist_configs.MotionMagic = new MotionMagicConfigs()
+            .withMotionMagicCruiseVelocity(WristMotionMagic.VELOCITY)
+            .withMotionMagicAcceleration(WristMotionMagic.ACCELERATION)
+            .withMotionMagicJerk(WristMotionMagic.JERK)
+            .withMotionMagicExpo_kV(WristMotionMagic.EXPO_kV)
+            .withMotionMagicExpo_kA(WristMotionMagic.EXPO_kA);          
+
         wrist_motor.getConfigurator().apply(wrist_configs);
 
         update_zero = true;
@@ -105,18 +115,22 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void runElevator(double speed) {
+        SmartDashboard.putNumber("Elevator volts", speed);
+        // ele_motor.setControl(new VoltageOut(speed));
         // ele_motor.setControl(new VoltageOut(speed + 0.2));
         // ele_motor_left.setControl(new VoltageOut(speed + Math.signum(speed) * ElevatorConfigs.kS + ElevatorConfigs.kG));
     }
 
     public void runWrist(double speed) {
+        SmartDashboard.putNumber("Wrist volts", speed);
+        // wrist_motor.setControl(new VoltageOut(speed));
         // wrist_motor.setControl(new VoltageOut(speed + 0.1));
         // wrist_motor.setControl(new VoltageOut(speed + Math.signum(speed) * WristConfigs.kS));
     }
 
     //DON'T ACTIVATE UNTIL FULLY TUNED
     protected void runEleMotionMagic(double setpoint){
-        ele_motor.setControl(new MotionMagicVoltage(setpoint));
+        // ele_motor.setControl(new MotionMagicVoltage(setpoint));
     }
 
     //DON'T ACTIVATE UNTIL FULLY TUNED
@@ -138,6 +152,10 @@ public class ElevatorRealIO extends Elevator {
 
     public Rotation2d getWristAngle() {
         return Rotation2d.fromRotations(wrist_motor.getPosition().getValueAsDouble());
+    }
+
+    public void zeroWrist() {
+        wrist_motor.setPosition(0);
     }
 
     public Command intakeCoralCmd() {
@@ -166,18 +184,15 @@ public class ElevatorRealIO extends Elevator {
     public void periodic() {
         if (limit_switch.get()) {
             if (update_zero) {
-                // ele_motor.getConfigurator().apply(new FeedbackConfigs().withFeedbackRotorOffset(
-                //     -ele_motor.getRotorPosition().getValueAsDouble()));
                 ele_motor.setPosition(0);
-                ele_motor.setControl(new NeutralOut());
                 update_zero = false;
             }
         }
 
         if (ele_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled
-                && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.55) < 0.05
+                && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.5) < 0.05
                 && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.05) {
-            ele_motor.setControl(new VoltageOut(0.35));
+            // ele_motor.setControl(new VoltageOut(0.35));
         }
     }
 }

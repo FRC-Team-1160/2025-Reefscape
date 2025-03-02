@@ -14,7 +14,7 @@ abstract public class Funnel extends SubsystemBase {
 
     public static final Funnel instance = Robot.isReal() ? new FunnelRealIO() : new FunnelSimIO();
 
-    enum FunnelState {
+    public enum FunnelState {
         kUp(ServoLeft.UP, ServoRight.UP),
         kDown(ServoLeft.DOWN, ServoRight.DOWN);
 

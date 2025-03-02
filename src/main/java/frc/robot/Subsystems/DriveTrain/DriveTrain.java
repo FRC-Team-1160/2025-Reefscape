@@ -1,5 +1,7 @@
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
@@ -29,6 +31,7 @@ public abstract class DriveTrain extends SubsystemBase {
     /** @hidden */
     public SwerveDriveKinematics kinematics;
     /** The desired module states. */
+    @AutoLogOutput(key = "Custom/hi")
     public SwerveModuleState[] module_states;
     /** Odometry-based 2d pose. */
     public Pose2d odom_pose;
@@ -161,7 +164,7 @@ public abstract class DriveTrain extends SubsystemBase {
      * Returns the measured swerve module states for odometry and telemetry.
      * @return The measured swerve module states.
      */
-
+    @AutoLogOutput(key = "Custom/hi2")
     public SwerveModuleState[] getModuleStates() {
         var states = new SwerveModuleState[modules.length];
         for (int i = 0; i < modules.length; i++) {

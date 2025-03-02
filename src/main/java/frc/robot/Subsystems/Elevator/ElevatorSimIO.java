@@ -74,6 +74,8 @@ public class ElevatorSimIO extends Elevator {
         return Commands.none();
     }
 
+    public void zeroWrist() {}
+
     @Override
     public void periodic() {
         super.periodic();

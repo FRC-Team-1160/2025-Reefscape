@@ -77,8 +77,6 @@ public class SubsystemManager {
         public ElevatorStates elevator_state = ElevatorStates.FULL_CONTROL;
     }
 
-    public int x;
-
     public RobotState m_robot_state = new RobotState();
     public Commands commands = new Commands();
 
@@ -234,26 +232,26 @@ public class SubsystemManager {
     
     public class Commands {
 
-        public Command alignReef() {
+        public Command alignReef(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getNearestReefPose,
                 0.2, 
-                TargetState.kL4);
+                with_elevator ? TargetState.kL4 : null);
         }
 
-        public Command alignSource() {
+        public Command alignSource(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getNearestSourcePose, 
                 0.2, 
                 Rotation2d.kPi,
-                TargetState.kSource);
+                with_elevator ? TargetState.kSource : null);
         }
 
-        public Command alignProcessor() {
+        public Command alignProcessor(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getProcessorPose, 
                 0.5,
-                TargetState.kProcessor);
+                with_elevator ? TargetState.kProcessor : null);
         }
 
         public Command getAlignCommand(Supplier<Pose2d> target_pose, double target_distance, TargetState elevator_state) {
@@ -298,7 +296,7 @@ public class SubsystemManager {
                     // Reset pid speeds to real measured for acceleration calculations
                     SwervePIDController.instance.reset_speeds = true;
                     SwervePIDController.instance.configure(null, 0.8, Rotation2d.kZero);
-                    Elevator.instance.setState(TargetState.kIntake);
+                    Elevator.instance.setState(TargetState.kIntakePrepare);
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
                 },
                 () -> {},

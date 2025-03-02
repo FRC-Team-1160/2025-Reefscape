@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
@@ -34,7 +35,7 @@ import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
 public class SwervePIDController {
 
-    public static final SwervePIDController instance = new SwervePIDController();
+    public static SwervePIDController instance = new SwervePIDController();
 
 	StructPublisher<Pose2d> adv_goal_pose_pub;
 
@@ -114,8 +115,9 @@ public class SwervePIDController {
      * Returns the closest reef face to the robot. The driverstation-oriented face is 0, and the rest are numbered CCW increasing.
      * @return The number corresponding the closest reef face.
      */
-    @AutoLogOutput
+    @AutoLogOutput(key = "Custom/Face")
     public int getNearestReefFace() {
+        Logger.recordOutput("FaceTest", 2);
         Translation2d robot_position = SubsystemManager.instance.getPoseEstimate().getTranslation();
         Rotation2d reef_angle = new Translation2d(
                 Reef.CENTER_X,
@@ -126,6 +128,7 @@ public class SwervePIDController {
         return (int) Math.floor(6 * ((reef_angle.getRotations() + 1 + 0.5 / Reef.NUM_SIDES) % 1));
     }
 
+    @AutoLogOutput(key = "Custom/ReefPose")
     public Pose2d getNearestReefPose() {
         return FieldPositions.reef[getNearestReefFace()];
     }
