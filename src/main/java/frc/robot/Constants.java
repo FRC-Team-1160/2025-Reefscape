@@ -100,9 +100,9 @@ public final class Constants {
 
     public static class VisionConstants {
         /**Width of the camera stream in pixels.*/
-        public static final int SCREEN_WIDTH = 640;
+        public static final int SCREEN_WIDTH = 800;
         /**Height of the camera stream in pixels. */
-        public static final int SCREEN_HEIGHT = 480;
+        public static final int SCREEN_HEIGHT = 600;
         /**Horizontal FOV of the camera in radians. */
         public final static double CAMERA_X_FOV = Units.degreesToRadians(70);
 

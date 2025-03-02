@@ -26,7 +26,7 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
-
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.Constants.VisionConstants.EstimationParams;
@@ -67,8 +67,9 @@ public class ObjectDetection {
         System.loadLibrary(Core.NATIVE_LIBRARY_NAME);
 
         if (Robot.isReal()) {
-            camera_left = new PhotonCamera("OV9782");
-            camera_right = new PhotonCamera("OV9871");
+            // right one is color cam
+            camera_right = new PhotonCamera("OV9782");
+            camera_left = new PhotonCamera("OV9281");
         }
 
         camera_transform_left = new Transform2d(LeftCamera.X, LeftCamera.Y, Rotation2d.fromRadians(LeftCamera.YAW));
@@ -132,9 +133,12 @@ public class ObjectDetection {
      * @return The lateral distance to the target in meters.
      */
     public double getLateralDistance(double normal_distance, int x_center) {
+        SmartDashboard.putNumber("tan", Math.tan(VisionConstants.CAMERA_X_FOV/2) * 2);
+        SmartDashboard.putNumber("x_rat", (x_center / VisionConstants.SCREEN_WIDTH - 0.5));
+        SmartDashboard.putNumber("vibe check", Math.random());
         return normal_distance 
-            * Math.tan(VisionConstants.CAMERA_X_FOV/2) 
-            * (x_center / VisionConstants.SCREEN_WIDTH - 0.5);
+            * Math.tan(VisionConstants.CAMERA_X_FOV/2) * 2
+            * -((double) x_center / VisionConstants.SCREEN_WIDTH - 0.5);
     }
 
     /**
@@ -166,6 +170,10 @@ public class ObjectDetection {
             getLateralDistance(n_dist, x_center),
             new Rotation2d()
         );
+        SmartDashboard.putNumber("center", x_center);
+        SmartDashboard.putNumber("normal distance", n_dist);
+        SmartDashboard.putNumber("lateral distance", target_transform.getY());
+
         target_transform = robot_transform.plus(camera_transform).plus(target_transform);
         return new Pose2d(target_transform.getTranslation(), target_transform.getRotation());
     }
@@ -305,6 +313,7 @@ public class ObjectDetection {
             for(PhotonPipelineResult result : camera_right.getAllUnreadResults()){
                 updateTrackedObjects(result, camera_transform_right);
             }
+            System.out.println("right");
         }
         
         publishAdv();

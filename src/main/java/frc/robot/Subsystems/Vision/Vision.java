@@ -55,7 +55,7 @@ public class Vision {
     Pose2d robot_pose;
 
     public enum CameraMode {
-        kDefault(1, 0),
+        kDefault(0, 1),
         kStereoAprilTag(0, 0),
         kStereoAlgae(1, 1);
         
@@ -79,8 +79,8 @@ public class Vision {
         adv_poses_pub = adv_vision.getStructArrayTopic("Poses", Pose2d.struct).publish();
         adv_tags_pub = adv_vision.getStructArrayTopic("Used Tags", Pose3d.struct).publish();
 
-        camera_left = new PhotonCamera("OV9782");
-        camera_right = new PhotonCamera("OV9281");
+        camera_left = new PhotonCamera("OV9281");
+        camera_right = new PhotonCamera("OV9782");
 
         AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
