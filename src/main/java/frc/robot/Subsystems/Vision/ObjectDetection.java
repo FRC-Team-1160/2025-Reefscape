@@ -313,7 +313,6 @@ public class ObjectDetection {
             for(PhotonPipelineResult result : camera_right.getAllUnreadResults()){
                 updateTrackedObjects(result, camera_transform_right);
             }
-            System.out.println("right");
         }
         
         publishAdv();

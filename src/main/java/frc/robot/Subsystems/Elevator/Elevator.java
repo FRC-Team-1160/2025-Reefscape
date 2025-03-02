@@ -40,44 +40,6 @@ abstract public class Elevator extends SubsystemBase {
 
     public TargetState m_current_state;
 
-      // Mutable holder for unit-safe voltage values, persisted to avoid reallocation.
-    private static final MutVoltage m_appliedVoltage = Volts.mutable(0);
-    // Mutable holder for unit-safe linear distance values, persisted to avoid reallocation.
-    private static final MutDistance m_distance = Meters.mutable(0);
-    // Mutable holder for unit-safe linear velocity values, persisted to avoid reallocation.
-    private static final MutLinearVelocity m_velocity = MetersPerSecond.mutable(0);
-
-    public static final SysIdRoutine id_routine_up = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            new MutVelocity<VoltageUnit>(0.5, 0.5, Units.Volt.per(Units.Second)),
-            new MutVoltage(0.5, 0.5, Units.Volt),
-            new MutTime(6, 6, Units.Second)
-        ), 
-        new SysIdRoutine.Mechanism(
-            voltage -> instance.runElevator(voltage.baseUnitMagnitude()), 
-            log -> {
-                // Record a frame for the left motors.  Since these share an encoder, we consider
-                // the entire group to be one motor.
-                log.motor("drive-left")
-                    .voltage(
-                        m_appliedVoltage.mut_replace(
-                            ((ElevatorRealIO)Elevator.instance).ele_motor.getMotorVoltage().getValueAsDouble(), Volts))
-                    .linearPosition(m_distance.mut_replace(((ElevatorRealIO)Elevator.instance).ele_motor.getPosition().getValueAsDouble(), Meters))
-                    .linearVelocity(
-                        m_velocity.mut_replace(((ElevatorRealIO)Elevator.instance).ele_motor.getVelocity().getValueAsDouble(), MetersPerSecond));}, 
-            instance));
-    
-    public static final SysIdRoutine id_routine_down = new SysIdRoutine(
-        new SysIdRoutine.Config(
-            new MutVelocity<VoltageUnit>(0.3, 0.3, Units.Volt.per(Units.Second)),
-            new MutVoltage(0.3, 0.3, Units.Volt),
-            new MutTime(6, 6, Units.Second)
-        ), 
-        new SysIdRoutine.Mechanism(
-            voltage -> instance.runElevator(voltage.baseUnitMagnitude()), 
-            state -> Logger.recordOutput("Elevator/SysIdState", state.toString()), 
-            instance));
-
     // An enum to represent different target states for the elevator, containing elevator and wrist setpoints
     public enum TargetState {
         kStow(ElevatorSetpoints.kStow, WristSetpoints.kStow, AlignCommand.kNone), 

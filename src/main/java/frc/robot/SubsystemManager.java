@@ -232,11 +232,15 @@ public class SubsystemManager {
     
     public class Commands {
 
+        public Command selectCommand() {
+            return Elevator.instance.m_current_state.target_position.command_supplier.get();
+        }
+
         public Command alignReef(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getNearestReefPose,
-                0.2, 
-                with_elevator ? TargetState.kL4 : null);
+                0.05, 
+                with_elevator ? TargetState.kL3 : null);
         }
 
         public Command alignSource(boolean with_elevator) {
@@ -268,6 +272,7 @@ public class SubsystemManager {
                 () -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
                     SwervePIDController.instance.reset_speeds = true;
+                    SwervePIDController.instance.done = false;
                     SwervePIDController.instance.configure(
                         target_pose.get(), 
                         target_distance,
@@ -277,13 +282,12 @@ public class SubsystemManager {
                 },
                 () -> {},
                 canceled -> {
-                    if (canceled) {
-                        m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                        Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
-                    }
+                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
                 },
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
-                || Elevator.instance.m_current_state != elevator_state
+                || (elevator_state != null && Elevator.instance.m_current_state != elevator_state)
+                || SwervePIDController.instance.done
             );
         }
 
@@ -296,7 +300,7 @@ public class SubsystemManager {
                     // Reset pid speeds to real measured for acceleration calculations
                     SwervePIDController.instance.reset_speeds = true;
                     SwervePIDController.instance.configure(null, 0.8, Rotation2d.kZero);
-                    Elevator.instance.setState(TargetState.kIntakePrepare);
+                    // Elevator.instance.setState(TargetState.kIntakePrepare);
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
                 },
                 () -> {},

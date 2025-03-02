@@ -10,4 +10,6 @@ abstract public class Climber extends SubsystemBase {
     protected Climber() {
 
     }
+
+    public abstract void runClimber(double speed);
 }

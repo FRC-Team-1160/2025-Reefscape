@@ -25,6 +25,8 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -47,20 +49,19 @@ public class ElevatorRealIO extends Elevator {
 
     private SparkMax intake_motor, shooter_motor;
 
-    private DigitalInput limit_switch;
+    private DigitalInput elevator_switch, coral_switch;
 
     private boolean update_zero;
-
-    private Timer intake_current_timer;
 
     protected ElevatorRealIO() {
         ele_motor = new TalonFX(PortConstants.ELEVATOR_MOTOR);
         wrist_motor = new TalonFX(PortConstants.WRIST_MOTOR);
 
         intake_motor = new SparkMax(PortConstants.INTAKE_MOTOR, MotorType.kBrushless);
-        shooter_motor = new SparkMax(PortConstants.SHOOTER_MOTOR, MotorType.kBrushless);
+        shooter_motor = new SparkMax(27, MotorType.kBrushless);
 
-        limit_switch = new DigitalInput(2);
+        elevator_switch = new DigitalInput(0);
+        coral_switch = new DigitalInput(1);
 
         TalonFXConfiguration ele_configs = new TalonFXConfiguration();
         ele_configs.Slot0 = new Slot0Configs()
@@ -130,12 +131,12 @@ public class ElevatorRealIO extends Elevator {
 
     //DON'T ACTIVATE UNTIL FULLY TUNED
     protected void runEleMotionMagic(double setpoint){
-        // ele_motor.setControl(new MotionMagicVoltage(setpoint));
+        ele_motor.setControl(new MotionMagicVoltage(setpoint));
     }
 
     //DON'T ACTIVATE UNTIL FULLY TUNED
     protected void runWristMotionMagic(double setpoint) {
-        // wrist_motor.setControl(new PositionVoltage(setpoint));
+        wrist_motor.setControl(new MotionMagicVoltage(setpoint));
     }
 
     public void runIntake(double speed) {
@@ -143,7 +144,8 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void runShooter(double speed) {
-        shooter_motor.set(speed);
+        SmartDashboard.putNumber("vibe check", speed);
+        shooter_motor.set(-speed);
     }
 
     public double getElevatorHeight() {
@@ -158,20 +160,28 @@ public class ElevatorRealIO extends Elevator {
         wrist_motor.setPosition(0);
     }
 
+    // public Command intakeCoralCmd() {
+    //     return Commands.sequence(
+    //         new InstantCommand(() -> runShooter(0.25)),
+    //         new WaitCommand(0.2),
+    //         new WaitUntilCommand(() -> shooter_motor.getOutputCurrent() > 10),
+    //         new WaitCommand(1.0)
+    //     ).finallyDo(() -> runShooter(0));
+    // }
+
     public Command intakeCoralCmd() {
         return Commands.sequence(
             new InstantCommand(() -> runShooter(0.25)),
-            new WaitCommand(0.2),
-            new WaitUntilCommand(() -> shooter_motor.getOutputCurrent() > 10),
-            new WaitCommand(1.0)
+            new WaitUntilCommand(() -> !coral_switch.get()),
+            new WaitCommand(0.2)
         ).finallyDo(() -> runShooter(0));
     }
 
     public Command intakeAlgaeCmd() {
         return Commands.sequence(
-            new InstantCommand(() -> runShooter(0.7)),
-            new WaitCommand(0.2),
-            new WaitUntilCommand(() -> shooter_motor.getOutputCurrent() > 11),
+            new InstantCommand(() -> runIntake(0.7)),
+            new WaitCommand(0.1),
+            new WaitUntilCommand(() -> intake_motor.getOutputCurrent() > 11),
             new WaitCommand(1.4)
         ).finallyDo(() -> runShooter(0));
     }
@@ -182,7 +192,10 @@ public class ElevatorRealIO extends Elevator {
 
     @Override
     public void periodic() {
-        if (limit_switch.get()) {
+
+        SmartDashboard.putBoolean("switch", coral_switch.get());
+
+        if (elevator_switch.get()) {
             if (update_zero) {
                 ele_motor.setPosition(0);
                 update_zero = false;
@@ -193,6 +206,11 @@ public class ElevatorRealIO extends Elevator {
                 && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.5) < 0.05
                 && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.05) {
             // ele_motor.setControl(new VoltageOut(0.35));
+        }
+
+        if (DriverStation.isDisabled()) {
+            ele_motor.setControl(new NeutralOut());
+            wrist_motor.setControl(new NeutralOut());
         }
     }
 }

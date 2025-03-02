@@ -5,4 +5,6 @@ public class ClimberSimIO extends Climber {
     protected ClimberSimIO() {
 
     }
+
+    public void runClimber(double speed){}
 }

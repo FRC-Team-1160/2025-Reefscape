@@ -101,7 +101,7 @@ public class SwerveModuleRealIO extends SwerveModule {
     }
 
     protected void setSpeed(double speed) {
-        drive_motor.setControl(new VelocityVoltage(speed * 0.5 / SwerveConstants.WHEEL_DIAMETER));
+        drive_motor.setControl(new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER));
     }
 
     protected void setAngle(Rotation2d angle) {

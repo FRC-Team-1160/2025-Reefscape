@@ -47,6 +47,8 @@ public class SwervePIDController {
 
     public boolean reset_speeds;
 
+    public boolean done;
+
     public static class FieldPositions {
         static Pose2d[] reef, source;
         static Pose2d processor;
@@ -69,6 +71,7 @@ public class SwervePIDController {
         adv_goal_pose_pub = adv_vision.getStructTopic("Goal Pose", Pose2d.struct).publish();
 
         reset_speeds = true;
+        done = false;
 
         fillFieldPositions();
     }
@@ -82,7 +85,7 @@ public class SwervePIDController {
                 Reef.CENTER_Y,
                 angle).plus(new Transform2d(
                         Reef.INNER_RADIUS + RobotConstants.BASE_WIDTH / 2,
-                        0,
+                        0.2,
                         Rotation2d.kPi
                     )
                 );
@@ -232,6 +235,8 @@ public class SwervePIDController {
             .rotateBy(robot_pose.getRotation().unaryMinus());
 
         // Get PID forward speed and normalize
+        SmartDashboard.putNumber("error", goal_off.getNorm());
+        done = goal_off.getNorm() < 0.05 && ang_pid_controller.atSetpoint();
         goal_off = goal_off.times(dist_pid_controller.calculate(goal_off.getNorm(), 0) / goal_off.getNorm());
 
         return applyMovementConstraints(new ChassisSpeeds(

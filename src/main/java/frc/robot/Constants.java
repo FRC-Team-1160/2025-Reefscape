@@ -55,9 +55,9 @@ public final class Constants {
         public static final int CLIMBER_MOTOR_RIGHT = 13;
 
         // Krakens get CAN ID priority because theyre simply better
-        public static final int SHOOTER_MOTOR = 30;
+        public static final int SHOOTER_MOTOR = 27;
 
-        public static final int INTAKE_MOTOR = 27;
+        public static final int INTAKE_MOTOR = 30;
 
         public static final int SERVO_LEFT = 0;
         public static final int SERVO_RIGHT = 1;
@@ -226,10 +226,10 @@ public final class Constants {
         public static final double TURN_SPEED = 1.0;
 
         public static class Tracking {
-            public static final double MAX_SPEED = 2.0;
-            public static final double MAX_ACCEL = 4.0;
-            public static final double MAX_ANG_SPEED = 4.0;
-            public static final double MAX_ANG_ACCEL = 6.0;
+            public static final double MAX_SPEED = 1.0;
+            public static final double MAX_ACCEL = 2.0;
+            public static final double MAX_ANG_SPEED = 2.0;
+            public static final double MAX_ANG_ACCEL = 4.0;
 
             public static final double DEFAULT_DISTANCE = 0.5;
 
@@ -279,7 +279,7 @@ public final class Constants {
         /**Max speed of elevator in meters per second. */
         public static final double MAX_SPEED = 0.05;
 
-        public static final double MAX_EXTENSION = 1.6;
+        public static final double MAX_EXTENSION = 5.2;
 
         public static final double MIN_WRIST_ANGLE = Units.degreesToRadians(-20);
         public static final double MAX_WRIST_ANGLE = Units.degreesToRadians(50);
@@ -295,8 +295,8 @@ public final class Constants {
         }
 
         public static class ElevatorMotionMagic {
-            public static final double VELOCITY = 3;
-            public static final double ACCELERATION = 6;
+            public static final double VELOCITY = 2;
+            public static final double ACCELERATION = 4;
             public static final double JERK = 0;
             public static final double EXPO_kV = 0;
             public static final double EXPO_kA = 0;
@@ -322,29 +322,29 @@ public final class Constants {
 
         // TUNE
         public static class ElevatorSetpoints {
-            public static final double kL1 = 0.5;
-            public static final double kL2 = 0.8;
-            public static final double kL3 = 1.1;
-            public static final double kL4 = 1.6;
-            public static final double kL2Algae = 0.8;
-            public static final double kL3Algae = 1.1;
-            public static final double kProcessor = 0.0;
-            public static final double kStow = 0.0;
-            public static final double kSource = 0.3;
-            public static final double kIntake = 0;
-            public static final double kIntakePrepare = 0.5;
-            public static final double kBarge = 1.6;
+            public static final double kL1 = 0.8; //TUNE
+            public static final double kL2 = 1.6; //TUNE
+            public static final double kL3 = 3; //TUNE
+            public static final double kL4 = 5.2; //TUNE
+            public static final double kL2Algae = 1.0; //TUNE
+            public static final double kL3Algae = 2.4; //TUNE
+            public static final double kProcessor = 0.05; 
+            public static final double kStow = 0.05;
+            public static final double kSource = 0.35;
+            public static final double kIntake = 0.05;
+            public static final double kIntakePrepare = 0.5; //TUNE
+            public static final double kBarge = 1.6; //TUNE
         }
         // TUNE
         public static class WristSetpoints {
-            public static final double kReefCoral = 0.16;
+            public static final double kReefCoral = 0.18;
             public static final double kReefAlgae = 0.08;
             public static final double kProcessor = 0.12;
             public static final double kStow = 0.19;
-            public static final Double kSource = null;
+            public static final Double kSource = 0.18;
             public static final double kIntake = 0;
-            public static final double kIntakePrepare = 0.05;
-            public static final double kBarge = 0.16;
+            public static final double kIntakePrepare = 0.0;
+            public static final double kBarge = 0.14;
         }
     }
 

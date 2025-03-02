@@ -31,7 +31,6 @@ public abstract class DriveTrain extends SubsystemBase {
     /** @hidden */
     public SwerveDriveKinematics kinematics;
     /** The desired module states. */
-    @AutoLogOutput(key = "Custom/hi")
     public SwerveModuleState[] module_states;
     /** Odometry-based 2d pose. */
     public Pose2d odom_pose;

@@ -20,12 +20,16 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IOConstants;
+import frc.robot.SubsystemManager.RobotState.ElevatorStates;
+import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
+import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
 
-public class RobotContainer {
+public 
+class RobotContainer {
 
     public record JoystickInputs(double drive_x, double drive_y, double drive_a, double elevator) {}
 
@@ -34,6 +38,7 @@ public class RobotContainer {
     private Joystick left_board = new Joystick(IOConstants.LEFT_BOARD_PORT);
     private Joystick right_board = new Joystick(IOConstants.RIGHT_BOARD_PORT);
     private Joystick simp_stick = new Joystick(4);
+    private Joystick codriver_controller = new Joystick(5);
 
     private final SendableChooser<Command> auto_chooser;
 
@@ -80,6 +85,13 @@ public class RobotContainer {
             main_stick.getRawAxis(0), 
             second_stick.getRawAxis(0), 
             right_board.getRawAxis(0)));
+        // SubsystemManager.instance.update(new JoystickInputs(
+        //     codriver_controller.getRawAxis(5), 
+        //     codriver_controller.getRawAxis(4), 
+        //     codriver_controller.getRawAxis(0), 
+        //     right_board.getRawAxis(0)));
+
+
     }
 
     private void configureBindings() {
@@ -170,24 +182,70 @@ public class RobotContainer {
 
         new JoystickButton(second_stick, 10).whileTrue(
             new StartEndCommand(
-                () -> Elevator.instance.runWrist(-1.5), 
+                () -> Elevator.instance.runWrist(-1), 
                 () -> Elevator.instance.runWrist(0))
         );
 
-        // new JoystickButton(second_stick, 8).whileTrue(
-        //     Elevator.id_routine_up.quasistatic(Direction.kForward)
-        // );
+        new JoystickButton(main_stick, 1)
+            .whileTrue(SubsystemManager.instance.commands.alignReef(false));
 
-        // new JoystickButton(second_stick, 9).whileTrue(
-        //     Elevator.id_routine_down.quasistatic(Direction.kReverse)
-        // );
+
+        new JoystickButton(second_stick, 1)
+            .whileTrue(SubsystemManager.instance.commands.trackAlgae());
+
 
         // new JoystickButton(simp_stick, 3).whileTrue(new StartEndCommand(
         //     () -> Funnel.instance.setState(FunnelState.kDown),
         //     () -> Funnel.instance.setState(FunnelState.kUp))
         // );
-        new JoystickButton(second_stick, 8).onTrue(
-            new InstantCommand(() -> Elevator.instance.zeroWrist()));
+
+        // new JoystickButton(main_stick, 9).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.zeroWrist()));
+
+        // new JoystickButton(codriver_controller, 5).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kIntakePrepare)));
+
+        // new JoystickButton(codriver_controller, 3).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL1)));
+        // new JoystickButton(codriver_controller, 1).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL2)));
+        // new JoystickButton(codriver_controller, 2).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)));
+        // new JoystickButton(codriver_controller, 4).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)));
+
+        // new JoystickButton(codriver_controller, 8).whileTrue(
+        //     new StartEndCommand(() -> Elevator.instance.runShooter(0.4),
+        //     () -> Elevator.instance.runShooter(0)));
+
+        // new JoystickButton(codriver_controller, 7).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Climber.instance.runClimber(3),
+        //         () -> Climber.instance.runClimber(0)
+        //     )
+        // );
+
+        // new JoystickButton(codriver_controller, 8).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Climber.instance.runClimber(-3),
+        //         () -> Climber.instance.runClimber(0)
+        //     )
+        // );
+
+        // new JoystickButton(codriver_controller, 4).whileTrue(new StartEndCommand(
+        //     () -> Funnel.instance.setState(FunnelState.kDown),
+        //     () -> Funnel.instance.setState(FunnelState.kUp))
+        // );
+
+        // new JoystickButton(codriver_controller, 1).onTrue(
+        //     new InstantCommand(DriveTrain.instance::resetGyroAngle));
+
+        // new JoystickButton(codriver_controller, 8).onTrue(
+        //     new InstantCommand(() -> Elevator.instance.zeroWrist()));
+        
+        // new JoystickButton(codriver_controller, 6).whileTrue(
+        //     Elevator.instance.intakeCoralCmd()
+        //         .beforeStarting(() -> Elevator.instance.setState(TargetState.kSource)));
     }
 
 
