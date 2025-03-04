@@ -7,6 +7,7 @@ import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -32,6 +33,7 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Tracer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -80,13 +82,10 @@ public class SubsystemManager {
     public RobotState m_robot_state = new RobotState();
     public Commands commands = new Commands();
 
-    public Pose2d robot_pose;
-
     public SwerveDrivePoseEstimator pose_estimator;
     
     public VisionTarget tracked_target;
 
-    StructPublisher<Pose2d> adv_pose_pub;
     StructArrayPublisher<Pose3d> adv_components_pub;
 
     public Orchestra orchestra;
@@ -94,13 +93,12 @@ public class SubsystemManager {
     /** Creates a new SubsystemManager. */
     private SubsystemManager() {
 
-        robot_pose = new Pose2d();
         pose_estimator = new SwerveDrivePoseEstimator(
             DriveTrain.instance.kinematics, 
             DriveTrain.instance.getGyroAngle(), 
             DriveTrain.instance.getModulePositions(), 
-            robot_pose, 
-            VecBuilder.fill(0.02, 0.02, 0.02), 
+            Pose2d.kZero, 
+            VecBuilder.fill(0.01, 0.01, 0.01), 
             VecBuilder.fill(0.05, 0.05, 0.05));
 
         setupDashboard();
@@ -113,7 +111,6 @@ public class SubsystemManager {
     public void setupDashboard() {
         NetworkTableInstance inst = NetworkTableInstance.getDefault();
         NetworkTable adv_swerve = inst.getTable("adv_swerve");
-        adv_pose_pub = adv_swerve.getStructTopic("Pose", Pose2d.struct).publish();
         adv_components_pub = adv_swerve.getStructArrayTopic("Component Poses", Pose3d.struct).publish();
     }
 
@@ -129,6 +126,14 @@ public class SubsystemManager {
             DriveTrain.instance.getModulePositions());
     }
 
+    @AutoLogOutput
+    public Pose3d[] getComponentPoses() {
+        return new ArticulatedPose(
+            getPoseEstimate(), 
+            Elevator.instance.getElevatorHeight(), 
+            Elevator.instance.getWristAngle().getRadians()).component_poses();
+    }
+
     /**
      * Returns the current robot speeds for reference for pid control.
      * @return The current robot-relative chassis speeds.
@@ -139,15 +144,13 @@ public class SubsystemManager {
             SwervePIDController.instance.reset_speeds = false;
             return DriveTrain.instance.getOdomSpeeds();
         } else {
-            return DriveTrain.instance.getTargetOdomSpeeds();
+            return DriveTrain.instance.getTargetOdomSpeeds().plus(DriveTrain.instance.getOdomSpeeds()).div(2);
         }
     }
 
     public void update(JoystickInputs stick_inputs) {
 
         Vision.instance.update();
-        // Get odometry readings BEFORE running 
-        robot_pose = getPoseEstimate();
 
         switch (m_robot_state.drive_state) {
 
@@ -162,7 +165,7 @@ public class SubsystemManager {
                 if (tracked_target != null && tracked_target.timeout < AlgaeParams.DETECTION_LIMIT) {
                     SwervePIDController.instance.target_pose = tracked_target.getPose();
 
-                    if (tracked_target.getDistance(robot_pose) < 1.5)
+                    if (tracked_target.getDistance(getPoseEstimate()) < 1.5)
                         Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
 
                     DriveTrain.instance.setSwerveDrive(
@@ -182,8 +185,6 @@ public class SubsystemManager {
                 double stick_a = MathUtil.applyDeadband(-stick_inputs.drive_a(), 0.1, 1)
                      * SwerveConstants.TURN_SPEED;
 
-                double stick_el = stick_inputs.elevator();
-
                 double stick_speed = RobotUtils.hypot(stick_x, stick_y);
                 // Renormalize movement if combined vector is overspeed
                 stick_x *= Math.min(SwerveConstants.DRIVE_SPEED / stick_speed, 1);
@@ -191,14 +192,8 @@ public class SubsystemManager {
 
                 DriveTrain.instance.setSwerveDrive(stick_x, stick_y, stick_a);
         }
-        publishAdv();
-    }
 
-    public void publishAdv() {
-        new ArticulatedPose(getPoseEstimate(), 
-            Elevator.instance.getElevatorHeight(), 
-            Elevator.instance.getWristAngle().getRadians()
-        ).publish(adv_pose_pub, adv_components_pub);
+        Logger.recordOutput("SubsystemManager/DriveState", m_robot_state.drive_state.toString());
     }
 
     public void setupOrchestra() {
@@ -239,7 +234,7 @@ public class SubsystemManager {
         public Command alignReef(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getNearestReefPose,
-                0.05, 
+                0.2,//0.1 
                 with_elevator ? TargetState.kL3 : null);
         }
 

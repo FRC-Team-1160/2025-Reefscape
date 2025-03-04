@@ -1,5 +1,7 @@
 package frc.robot;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;

@@ -3,6 +3,7 @@ package frc.robot;
 import java.io.IOException;
 
 import org.json.simple.parser.ParseException;
+import org.littletonrobotics.junction.AutoLogOutputManager;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
@@ -14,9 +15,12 @@ import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IOConstants;
@@ -27,6 +31,8 @@ import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
+import frc.robot.Subsystems.Vision.ObjectDetection;
+import frc.robot.Subsystems.Vision.Vision;
 
 public 
 class RobotContainer {
@@ -77,6 +83,16 @@ class RobotContainer {
         auto_chooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chooser", auto_chooser);   
         configureBindings();
+
+        AutoLogOutputManager.addObject(SubsystemManager.instance);
+        AutoLogOutputManager.addObject(SwervePIDController.instance);
+        AutoLogOutputManager.addObject(PathplannerController.instance);
+        AutoLogOutputManager.addObject(DriveTrain.instance);
+        AutoLogOutputManager.addObject(Elevator.instance);
+        AutoLogOutputManager.addObject(Funnel.instance);
+        AutoLogOutputManager.addObject(Climber.instance);
+        AutoLogOutputManager.addObject(Vision.instance);
+        AutoLogOutputManager.addObject(ObjectDetection.instance);
     }
 
     public void updateSubsystemManager() {
@@ -138,60 +154,60 @@ class RobotContainer {
         // new JoystickButton(second_stick, 4)
         //     .whileTrue(m_subsystem_manager.commands.alignSource());
         
-        new JoystickButton(main_stick, 6).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runShooter(-0.25), 
-                () -> Elevator.instance.runShooter(0))
-        );
+        // new JoystickButton(main_stick, 6).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runShooter(-0.25), 
+        //         () -> Elevator.instance.runShooter(0))
+        // );
 
-        new JoystickButton(main_stick, 7).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runShooter(0.25), 
-                () -> Elevator.instance.runShooter(0))
-        );
+        // new JoystickButton(main_stick, 7).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runShooter(0.25), 
+        //         () -> Elevator.instance.runShooter(0))
+        // );
 
-        new JoystickButton(main_stick, 10).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runIntake(0.5), 
-                () -> Elevator.instance.runIntake(0))
-        );
+        // new JoystickButton(main_stick, 10).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runIntake(0.5), 
+        //         () -> Elevator.instance.runIntake(0))
+        // );
 
-        new JoystickButton(main_stick, 11).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runIntake(-0.5), 
-                () -> Elevator.instance.runIntake(0))
-        );
+        // new JoystickButton(main_stick, 11).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runIntake(-0.5), 
+        //         () -> Elevator.instance.runIntake(0))
+        // );
 
-        new JoystickButton(second_stick, 6).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runElevator(2), 
-                () -> Elevator.instance.runElevator(0))
-        );
+        // new JoystickButton(second_stick, 6).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runElevator(2), 
+        //         () -> Elevator.instance.runElevator(0))
+        // );
 
-        new JoystickButton(second_stick, 7).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runElevator(-1), 
-                () -> Elevator.instance.runElevator(0))
-        );
+        // new JoystickButton(second_stick, 7).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runElevator(-1), 
+        //         () -> Elevator.instance.runElevator(0))
+        // );
 
-        new JoystickButton(second_stick, 11).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runWrist(1.5), 
-                () -> Elevator.instance.runWrist(0))
-        );
+        // new JoystickButton(second_stick, 11).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runWrist(1.5), 
+        //         () -> Elevator.instance.runWrist(0))
+        // );
 
-        new JoystickButton(second_stick, 10).whileTrue(
-            new StartEndCommand(
-                () -> Elevator.instance.runWrist(-1), 
-                () -> Elevator.instance.runWrist(0))
-        );
+        // new JoystickButton(second_stick, 10).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Elevator.instance.runWrist(-1), 
+        //         () -> Elevator.instance.runWrist(0))
+        // );
 
         new JoystickButton(main_stick, 1)
             .whileTrue(SubsystemManager.instance.commands.alignReef(false));
 
 
-        new JoystickButton(second_stick, 1)
-            .whileTrue(SubsystemManager.instance.commands.trackAlgae());
+        // new JoystickButton(second_stick, 1)
+        //     .whileTrue(SubsystemManager.instance.commands.trackAlgae());
 
 
         // new JoystickButton(simp_stick, 3).whileTrue(new StartEndCommand(
@@ -205,14 +221,14 @@ class RobotContainer {
         // new JoystickButton(codriver_controller, 5).onTrue(
         //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kIntakePrepare)));
 
-        // new JoystickButton(codriver_controller, 3).onTrue(
-        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL1)));
-        // new JoystickButton(codriver_controller, 1).onTrue(
-        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL2)));
-        // new JoystickButton(codriver_controller, 2).onTrue(
-        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)));
-        // new JoystickButton(codriver_controller, 4).onTrue(
-        //     new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)));
+        new JoystickButton(codriver_controller, 3).onTrue(
+            new InstantCommand(() -> Elevator.instance.setState(TargetState.kL1)));
+        new JoystickButton(codriver_controller, 1).onTrue(
+            new InstantCommand(() -> Elevator.instance.setState(TargetState.kL2)));
+        new JoystickButton(codriver_controller, 2).onTrue(
+            new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)));
+        new JoystickButton(codriver_controller, 4).onTrue(
+            new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)));
 
         // new JoystickButton(codriver_controller, 8).whileTrue(
         //     new StartEndCommand(() -> Elevator.instance.runShooter(0.4),
@@ -240,12 +256,26 @@ class RobotContainer {
         // new JoystickButton(codriver_controller, 1).onTrue(
         //     new InstantCommand(DriveTrain.instance::resetGyroAngle));
 
-        // new JoystickButton(codriver_controller, 8).onTrue(
-        //     new InstantCommand(() -> Elevator.instance.zeroWrist()));
+        new JoystickButton(codriver_controller, 8).onTrue(
+            new InstantCommand(() -> Elevator.instance.zeroWrist()));
         
-        // new JoystickButton(codriver_controller, 6).whileTrue(
-        //     Elevator.instance.intakeCoralCmd()
-        //         .beforeStarting(() -> Elevator.instance.setState(TargetState.kSource)));
+        new Trigger(() -> codriver_controller.getRawAxis(3) > 0.8).whileTrue(Commands.either(
+            new StartEndCommand(
+                () -> Elevator.instance.runShooter(0.3), 
+                () -> Elevator.instance.runShooter(0)),
+            Elevator.instance.intakeCoralCmd()
+                .beforeStarting(() -> Elevator.instance.setState(TargetState.kSource)),
+            Elevator.instance::getCoralStored));
+        
+        new Trigger(() -> codriver_controller.getPOV() == 90).onTrue(
+            new InstantCommand(() -> SwervePIDController.instance.align_right = true));
+
+        new Trigger(() -> codriver_controller.getPOV() == 270).onTrue(
+            new InstantCommand(() -> SwervePIDController.instance.align_right = false));
+
+        new Trigger(() -> Math.abs(codriver_controller.getRawAxis(1)) > 0.25).whileTrue(
+            new RunCommand(() -> Elevator.instance.runElevator(0.35 - 1.5 * codriver_controller.getRawAxis(1)))
+                .finallyDo(() -> Elevator.instance.runElevator(0.35)));
     }
 
 

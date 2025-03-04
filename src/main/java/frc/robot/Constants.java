@@ -227,8 +227,8 @@ public final class Constants {
 
         public static class Tracking {
             public static final double MAX_SPEED = 1.0;
-            public static final double MAX_ACCEL = 2.0;
-            public static final double MAX_ANG_SPEED = 2.0;
+            public static final double MAX_ACCEL = 4.0;
+            public static final double MAX_ANG_SPEED = 0.5;
             public static final double MAX_ANG_ACCEL = 4.0;
 
             public static final double DEFAULT_DISTANCE = 0.5;
@@ -241,12 +241,12 @@ public final class Constants {
 
             public static class PIDConstants {
                 public static class Distance {
-                    public static final double kP = 2.0;
+                    public static final double kP = 1.0;
                     public static final double kI = 0;
                     public static final double kD = 0;
                 }
                 public static class Angle {
-                    public static final double kP = 2.0;
+                    public static final double kP = 1.5;
                     public static final double kI = 0;
                     public static final double kD = 0;
                 }
@@ -264,7 +264,7 @@ public final class Constants {
         }
 
         public static class SteerMotorConfigs {
-            public static final double kP = 8;
+            public static final double kP = 12;
             public static final double kI = 0;
             public static final double kD = 0.1;
             public static final double kS = 0.13; //doesnt work?
@@ -279,7 +279,7 @@ public final class Constants {
         /**Max speed of elevator in meters per second. */
         public static final double MAX_SPEED = 0.05;
 
-        public static final double MAX_EXTENSION = 5.2;
+        public static final double MAX_EXTENSION = 5.4;
 
         public static final double MIN_WRIST_ANGLE = Units.degreesToRadians(-20);
         public static final double MAX_WRIST_ANGLE = Units.degreesToRadians(50);
@@ -325,7 +325,7 @@ public final class Constants {
             public static final double kL1 = 0.8; //TUNE
             public static final double kL2 = 1.6; //TUNE
             public static final double kL3 = 3; //TUNE
-            public static final double kL4 = 5.2; //TUNE
+            public static final double kL4 = 5.3; //TUNE
             public static final double kL2Algae = 1.0; //TUNE
             public static final double kL3Algae = 2.4; //TUNE
             public static final double kProcessor = 0.05; 

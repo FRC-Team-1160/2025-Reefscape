@@ -18,14 +18,14 @@ public class ElevatorSimIO extends Elevator {
         wrist_pid = false;
     }
 
-    public void runElevator(double speed) {
-        ele_speed = speed;
+    public double runElevator(double speed) {
         ele_pid = false;
+        return ele_speed = speed;
     }
 
-    public void runWrist(double speed) {
-        wrist_speed = speed;
+    public double runWrist(double speed) {
         wrist_pid = false;
+        return wrist_speed = speed;
     }
 
     protected void runEleMotionMagic(double setpoint) {
@@ -75,6 +75,10 @@ public class ElevatorSimIO extends Elevator {
     }
 
     public void zeroWrist() {}
+
+    public boolean getCoralStored() { return true; }
+
+    public boolean getElevatorZeroed() { return ele_pos == 0; }
 
     @Override
     public void periodic() {

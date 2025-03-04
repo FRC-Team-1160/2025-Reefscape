@@ -31,13 +31,8 @@ public abstract class DriveTrain extends SubsystemBase {
     /** @hidden */
     public SwerveDriveKinematics kinematics;
     /** The desired module states. */
+    @AutoLogOutput
     public SwerveModuleState[] module_states;
-    /** Odometry-based 2d pose. */
-    public Pose2d odom_pose;
-    /** State publisher for AdvantageScope. */
-    protected StructArrayPublisher<SwerveModuleState> real_states_pub, target_states_pub;
-    /** State publisher for AdvantageScope. */
-    protected StructPublisher<Rotation2d> gyro_pub;
 
     /** Creates a new DriveTrain. */
     protected DriveTrain() {
@@ -64,8 +59,6 @@ public abstract class DriveTrain extends SubsystemBase {
                 new SwerveModuleState(),
                 new SwerveModuleState()
         };
-
-        odom_pose = new Pose2d();
 
         setupDashboard();
     }
@@ -163,7 +156,7 @@ public abstract class DriveTrain extends SubsystemBase {
      * Returns the measured swerve module states for odometry and telemetry.
      * @return The measured swerve module states.
      */
-    @AutoLogOutput(key = "Custom/hi2")
+    @AutoLogOutput
     public SwerveModuleState[] getModuleStates() {
         var states = new SwerveModuleState[modules.length];
         for (int i = 0; i < modules.length; i++) {
@@ -195,12 +188,6 @@ public abstract class DriveTrain extends SubsystemBase {
      */
 
     private void setupDashboard() {
-
-        // Instantiate network publishers for advantagescope
-        NetworkTable swerve = NetworkTableInstance.getDefault().getTable("swerve");
-        real_states_pub = swerve.getStructArrayTopic("States", SwerveModuleState.struct).publish();
-        target_states_pub = swerve.getStructArrayTopic("Target States", SwerveModuleState.struct).publish();
-        gyro_pub = swerve.getStructTopic("Gyro", Rotation2d.struct).publish();
 
         // Create swerve drive publishers for elastic dashboard (one time setup, auto-call lambdas)
         SmartDashboard.putData("Swerve Target States", new Sendable() {
@@ -269,11 +256,7 @@ public abstract class DriveTrain extends SubsystemBase {
      * Publishes telemetry readings to AdvantageScope.
      */
 
-    private void publishAdv() {
-        real_states_pub.set(getModuleStates());
-        target_states_pub.set(module_states);
-        gyro_pub.set(getGyroAngle());
-    }
+    private void publishAdv() {}
 
     /**
      * Gets either the measured yaw from the AHRS or the calculated angle from the
@@ -281,7 +264,7 @@ public abstract class DriveTrain extends SubsystemBase {
      * Forward is 0, CCW is positive.
      * @return The robot yaw.
      */
-
+    @AutoLogOutput
     public abstract Rotation2d getGyroAngle();
 
     public abstract void resetGyroAngle();
@@ -301,9 +284,6 @@ public abstract class DriveTrain extends SubsystemBase {
         for (SwerveModule module : modules) {
             module.update();
         }
-        
-        publishAdv();
-
     }
     
 }

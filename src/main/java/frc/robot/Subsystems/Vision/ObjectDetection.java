@@ -9,7 +9,8 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 import org.photonvision.targeting.TargetCorner;
-
+import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.Core;
 import org.opencv.core.CvType;
@@ -47,10 +48,6 @@ public class ObjectDetection {
     private Transform2d camera_transform_left, camera_transform_right;
     /** The current robot pose. */
     public Pose2d robot_pose;
-    /** AdvantageScope publisher. */
-    StructPublisher<Pose3d> adv_closest_pub;
-    /** AdvantageScope publisher. */
-    StructArrayPublisher<Pose3d> adv_tracked_pub;
     /** List of targets that are being tracked. */
     public List<VisionTarget> tracked_targets;
 
@@ -74,12 +71,7 @@ public class ObjectDetection {
 
         camera_transform_left = new Transform2d(LeftCamera.X, LeftCamera.Y, Rotation2d.fromRadians(LeftCamera.YAW));
         camera_transform_right = new Transform2d(RightCamera.X, RightCamera.Y, Rotation2d.fromRadians(RightCamera.YAW));
-
-        NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
-
-        adv_closest_pub = adv_vision.getStructTopic("Closest", Pose3d.struct).publish();
-        adv_tracked_pub = adv_vision.getStructArrayTopic("Tracked", Pose3d.struct).publish();
-
+        
         tracked_targets = new ArrayList<VisionTarget>();
 
         // Generate 3 random vision targets for testing
@@ -133,9 +125,6 @@ public class ObjectDetection {
      * @return The lateral distance to the target in meters.
      */
     public double getLateralDistance(double normal_distance, int x_center) {
-        SmartDashboard.putNumber("tan", Math.tan(VisionConstants.CAMERA_X_FOV/2) * 2);
-        SmartDashboard.putNumber("x_rat", (x_center / VisionConstants.SCREEN_WIDTH - 0.5));
-        SmartDashboard.putNumber("vibe check", Math.random());
         return normal_distance 
             * Math.tan(VisionConstants.CAMERA_X_FOV/2) * 2
             * -((double) x_center / VisionConstants.SCREEN_WIDTH - 0.5);
@@ -170,9 +159,6 @@ public class ObjectDetection {
             getLateralDistance(n_dist, x_center),
             new Rotation2d()
         );
-        SmartDashboard.putNumber("center", x_center);
-        SmartDashboard.putNumber("normal distance", n_dist);
-        SmartDashboard.putNumber("lateral distance", target_transform.getY());
 
         target_transform = robot_transform.plus(camera_transform).plus(target_transform);
         return new Pose2d(target_transform.getTranslation(), target_transform.getRotation());
@@ -200,13 +186,13 @@ public class ObjectDetection {
     /** @hidden */
     public void publishAdv() {
         getClosestTarget().ifPresent(
-            target -> adv_closest_pub.set(target.getPose3d()));
+            target -> Logger.recordOutput("ObjectDetection/Closest Target", target.getPose3d()));
 
         Pose3d[] target_poses = new Pose3d[tracked_targets.size()];
         for (int i = 0; i < tracked_targets.size(); i++) {
             target_poses[i] = tracked_targets.get(i).getPose3d();
         }
-        adv_tracked_pub.set(target_poses);
+        Logger.recordOutput("ObjectDetection/Tracked Targets", target_poses);
     }
 
     public void updateTrackedObjects(PhotonPipelineResult pipeline_result, Transform2d camera_transform) {

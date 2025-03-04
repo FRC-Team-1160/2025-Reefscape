@@ -6,7 +6,7 @@ import frc.robot.Constants.PortConstants;
 
 public class FunnelRealIO extends Funnel {
 
-    public Servo servo_left, servo_right;
+    private Servo servo_left, servo_right;
 
     protected FunnelRealIO() {
         servo_left = new Servo(1);
@@ -24,7 +24,5 @@ public class FunnelRealIO extends Funnel {
     @Override
     public void periodic() {
         super.periodic();
-        SmartDashboard.putNumber("Servo position left", servo_right.getPosition());
-        SmartDashboard.putNumber("Servo position right", servo_right.getPosition());
     }
 }

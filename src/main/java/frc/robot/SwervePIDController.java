@@ -4,6 +4,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
@@ -37,8 +38,6 @@ public class SwervePIDController {
 
     public static SwervePIDController instance = new SwervePIDController();
 
-	StructPublisher<Pose2d> adv_goal_pose_pub;
-
 	PIDController dist_pid_controller, ang_pid_controller;
 
     public Pose2d target_pose;
@@ -49,13 +48,14 @@ public class SwervePIDController {
 
     public boolean done;
 
+    public boolean align_right;
+
     public static class FieldPositions {
         static Pose2d[] reef, source;
         static Pose2d processor;
     }
 
     private SwervePIDController() {
-
         target_pose = new Pose2d();
 
         dist_pid_controller = new PIDController(Distance.kP, Distance.kI, Distance.kD);
@@ -67,28 +67,29 @@ public class SwervePIDController {
 
         target_distance = 0;
 
-        NetworkTable adv_vision = NetworkTableInstance.getDefault().getTable("adv_vision");
-        adv_goal_pose_pub = adv_vision.getStructTopic("Goal Pose", Pose2d.struct).publish();
-
         reset_speeds = true;
         done = false;
+        align_right = true;
 
         fillFieldPositions();
     }
 
     private void fillFieldPositions() {
-        FieldPositions.reef = new Pose2d[Reef.NUM_SIDES];
+        FieldPositions.reef = new Pose2d[Reef.NUM_SIDES * 3];
         Rotation2d angle = Rotation2d.kPi;
         for (int i = 0; i < Reef.NUM_SIDES; i++) {
-            FieldPositions.reef[i] = new Pose2d(
+            Pose2d center = new Pose2d(
                 Reef.CENTER_X,
                 Reef.CENTER_Y,
                 angle).plus(new Transform2d(
                         Reef.INNER_RADIUS + RobotConstants.BASE_WIDTH / 2,
-                        0.2,
+                        0,
                         Rotation2d.kPi
                     )
                 );
+            FieldPositions.reef[3*i + 1] = center;
+            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.18, Rotation2d.kZero));
+            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.18, Rotation2d.kZero));
             angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
@@ -118,7 +119,6 @@ public class SwervePIDController {
      * Returns the closest reef face to the robot. The driverstation-oriented face is 0, and the rest are numbered CCW increasing.
      * @return The number corresponding the closest reef face.
      */
-    @AutoLogOutput(key = "Custom/Face")
     public int getNearestReefFace() {
         Logger.recordOutput("FaceTest", 2);
         Translation2d robot_position = SubsystemManager.instance.getPoseEstimate().getTranslation();
@@ -131,9 +131,12 @@ public class SwervePIDController {
         return (int) Math.floor(6 * ((reef_angle.getRotations() + 1 + 0.5 / Reef.NUM_SIDES) % 1));
     }
 
-    @AutoLogOutput(key = "Custom/ReefPose")
+    public Pose2d getNearestReefPose(int offset) {
+        return FieldPositions.reef[3 * getNearestReefFace() + 1 + offset];
+    }
+
     public Pose2d getNearestReefPose() {
-        return FieldPositions.reef[getNearestReefFace()];
+        return getNearestReefPose(align_right ? 1 : -1);
     }
 
     public Pose2d getProcessorPose(){
@@ -228,7 +231,7 @@ public class SwervePIDController {
             )
         );
 
-        adv_goal_pose_pub.set(goal_pose);
+        Logger.recordOutput("SwervePIDController/Goal Pose", goal_pose);
 
         // Find goal to robot translation
         Translation2d goal_off = robot_pose.getTranslation().minus(goal_pose.getTranslation())
@@ -236,7 +239,7 @@ public class SwervePIDController {
 
         // Get PID forward speed and normalize
         SmartDashboard.putNumber("error", goal_off.getNorm());
-        done = goal_off.getNorm() < 0.05 && ang_pid_controller.atSetpoint();
+        done = goal_off.getNorm() < 0.03 && ang_pid_controller.atSetpoint();
         goal_off = goal_off.times(dist_pid_controller.calculate(goal_off.getNorm(), 0) / goal_off.getNorm());
 
         return applyMovementConstraints(new ChassisSpeeds(

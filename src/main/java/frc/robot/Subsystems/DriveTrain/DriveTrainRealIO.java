@@ -33,7 +33,7 @@ public class DriveTrainRealIO extends DriveTrain {
     public List<TalonFX> getTalons() {
         List<TalonFX> talons = new ArrayList<TalonFX>();
         for (SwerveModule module : modules) {
-            talons.addAll(((SwerveModuleRealIO)module).getTalons());
+            talons.addAll(((SwerveModuleRealIO) module).getTalons());
         }
         return talons;
     }

@@ -3,6 +3,8 @@ package frc.robot.Subsystems.Elevator;
 import java.util.Arrays;
 import java.util.List;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -41,6 +43,7 @@ import frc.robot.Constants.ElevatorConstants.ElevatorConfigs;
 import frc.robot.Constants.ElevatorConstants.ElevatorMotionMagic;
 import frc.robot.Constants.ElevatorConstants.WristConfigs;
 import frc.robot.Constants.ElevatorConstants.WristMotionMagic;
+import frc.robot.Constants.ElevatorConstants.WristSetpoints;
 
 
 public class ElevatorRealIO extends Elevator {
@@ -115,18 +118,14 @@ public class ElevatorRealIO extends Elevator {
         // wrist_setpoint = wrist_motor.getPosition().getValueAsDouble();
     }
 
-    public void runElevator(double speed) {
-        SmartDashboard.putNumber("Elevator volts", speed);
-        // ele_motor.setControl(new VoltageOut(speed));
-        // ele_motor.setControl(new VoltageOut(speed + 0.2));
-        // ele_motor_left.setControl(new VoltageOut(speed + Math.signum(speed) * ElevatorConfigs.kS + ElevatorConfigs.kG));
+    public double runElevator(double speed) {
+        ele_motor.setControl(new VoltageOut(speed));
+        return speed;
     }
 
-    public void runWrist(double speed) {
-        SmartDashboard.putNumber("Wrist volts", speed);
-        // wrist_motor.setControl(new VoltageOut(speed));
-        // wrist_motor.setControl(new VoltageOut(speed + 0.1));
-        // wrist_motor.setControl(new VoltageOut(speed + Math.signum(speed) * WristConfigs.kS));
+    public double runWrist(double speed) {
+        wrist_motor.setControl(new VoltageOut(speed));
+        return speed;
     }
 
     //DON'T ACTIVATE UNTIL FULLY TUNED
@@ -157,7 +156,8 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void zeroWrist() {
-        wrist_motor.setPosition(0);
+        System.out.println("YAYAYAY");
+        wrist_motor.setPosition(0.195);
     }
 
     // public Command intakeCoralCmd() {
@@ -172,7 +172,23 @@ public class ElevatorRealIO extends Elevator {
     public Command intakeCoralCmd() {
         return Commands.sequence(
             new InstantCommand(() -> runShooter(0.25)),
-            new WaitUntilCommand(() -> !coral_switch.get()),
+            new WaitUntilCommand(this::getCoralStored),
+            new WaitCommand(0.2)
+        ).finallyDo(() -> runShooter(0));
+    }
+
+    public Command intakeCoralSequence() {
+        return Commands.sequence(
+            new InstantCommand(() -> {
+                setState(TargetState.kSource);
+                runShooter(0.25);
+            }),
+            new WaitUntilCommand(this::getCoralStored),
+            new WaitCommand(0.3),
+            new InstantCommand(() -> {
+                runShooter(-0.15);
+                setWristSetpoint(WristSetpoints.kReefCoral);
+            }),
             new WaitCommand(0.2)
         ).finallyDo(() -> runShooter(0));
     }
@@ -190,22 +206,32 @@ public class ElevatorRealIO extends Elevator {
         return Arrays.asList(ele_motor, wrist_motor);
     }
 
+    public boolean getCoralStored() {
+        return !coral_switch.get();
+    }
+
+    public boolean getElevatorZeroed() {
+        return !elevator_switch.get();
+    }
+
     @Override
     public void periodic() {
 
-        SmartDashboard.putBoolean("switch", coral_switch.get());
-
-        if (elevator_switch.get()) {
+        if (!elevator_switch.get()) {
             if (update_zero) {
                 ele_motor.setPosition(0);
                 update_zero = false;
             }
+        } else {
+            update_zero = true;
         }
 
         if (ele_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled
                 && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.5) < 0.05
                 && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.05) {
-            // ele_motor.setControl(new VoltageOut(0.35));
+            ele_motor.setControl(new VoltageOut(0.35));
+        } else if (ele_motor.getPosition().getValueAsDouble() < 0) {
+            ele_motor.setPosition(0);
         }
 
         if (DriverStation.isDisabled()) {

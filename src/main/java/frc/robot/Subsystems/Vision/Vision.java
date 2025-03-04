@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -50,6 +51,7 @@ public class Vision {
 
     Pose3d[] apriltags_map;
 
+    @AutoLogOutput
     CameraMode m_camera_mode;
 
     Pose2d robot_pose;
@@ -201,7 +203,6 @@ public class Vision {
      * @param mode The mode for the two cameras.
      */
     public void setCameraPipelines(CameraMode mode) {
-        SmartDashboard.putString("Camera Mode", mode.toString());
         if (mode == m_camera_mode || Robot.isSimulation()) return;
         // Don't reset if already on this pipeline.
         if (camera_left.getPipelineIndex() != mode.left) camera_left.setPipelineIndex(mode.left);

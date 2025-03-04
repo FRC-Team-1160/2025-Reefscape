@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.Volts;
 
 import java.util.function.Supplier;
 
+import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
@@ -92,7 +93,6 @@ abstract public class Elevator extends SubsystemBase {
     public void setState(TargetState state) {
         if (state == null) return;
         m_current_state = state;
-        SmartDashboard.putString("Elevator State", m_current_state.toString());
         setElevatorSetpoint(state.elevator_setpoint);
         if (state.wrist_setpoint != null) setWristSetpoint(state.wrist_setpoint);
     }
@@ -117,8 +117,10 @@ abstract public class Elevator extends SubsystemBase {
     }
 
     // VoltageOut() methods
-    public abstract void runElevator(double speed);
-    public abstract void runWrist(double speed);
+    @AutoLogOutput
+    public abstract double runElevator(double speed);
+    @AutoLogOutput
+    public abstract double runWrist(double speed);
     // PID set methods
     protected abstract void runEleMotionMagic(double setpoint);
     protected abstract void runWristMotionMagic(double setpoint);
@@ -126,7 +128,9 @@ abstract public class Elevator extends SubsystemBase {
     public abstract void runIntake(double speed);
     public abstract void runShooter(double speed);
     // Getters
+    @AutoLogOutput
     public abstract double getElevatorHeight();
+    @AutoLogOutput
     public abstract Rotation2d getWristAngle();
 
     public abstract Command intakeCoralCmd();
@@ -134,8 +138,14 @@ abstract public class Elevator extends SubsystemBase {
 
     public abstract void zeroWrist();
 
+    @AutoLogOutput
+    public abstract boolean getCoralStored();
+    @AutoLogOutput
+    public abstract boolean getElevatorZeroed();
+
     @Override
     public void periodic() {
+        Logger.recordOutput("Elevator/State", m_current_state.toString());
 
     }
 
