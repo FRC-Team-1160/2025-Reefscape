@@ -138,6 +138,16 @@ public class ElevatorRealIO extends Elevator {
         wrist_motor.setControl(new MotionMagicVoltage(setpoint));
     }
 
+    public void changeWristSetpoint(double rate) {
+        if (wrist_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled) {
+            wrist_motor.setControl(new MotionMagicVoltage(
+                wrist_motor.getClosedLoopReference().getValueAsDouble() + rate * 0.02));
+        } else {
+            wrist_motor.setControl(new MotionMagicVoltage(
+                wrist_motor.getPosition().getValueAsDouble() + rate * 0.02));
+        }
+    }
+
     public void runIntake(double speed) {
         intake_motor.set(speed);
     }
@@ -195,11 +205,12 @@ public class ElevatorRealIO extends Elevator {
 
     public Command intakeAlgaeCmd() {
         return Commands.sequence(
-            new InstantCommand(() -> runIntake(0.7)),
+            new InstantCommand(() -> runIntake(-0.7)),
             new WaitCommand(0.1),
             new WaitUntilCommand(() -> intake_motor.getOutputCurrent() > 11),
-            new WaitCommand(1.4)
-        ).finallyDo(() -> runShooter(0));
+            new InstantCommand(() -> runIntake(-0.3)),
+            new WaitCommand(1)
+        ).finallyDo(() -> runIntake(0));
     }
 
     public List<TalonFX> getTalons() {

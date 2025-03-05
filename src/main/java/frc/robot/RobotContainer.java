@@ -28,6 +28,7 @@ import frc.robot.SubsystemManager.RobotState.ElevatorStates;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
+import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
@@ -43,7 +44,7 @@ class RobotContainer {
     private Joystick second_stick = new Joystick(IOConstants.COPILOT_PORT);
     private Joystick left_board = new Joystick(IOConstants.LEFT_BOARD_PORT);
     private Joystick right_board = new Joystick(IOConstants.RIGHT_BOARD_PORT);
-    private Joystick simp_stick = new Joystick(4);
+    private Joystick simp_stick = new Joystick(3);
     private Joystick codriver_controller = new Joystick(5);
 
     private final SendableChooser<Command> auto_chooser;
@@ -96,16 +97,16 @@ class RobotContainer {
     }
 
     public void updateSubsystemManager() {
-        SubsystemManager.instance.update(new JoystickInputs(
-            main_stick.getRawAxis(1), 
-            main_stick.getRawAxis(0), 
-            second_stick.getRawAxis(0), 
-            right_board.getRawAxis(0)));
         // SubsystemManager.instance.update(new JoystickInputs(
-        //     codriver_controller.getRawAxis(5), 
-        //     codriver_controller.getRawAxis(4), 
-        //     codriver_controller.getRawAxis(0), 
+        //     main_stick.getRawAxis(1), 
+        //     main_stick.getRawAxis(0), 
+        //     second_stick.getRawAxis(0), 
         //     right_board.getRawAxis(0)));
+        SubsystemManager.instance.update(new JoystickInputs(
+            simp_stick.getRawAxis(5), 
+            simp_stick.getRawAxis(4), 
+            simp_stick.getRawAxis(0), 
+            right_board.getRawAxis(0)));
 
 
     }
@@ -119,8 +120,55 @@ class RobotContainer {
                 () -> Elevator.instance.runShooter(0.5),
                 () -> Elevator.instance.runShooter(0)));
 
-        new JoystickButton(simp_stick, 4)
-            .whileTrue(SubsystemManager.instance.commands.trackAlgae());
+        new JoystickButton(simp_stick, 7).onTrue(
+            new InstantCommand(Elevator.instance::zeroWrist));
+
+        new JoystickButton(simp_stick, 8).onTrue(
+            new InstantCommand(DriveTrain.instance::resetGyroAngle));
+
+        new JoystickButton(simp_stick, 4).whileTrue(
+            new StartEndCommand(
+                () -> Climber.instance.runClimber(3), 
+                () -> Climber.instance.runClimber(0)
+            )
+        );
+
+        new Trigger(() -> simp_stick.getRawAxis(3) > 0.8).whileTrue(
+            Elevator.instance.intakeAlgaeCmd()
+        );
+
+        new Trigger(() -> simp_stick.getRawAxis(2) > 0.8).whileTrue(
+            new StartEndCommand(() -> Elevator.instance.runIntake(0.5),
+            () -> Elevator.instance.runIntake(0))
+        );
+
+        new Trigger(() -> simp_stick.getPOV() == 0).whileTrue(
+            new StartEndCommand(() -> Elevator.instance.runWrist(1),
+            () -> ((ElevatorRealIO) Elevator.instance).changeWristSetpoint(0)));
+
+        new Trigger(() -> simp_stick.getPOV() == 180).whileTrue(
+            new StartEndCommand(() -> Elevator.instance.runWrist(-1),
+            () -> ((ElevatorRealIO) Elevator.instance).changeWristSetpoint(0)));
+
+        new Trigger(() -> simp_stick.getPOV() == 90).whileTrue(
+            new StartEndCommand(() -> Elevator.instance.runElevator(2),
+            () -> Elevator.instance.runElevator(0.4)));
+    
+        new Trigger(() -> simp_stick.getPOV() == 270).whileTrue(
+            new StartEndCommand(() -> Elevator.instance.runElevator(-1),
+            () -> Elevator.instance.runElevator(0.4)));
+    
+        new JoystickButton(simp_stick, 1).whileTrue(
+            new StartEndCommand(
+                () -> Climber.instance.runClimber(-3), 
+                () -> Climber.instance.runClimber(0)
+            )
+        );
+
+        new JoystickButton(simp_stick, 6).onTrue(
+            new InstantCommand(() -> Elevator.instance.setState(TargetState.kBarge))
+        );
+
         
         // new JoystickButton(second_stick, 2)
         //     .whileTrue(m_subsystem_manager.commands.alignProcessor());
@@ -210,10 +258,10 @@ class RobotContainer {
         //     .whileTrue(SubsystemManager.instance.commands.trackAlgae());
 
 
-        // new JoystickButton(simp_stick, 3).whileTrue(new StartEndCommand(
-        //     () -> Funnel.instance.setState(FunnelState.kDown),
-        //     () -> Funnel.instance.setState(FunnelState.kUp))
-        // );
+        new JoystickButton(simp_stick, 3).whileTrue(new StartEndCommand(
+            () -> Funnel.instance.setState(FunnelState.kDown),
+            () -> Funnel.instance.setState(FunnelState.kUp))
+        );
 
         // new JoystickButton(main_stick, 9).onTrue(
         //     new InstantCommand(() -> Elevator.instance.zeroWrist()));

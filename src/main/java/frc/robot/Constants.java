@@ -333,7 +333,7 @@ public final class Constants {
             public static final double kSource = 0.35;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
-            public static final double kBarge = 1.6; //TUNE
+            public static final double kBarge = 5.3; //TUNE
         }
         // TUNE
         public static class WristSetpoints {
@@ -344,7 +344,7 @@ public final class Constants {
             public static final Double kSource = 0.18;
             public static final double kIntake = 0;
             public static final double kIntakePrepare = 0.0;
-            public static final double kBarge = 0.14;
+            public static final Double kBarge = null;
         }
     }
 
