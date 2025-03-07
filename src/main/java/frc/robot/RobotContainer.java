@@ -97,16 +97,16 @@ class RobotContainer {
     }
 
     public void updateSubsystemManager() {
-        // SubsystemManager.instance.update(new JoystickInputs(
-        //     main_stick.getRawAxis(1), 
-        //     main_stick.getRawAxis(0), 
-        //     second_stick.getRawAxis(0), 
-        //     right_board.getRawAxis(0)));
         SubsystemManager.instance.update(new JoystickInputs(
-            simp_stick.getRawAxis(5), 
-            simp_stick.getRawAxis(4), 
-            simp_stick.getRawAxis(0), 
+            main_stick.getRawAxis(1), 
+            main_stick.getRawAxis(0), 
+            second_stick.getRawAxis(0), 
             right_board.getRawAxis(0)));
+        // SubsystemManager.instance.update(new JoystickInputs(
+        //     simp_stick.getRawAxis(5), 
+        //     simp_stick.getRawAxis(4), 
+        //     simp_stick.getRawAxis(0), 
+        //     right_board.getRawAxis(0)));
 
 
     }
@@ -126,12 +126,12 @@ class RobotContainer {
         new JoystickButton(simp_stick, 8).onTrue(
             new InstantCommand(DriveTrain.instance::resetGyroAngle));
 
-        new JoystickButton(simp_stick, 4).whileTrue(
-            new StartEndCommand(
-                () -> Climber.instance.runClimber(3), 
-                () -> Climber.instance.runClimber(0)
-            )
-        );
+        // new JoystickButton(simp_stick, 4).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Climber.instance.runClimber(3), 
+        //         () -> Climber.instance.runClimber(0)
+        //     )
+        // );
 
         new Trigger(() -> simp_stick.getRawAxis(3) > 0.8).whileTrue(
             Elevator.instance.intakeAlgaeCmd()
@@ -158,12 +158,12 @@ class RobotContainer {
             new StartEndCommand(() -> Elevator.instance.runElevator(-1),
             () -> Elevator.instance.runElevator(0.4)));
     
-        new JoystickButton(simp_stick, 1).whileTrue(
-            new StartEndCommand(
-                () -> Climber.instance.runClimber(-3), 
-                () -> Climber.instance.runClimber(0)
-            )
-        );
+        // new JoystickButton(simp_stick, 1).whileTrue(
+        //     new StartEndCommand(
+        //         () -> Climber.instance.runClimber(-3), 
+        //         () -> Climber.instance.runClimber(0)
+        //     )
+        // );
 
         new JoystickButton(simp_stick, 6).onTrue(
             new InstantCommand(() -> Elevator.instance.setState(TargetState.kBarge))
@@ -309,10 +309,13 @@ class RobotContainer {
         
         new Trigger(() -> codriver_controller.getRawAxis(3) > 0.8).whileTrue(Commands.either(
             new StartEndCommand(
-                () -> Elevator.instance.runShooter(0.3), 
-                () -> Elevator.instance.runShooter(0)),
-            Elevator.instance.intakeCoralCmd()
-                .beforeStarting(() -> Elevator.instance.setState(TargetState.kSource)),
+                () -> Elevator.instance.runShooter(0.3),
+                () -> Elevator.instance.runShooter(0)
+            ),
+            new InstantCommand(() -> Elevator.instance.runElevator(-0.1))
+                .until(Elevator.instance::getElevatorZeroed)
+                .andThen(new InstantCommand(() -> Elevator.instance.setState(TargetState.kSource)))
+                .andThen(Elevator.instance.intakeCoralCmd()),
             Elevator.instance::getCoralStored));
         
         new Trigger(() -> codriver_controller.getPOV() == 90).onTrue(
@@ -324,6 +327,12 @@ class RobotContainer {
         new Trigger(() -> Math.abs(codriver_controller.getRawAxis(1)) > 0.25).whileTrue(
             new RunCommand(() -> Elevator.instance.runElevator(0.35 - 1.5 * codriver_controller.getRawAxis(1)))
                 .finallyDo(() -> Elevator.instance.runElevator(0.35)));
+        
+        new Trigger(() -> Math.abs(codriver_controller.getRawAxis(5)) > 0.2).whileTrue(
+            new InstantCommand(() -> Elevator.instance.runWrist(-codriver_controller.getRawAxis(5)))
+        ).onFalse(
+            new InstantCommand(() -> Elevator.instance.runWrist(0))
+        );
     }
 
 

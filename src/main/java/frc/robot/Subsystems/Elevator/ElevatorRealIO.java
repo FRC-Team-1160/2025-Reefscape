@@ -35,6 +35,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.ElevatorConstants;
@@ -167,7 +169,8 @@ public class ElevatorRealIO extends Elevator {
 
     public void zeroWrist() {
         System.out.println("YAYAYAY");
-        wrist_motor.setPosition(0.195);
+        // wrist_motor.setPosition(0.195);
+        wrist_motor.setPosition(0.0);
     }
 
     // public Command intakeCoralCmd() {
@@ -181,9 +184,9 @@ public class ElevatorRealIO extends Elevator {
 
     public Command intakeCoralCmd() {
         return Commands.sequence(
-            new InstantCommand(() -> runShooter(0.25)),
+            new InstantCommand(() -> runShooter(0.2)),
             new WaitUntilCommand(this::getCoralStored),
-            new WaitCommand(0.2)
+            new WaitCommand(0.1)
         ).finallyDo(() -> runShooter(0));
     }
 

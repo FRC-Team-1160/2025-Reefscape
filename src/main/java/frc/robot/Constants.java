@@ -309,7 +309,7 @@ public final class Constants {
             public static final double kS = 0.1;
             public static final double kV = 7.5;
             public static final double kA = 0;
-            public static final double kG = 0.18;
+            public static final double kG = 0.17;
         }
 
         public static class WristMotionMagic {
@@ -330,18 +330,19 @@ public final class Constants {
             public static final double kL3Algae = 2.4; //TUNE
             public static final double kProcessor = 0.05; 
             public static final double kStow = 0.05;
-            public static final double kSource = 0.35;
+            public static final double kSource = 0.589;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
             public static final double kBarge = 5.3; //TUNE
         }
         // TUNE
         public static class WristSetpoints {
-            public static final double kReefCoral = 0.18;
+            // public static final double kReefCoral = 0.18;
+            public static final double kReefCoral = -0.1;
             public static final double kReefAlgae = 0.08;
             public static final double kProcessor = 0.12;
             public static final double kStow = 0.19;
-            public static final Double kSource = 0.18;
+            public static final double kSource = 0; // used to be 0.18
             public static final double kIntake = 0;
             public static final double kIntakePrepare = 0.0;
             public static final Double kBarge = null;
