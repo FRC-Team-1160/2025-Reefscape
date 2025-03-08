@@ -332,7 +332,7 @@ public final class Constants {
             public static final double kL3Algae = 2.7; //TUNE
             public static final double kProcessor = 0.05; 
             public static final double kStow = 0.01;
-            public static final double kSource = 0.35;
+            public static final double kSource = 0.36;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
             public static final double kBarge = 5.2; //TUNE
