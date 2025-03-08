@@ -1,5 +1,7 @@
 package frc.robot;
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 
 import edu.wpi.first.math.MathUtil;
@@ -11,6 +13,8 @@ import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
 
@@ -45,6 +49,11 @@ public final class RobotUtils {
         return isRedAlliance() ? -x : x;
     }
 
+    public static Command onOffCommand(Consumer<Double> consumer, double value) {
+        return new StartEndCommand(() -> consumer.accept(value), () -> consumer.accept(0.0));
+    }
+
+
     public record ArticulatedPose(Pose2d robot_pose, Pose3d[] component_poses) {
 
         private final static Pose3d[] zero_poses = new Pose3d[] {
@@ -78,4 +87,5 @@ public final class RobotUtils {
             components_pub.set(component_poses);
         }
     }
+
 }

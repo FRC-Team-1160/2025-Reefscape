@@ -39,6 +39,10 @@ public class ElevatorSimIO extends Elevator {
         }
     }
 
+    public void stopElevator() {
+        ele_speed = 0;
+    }
+
     protected void runWristMotionMagic(double setpoint) {
         wrist_pid = true;
         if (wrist_setpoint == setpoint) return;
@@ -48,6 +52,10 @@ public class ElevatorSimIO extends Elevator {
         } else {
             wrist_speed = 0;
         }
+    }
+
+    public void stopWrist() {
+        wrist_speed = 0;
     }
 
     public void runIntake(double speed) {
@@ -73,6 +81,8 @@ public class ElevatorSimIO extends Elevator {
     public Command intakeAlgaeCmd() {
         return Commands.none();
     }
+
+    public Command intakeCoralSequence() { return Commands.none(); }
 
     public void zeroWrist() {}
 

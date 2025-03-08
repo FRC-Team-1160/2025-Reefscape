@@ -5,6 +5,8 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.lang.annotation.Target;
+import java.util.HashMap;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -27,6 +29,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
@@ -68,11 +71,11 @@ abstract public class Elevator extends SubsystemBase {
 
         public enum AlignCommand {
             kNone(() -> Commands.none()),
-            kProcessor(() -> SubsystemManager.instance.commands.alignProcessor(false)),
-            kSource(() -> SubsystemManager.instance.commands.alignSource(false)),
+            kProcessor(() -> Commands.none()),
+            kSource(() -> Commands.none()),
             kReefCoral(() -> SubsystemManager.instance.commands.alignReef(false)),
             kReefAlgae(() -> Commands.none()),
-            kGround(() -> Commands.none());
+            kGround(() -> SubsystemManager.instance.commands.trackAlgae());
 
             public final Supplier<Command> command_supplier;
 
@@ -116,6 +119,10 @@ abstract public class Elevator extends SubsystemBase {
                 ElevatorConstants.MAX_WRIST_ANGLE));
     }
 
+    public Command setStateCmd(TargetState state) {
+        return new InstantCommand(() -> setState(state));
+    }
+
     // VoltageOut() methods
     @AutoLogOutput
     public abstract double runElevator(double speed);
@@ -124,6 +131,8 @@ abstract public class Elevator extends SubsystemBase {
     // PID set methods
     protected abstract void runEleMotionMagic(double setpoint);
     protected abstract void runWristMotionMagic(double setpoint);
+    public abstract void stopElevator();
+    public abstract void stopWrist();
     // Spark set methods
     public abstract void runIntake(double speed);
     public abstract void runShooter(double speed);
@@ -134,6 +143,7 @@ abstract public class Elevator extends SubsystemBase {
     public abstract Rotation2d getWristAngle();
 
     public abstract Command intakeCoralCmd();
+    public abstract Command intakeCoralSequence();
     public abstract Command intakeAlgaeCmd();
 
     public abstract void zeroWrist();

@@ -19,7 +19,7 @@ public final class Constants {
     public static class RobotConstants {
         public static final double LOOP_TIME_SECONDS = 0.02;
 
-        public static final double BASE_WIDTH = Units.inchesToMeters(29.5);
+        public static final double BASE_WIDTH = 0.9;
 
         public static final class ComponentZeroPoses {
             public static final Pose3d ELEVATOR_STAGE = new Pose3d(0.141, 0, 0.125, new Rotation3d());
@@ -120,7 +120,7 @@ public final class Constants {
             /** The maximum range for following targets */
             public final static double MAX_TRACKING_DISTANCE = 4.0;
             /** Time until targets are no longer tracked after not being seen */
-            public final static double TRACKING_TIMEOUT = 15.0;
+            public final static double TRACKING_TIMEOUT = 10.0;
             /** Number of undetected frames before target is no longer tracked. */
             public final static int DETECTION_LIMIT = 3;
             /** Allowed angular error to match targets as the same (in radians). */
@@ -135,23 +135,23 @@ public final class Constants {
         
         public static class CameraTransforms {
             public static class LeftCamera {
-                public static final double X = Units.inchesToMeters(2.5);
-                public static final double Y = 0.24;
+                public static final double X = 0.15;
+                public static final double Y = 0.3;
                 public static final double Z = Units.inchesToMeters(11.0);
 
                 public static final double ROLL = 0;
                 public static final double PITCH = 0;
-                public static final double YAW = Units.degreesToRadians(-17);
+                public static final double YAW = Units.degreesToRadians(-20);
             }
 
             public static class RightCamera {
-                public static final double X = Units.inchesToMeters(2.5);
-                public static final double Y = -0.24;
+                public static final double X = 0.15;
+                public static final double Y = -0.3;
                 public static final double Z = Units.inchesToMeters(11.0);
 
                 public static final double ROLL = 0;
                 public static final double PITCH = 0;
-                public static final double YAW = Units.degreesToRadians(17);
+                public static final double YAW = Units.degreesToRadians(20);
             }
 
             public static class BackCamera {
@@ -217,7 +217,7 @@ public final class Constants {
     public static class SwerveConstants {
         public static final double WHEEL_DIAMETER = Units.inchesToMeters(4) * Math.PI;
         public static final double GEAR_RATIO = 5.01;
-        public static final double OFFSET = Units.inchesToMeters(23.75);
+        public static final double OFFSET = 0.31;
 
         public static final double MAX_SPEED = 3;
         public static final double MAX_STEER_SPEED = 2;
@@ -226,22 +226,24 @@ public final class Constants {
         public static final double TURN_SPEED = 1.0;
 
         public static class Tracking {
-            public static final double MAX_SPEED = 1.0;
-            public static final double MAX_ACCEL = 4.0;
-            public static final double MAX_ANG_SPEED = 0.5;
-            public static final double MAX_ANG_ACCEL = 4.0;
+            public static final double MAX_SPEED = 3;
+            public static final double MAX_ACCEL = 5.0;
+            public static final double MAX_DECEL = 8.0;
+            public static final double MAX_ANG_SPEED = 2.5;
+            public static final double MAX_ANG_ACCEL = 6.0;
+            public static final double MAX_ANG_DECEL = 15.0;
 
             public static final double DEFAULT_DISTANCE = 0.5;
 
-            public static final double MAX_ALIGN_SEPARATION = 2.0;
-            public static final double ALIGN_SEPARATION_TOLERANCE = 0.2;
+            public static final double MAX_ALIGN_SEPARATION = 0.5;
+            public static final double ALIGN_SEPARATION_TOLERANCE = 0.15;
 
             public static final double ANGLE_TOLERANCE = Units.degreesToRadians(5);
-            public static final double DISTANCE_TOLERANCE = 0.1;
+            public static final double DISTANCE_TOLERANCE = 0.03;
 
             public static class PIDConstants {
                 public static class Distance {
-                    public static final double kP = 1.0;
+                    public static final double kP = 1.5;
                     public static final double kI = 0;
                     public static final double kD = 0;
                 }
@@ -264,7 +266,7 @@ public final class Constants {
         }
 
         public static class SteerMotorConfigs {
-            public static final double kP = 12;
+            public static final double kP = 15;
             public static final double kI = 0;
             public static final double kD = 0.1;
             public static final double kS = 0.13; //doesnt work?
@@ -309,12 +311,12 @@ public final class Constants {
             public static final double kS = 0.1;
             public static final double kV = 7.5;
             public static final double kA = 0;
-            public static final double kG = 0.17;
+            public static final double kG = 0.18;
         }
 
         public static class WristMotionMagic {
-            public static final double VELOCITY = 0.3;
-            public static final double ACCELERATION = 1;
+            public static final double VELOCITY = 0.5;
+            public static final double ACCELERATION = 1.5;
             public static final double JERK = 0;
             public static final double EXPO_kV = 0;
             public static final double EXPO_kA = 0;
@@ -325,26 +327,25 @@ public final class Constants {
             public static final double kL1 = 0.8; //TUNE
             public static final double kL2 = 1.6; //TUNE
             public static final double kL3 = 3; //TUNE
-            public static final double kL4 = 5.3; //TUNE
+            public static final double kL4 = 5.2; //TUNE
             public static final double kL2Algae = 1.0; //TUNE
             public static final double kL3Algae = 2.4; //TUNE
             public static final double kProcessor = 0.05; 
-            public static final double kStow = 0.05;
-            public static final double kSource = 0.589;
+            public static final double kStow = 0.01;
+            public static final double kSource = 0.35;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
-            public static final double kBarge = 5.3; //TUNE
+            public static final double kBarge = 5.2; //TUNE
         }
         // TUNE
         public static class WristSetpoints {
-            // public static final double kReefCoral = 0.18;
-            public static final double kReefCoral = -0.1;
+            public static final double kReefCoral = 0.185;
             public static final double kReefAlgae = 0.08;
-            public static final double kProcessor = 0.12;
-            public static final double kStow = 0.19;
-            public static final double kSource = 0; // used to be 0.18
-            public static final double kIntake = 0;
-            public static final double kIntakePrepare = 0.0;
+            public static final double kProcessor = 0.05;
+            public static final double kStow = 0.185;
+            public static final Double kSource = 0.185;
+            public static final double kIntake = -0.1;
+            public static final double kIntakePrepare = 0.05;
             public static final Double kBarge = null;
         }
     }

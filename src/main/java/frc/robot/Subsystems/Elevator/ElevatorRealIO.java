@@ -37,6 +37,7 @@ import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
+import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.Constants.ElevatorConstants;
@@ -57,6 +58,8 @@ public class ElevatorRealIO extends Elevator {
     private DigitalInput elevator_switch, coral_switch;
 
     private boolean update_zero;
+
+    private double count;
 
     protected ElevatorRealIO() {
         ele_motor = new TalonFX(PortConstants.ELEVATOR_MOTOR);
@@ -116,8 +119,9 @@ public class ElevatorRealIO extends Elevator {
         wrist_motor.getConfigurator().apply(wrist_configs);
 
         update_zero = true;
-        // ele_setpoint = ele_motor_right.getPosition().getValueAsDouble();
-        // wrist_setpoint = wrist_motor.getPosition().getValueAsDouble();
+        count = 0;
+
+        // zeroWrist();
     }
 
     public double runElevator(double speed) {
@@ -130,14 +134,20 @@ public class ElevatorRealIO extends Elevator {
         return speed;
     }
 
-    //DON'T ACTIVATE UNTIL FULLY TUNED
     protected void runEleMotionMagic(double setpoint){
         ele_motor.setControl(new MotionMagicVoltage(setpoint));
     }
 
-    //DON'T ACTIVATE UNTIL FULLY TUNED
+    public void stopElevator(){
+        ele_motor.setControl(new VoltageOut(0.35));
+    }
+
     protected void runWristMotionMagic(double setpoint) {
         wrist_motor.setControl(new MotionMagicVoltage(setpoint));
+    }
+
+    public void stopWrist() {
+        wrist_motor.setControl(new MotionMagicVoltage(wrist_motor.getPosition().getValueAsDouble()));
     }
 
     public void changeWristSetpoint(double rate) {
@@ -168,9 +178,7 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void zeroWrist() {
-        System.out.println("YAYAYAY");
-        // wrist_motor.setPosition(0.195);
-        wrist_motor.setPosition(0.0);
+        wrist_motor.setPosition(0.195);
     }
 
     // public Command intakeCoralCmd() {
@@ -183,26 +191,20 @@ public class ElevatorRealIO extends Elevator {
     // }
 
     public Command intakeCoralCmd() {
-        return Commands.sequence(
-            new InstantCommand(() -> runShooter(0.2)),
-            new WaitUntilCommand(this::getCoralStored),
-            new WaitCommand(0.1)
-        ).finallyDo(() -> runShooter(0));
+        return 
+            new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
+                .until(this::getCoralStored)
+            .andThen(new WaitCommand(0.5))
+            .andThen(new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
+                .withDeadline(new WaitCommand(0.2)))
+            .finallyDo(() -> runShooter(0));
     }
 
     public Command intakeCoralSequence() {
         return Commands.sequence(
-            new InstantCommand(() -> {
-                setState(TargetState.kSource);
-                runShooter(0.25);
-            }),
-            new WaitUntilCommand(this::getCoralStored),
-            new WaitCommand(0.3),
-            new InstantCommand(() -> {
-                runShooter(-0.15);
-                setWristSetpoint(WristSetpoints.kReefCoral);
-            }),
-            new WaitCommand(0.2)
+            new StartEndCommand(() -> setState(TargetState.kStow), () -> setState(TargetState.kSource))
+                .until(() -> getElevatorHeight() < 0.01)
+            .andThen(intakeCoralCmd())
         ).finallyDo(() -> runShooter(0));
     }
 
@@ -224,12 +226,14 @@ public class ElevatorRealIO extends Elevator {
         return !coral_switch.get();
     }
 
+    @AutoLogOutput
     public boolean getElevatorZeroed() {
         return !elevator_switch.get();
     }
 
     @Override
     public void periodic() {
+        super.periodic();
 
         if (!elevator_switch.get()) {
             if (update_zero) {
@@ -237,15 +241,20 @@ public class ElevatorRealIO extends Elevator {
                 update_zero = false;
             }
         } else {
-            update_zero = true;
+            if (ele_motor.getPosition().getValueAsDouble() < 0) {
+                ele_motor.setPosition(0);
+            } else {
+                update_zero = true;
+            }
         }
 
         if (ele_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled
                 && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.5) < 0.05
-                && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.05) {
-            ele_motor.setControl(new VoltageOut(0.35));
-        } else if (ele_motor.getPosition().getValueAsDouble() < 0) {
-            ele_motor.setPosition(0);
+                && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.02) {
+            count++;
+            if (count >= 5) ele_motor.setControl(new VoltageOut(0.35));
+        } else {
+            count = 0;
         }
 
         if (DriverStation.isDisabled()) {

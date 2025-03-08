@@ -175,16 +175,18 @@ public class SwervePIDController {
 
         // Calculate acceleration and reset requested speeds based on max acceleration
         Translation2d accel_vector = target_speeds_vector.minus(current_speeds_vector);
+        double limit = (target_speeds_vector.getNorm() < current_speeds_vector.getNorm()) ? Tracking.MAX_DECEL : Tracking.MAX_ACCEL;
         accel_vector = accel_vector.times(
-            Math.min(1, Tracking.MAX_ACCEL * RobotConstants.LOOP_TIME_SECONDS / accel_vector.getNorm()));
+            Math.min(1, limit * RobotConstants.LOOP_TIME_SECONDS / accel_vector.getNorm()));
         Translation2d out_speeds_vector = current_speeds_vector.plus(accel_vector);
 
         // Clamp angular velocity to maximum angular speed
         double target_ang_vel = RobotUtils.clampAbs(target_speeds.omegaRadiansPerSecond, Tracking.MAX_ANG_SPEED);
         // Calculate new angular velocity with acceleration constraint
-        double out_ang_vel = current_speeds.omegaRadiansPerSecond
-             + RobotUtils.clampAbs(target_ang_vel - current_speeds.omegaRadiansPerSecond,
-                Tracking.MAX_ANG_ACCEL * RobotConstants.LOOP_TIME_SECONDS);
+        limit = (Math.abs(target_ang_vel) < Math.abs(current_speeds.omegaRadiansPerSecond)) ? Tracking.MAX_ANG_DECEL : Tracking.MAX_ANG_ACCEL;
+        double out_ang_vel = current_speeds.omegaRadiansPerSecond + 
+            RobotUtils.clampAbs(target_ang_vel - current_speeds.omegaRadiansPerSecond,
+                Tracking.MAX_ANG_DECEL * RobotConstants.LOOP_TIME_SECONDS);
 
         return new ChassisSpeeds(out_speeds_vector.getX(), out_speeds_vector.getY(), out_ang_vel);
     }
@@ -216,11 +218,17 @@ public class SwervePIDController {
             robot_pose.getRotation().getRadians(), 
             goal_pose.getRotation().plus(rotation_offset).getRadians());
 
+        desired_ang_speed = ang_pid_controller.atSetpoint() ? 0 : desired_ang_speed + 0.2 * Math.signum(desired_ang_speed);
+
+        double h_spacing = Math.abs(MathUtil.applyDeadband(
+            goal_pose.getTranslation().minus(robot_pose.getTranslation()).rotateBy(goal_pose.getRotation().unaryMinus()).getY(),
+            0.2, 0.5));
+
         /* Shift the pose backwards by the target distance using a -x transform
            Add extra space for turning to goal distance if robot is not pointing towards target,
            with a small amount of tolerance */
         goal_pose = goal_pose.transformBy(new Transform2d(
-                -(target_distance + Math.abs(MathUtil.applyDeadband(
+                -(target_distance + h_spacing + Math.abs(MathUtil.applyDeadband(
                     // Multiply by two because the maximum error, facing backwards, is 0.5 rotations
                     Units.radiansToRotations(ang_pid_controller.getError()) * 2,
                     Tracking.ALIGN_SEPARATION_TOLERANCE,
@@ -239,8 +247,10 @@ public class SwervePIDController {
 
         // Get PID forward speed and normalize
         SmartDashboard.putNumber("error", goal_off.getNorm());
-        done = goal_off.getNorm() < 0.03 && ang_pid_controller.atSetpoint();
-        goal_off = goal_off.times(dist_pid_controller.calculate(goal_off.getNorm(), 0) / goal_off.getNorm());
+        done = dist_pid_controller.atSetpoint() && ang_pid_controller.atSetpoint();
+        double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
+        if (dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.3;
+        goal_off = goal_off.times(speed / goal_off.getNorm());
 
         return applyMovementConstraints(new ChassisSpeeds(
                 goal_off.getX(),

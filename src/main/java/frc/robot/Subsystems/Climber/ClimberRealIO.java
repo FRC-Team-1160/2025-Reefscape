@@ -1,13 +1,16 @@
 package frc.robot.Subsystems.Climber;
 
-import com.ctre.phoenix6.hardware.TalonFX;
+import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 public class ClimberRealIO extends Climber {
 
-    TalonFX climber_motor;
+    SparkMax climber_motor;
     
     protected ClimberRealIO() {
-        climber_motor = new TalonFX(12, "CANivore");
+        climber_motor = new SparkMax(29, MotorType.kBrushless);
         
     }
 
@@ -15,5 +18,13 @@ public class ClimberRealIO extends Climber {
         climber_motor.setVoltage(speed);
     }
 
+    @Override
+    public void periodic() {
+        super.periodic();
+        SmartDashboard.putNumber("Climber current", climber_motor.getOutputCurrent());
+        SmartDashboard.putNumber("Climber volts real", climber_motor.getAppliedOutput());
+        SmartDashboard.putNumber("Climber volts", climber_motor.getBusVoltage());
+
+    }
     
 }

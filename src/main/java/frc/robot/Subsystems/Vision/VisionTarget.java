@@ -44,7 +44,7 @@ public class VisionTarget {
         return new Pose3d(
             position.getX(),
             position.getY(),
-            AlgaeParams.TARGET_WIDTH / 2,
+            AlgaeParams.TARGET_WIDTH * (0.5 - timer.get() / AlgaeParams.TRACKING_TIMEOUT),
             new Rotation3d());
     }
 

@@ -267,10 +267,6 @@ public class ObjectDetection {
             }
 
         }
-        // If target was expected in fov and not seen, or has not been seen in too long, stop tracking it
-        tracked_targets.removeIf(target -> 
-            target.timeout >= AlgaeParams.DETECTION_LIMIT 
-                || target.timer.get() > AlgaeParams.TRACKING_TIMEOUT);
 
     }
 
@@ -286,7 +282,7 @@ public class ObjectDetection {
 
         // Increase timeouts
         for (VisionTarget t : tracked_targets) {
-            if (Math.abs(t.getAngle(robot_pose).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2) t.timeout++;
+            if (Math.abs(t.getAngle(robot_pose.transformBy(camera_transform_left)).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2) t.timeout++;
             else t.timeout = 0;
         }
 
@@ -300,6 +296,11 @@ public class ObjectDetection {
                 updateTrackedObjects(result, camera_transform_right);
             }
         }
+
+        // If any target was expected in fov and not seen, or has not been seen in too long, stop tracking it
+        tracked_targets.removeIf(target -> 
+        target.timeout >= AlgaeParams.DETECTION_LIMIT 
+            || target.timer.hasElapsed(AlgaeParams.TRACKING_TIMEOUT));
         
         publishAdv();
 

@@ -1,6 +1,7 @@
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -91,6 +92,8 @@ public abstract class DriveTrain extends SubsystemBase {
      */
 
     public void setSwerveDrive(ChassisSpeeds chassis_speeds, boolean discretize) {
+
+        Logger.recordOutput("DriveTrain/Input Speeds", chassis_speeds);
 
         if (discretize) chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
