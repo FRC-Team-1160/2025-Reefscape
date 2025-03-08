@@ -74,7 +74,7 @@ abstract public class Elevator extends SubsystemBase {
             kProcessor(() -> Commands.none()),
             kSource(() -> Commands.none()),
             kReefCoral(() -> SubsystemManager.instance.commands.alignReef(false)),
-            kReefAlgae(() -> Commands.none()),
+            kReefAlgae(() -> SubsystemManager.instance.commands.alignReefAlgae()),
             kGround(() -> SubsystemManager.instance.commands.trackAlgae());
 
             public final Supplier<Command> command_supplier;
@@ -143,6 +143,8 @@ abstract public class Elevator extends SubsystemBase {
     public abstract Rotation2d getWristAngle();
 
     public abstract Command intakeCoralCmd();
+    public abstract Command intakeCoralCmd(Supplier<Command> feedback);
+    public abstract Command intakeCoralSequence(Supplier<Command> feedback);
     public abstract Command intakeCoralSequence();
     public abstract Command intakeAlgaeCmd();
 

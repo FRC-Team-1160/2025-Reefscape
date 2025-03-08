@@ -13,6 +13,7 @@ import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.RobotState;
+import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -49,6 +50,13 @@ class RobotContainer {
     private Joystick simp_stick = new Joystick(4);
 
     private final SendableChooser<Command> auto_chooser;
+
+    public Command rumble() {
+        return new StartEndCommand(
+            () -> codriver_controller.setRumble(RumbleType.kLeftRumble, 1),
+            () -> codriver_controller.setRumble(RumbleType.kBothRumble, 0))
+            .withDeadline(Commands.waitSeconds(0.5));
+    }
 
     public class DriveMode {
         public enum Drive {
@@ -127,12 +135,13 @@ class RobotContainer {
                     driver_controller.getRawAxis(1), 
                     driver_controller.getRawAxis(0), 
                     driver_controller.getRawAxis(4)));
+                break;
             case kSimple:
                 SubsystemManager.instance.update(new JoystickInputs(
                     simp_stick.getRawAxis(1), 
                     simp_stick.getRawAxis(0), 
                     simp_stick.getRawAxis(4)));
-
+                break;
         }
     }
 
@@ -157,14 +166,16 @@ class RobotContainer {
                 new JoystickButton(driver_controller, 8).onTrue(
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
 
-                new JoystickButton(main_stick, 5)
+                new JoystickButton(driver_controller, 5)
                     .whileTrue(SubsystemManager.instance.commands.alignReef(false));
-                // new JoystickButton(driver_controller, 6).whileTrue(
-                //     Commands.defer(SubsystemManager.instance.commands::selectCommand, null));
-            
+
+                new JoystickButton(driver_controller, 6).whileTrue(
+                    Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
+                break;
             case kSimple:
                 new JoystickButton(simp_stick, 8).onTrue(
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
+                break;
         }
 
 
@@ -196,7 +207,8 @@ class RobotContainer {
                     Elevator.instance.setStateCmd(TargetState.kL4),
                     () -> codriver_controller.getRawButton(6)));
 
-                new JoystickButton(codriver_controller, 8).onTrue(
+                new JoystickButton(codriver_controller, 10)
+                    .and(new JoystickButton(codriver_controller, 10)).onTrue(
                     new InstantCommand(() -> Elevator.instance.zeroWrist()));
 
                 // Elevator manual
@@ -218,25 +230,46 @@ class RobotContainer {
 
                 // Coral intake / shoot
                 new Trigger(() -> codriver_controller.getRawAxis(3) > 0.8).whileTrue(Commands.either(
-                    new StartEndCommand(
-                        () -> Elevator.instance.runShooter(0.3),
-                        () -> Elevator.instance.runShooter(0)),
-                    Elevator.instance.intakeCoralSequence(),
-                    Elevator.instance::getCoralStored));
+                    RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.5), 
+                    Commands.either(
+                        RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3),
+                        Elevator.instance.intakeCoralSequence(this::rumble),
+                        Elevator.instance::getCoralStored),
+                    () -> codriver_controller.getRawButton(8)));
 
                 // Algae ground intake
                 new JoystickButton(codriver_controller, 5).whileTrue(Commands.either(
-                    new InstantCommand(() -> Elevator.instance.setState(TargetState.kIntake))
-                        .andThen(Elevator.instance.intakeAlgaeCmd())
-                        .finallyDo(() -> Elevator.instance.setState(TargetState.kIntakePrepare)),
-                    new InstantCommand(() -> Elevator.instance.setState(TargetState.kIntakePrepare)),
-                    () -> Elevator.instance.m_current_state == TargetState.kIntakePrepare
-                ));
+                    RobotUtils.onOffCommand(Elevator.instance::runIntake, -0.5), 
+                    Commands.either(
+                        Elevator.instance.intakeAlgaeCmd(),
+                        Commands.either(    
+                            Elevator.instance.setStateCmd(TargetState.kIntake)
+                                .andThen(Elevator.instance.intakeAlgaeCmd())
+                                .finallyDo(() -> Elevator.instance.setState(TargetState.kIntakePrepare)),
+                            Elevator.instance.setStateCmd(TargetState.kIntakePrepare),
+                                () -> Elevator.instance.m_current_state == TargetState.kIntakePrepare),
+                        () -> Elevator.instance.m_current_state == TargetState.kL2Algae
+                            || Elevator.instance.m_current_state == TargetState.kL3Algae 
+                    ),
+                    () -> codriver_controller.getRawButton(8)));
 
                 // Algae outtake
                 new Trigger(() -> codriver_controller.getRawAxis(2) > 0.8).whileTrue(new StartEndCommand(
                     () -> Elevator.instance.runIntake(0.7), 
                     () -> Elevator.instance.runIntake(0)));
+
+                new Trigger(() -> codriver_controller.getPOV() == 0).whileTrue(new StartEndCommand(
+                    () -> Climber.instance.runClimber(6), 
+                    () -> Climber.instance.runClimber(0)));
+
+                new Trigger(() -> codriver_controller.getPOV() == 180).whileTrue(new StartEndCommand(
+                    () -> Climber.instance.runClimber(-4), 
+                    () -> Climber.instance.runClimber(0)));
+
+                new JoystickButton(codriver_controller, 7).whileTrue(new StartEndCommand(
+                        () -> Funnel.instance.setState(FunnelState.kDown), 
+                        () -> Funnel.instance.setState(FunnelState.kDown)));
+
                 break;
         
             case kSimple:

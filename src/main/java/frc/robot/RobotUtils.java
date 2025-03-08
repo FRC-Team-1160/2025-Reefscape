@@ -49,8 +49,12 @@ public final class RobotUtils {
         return isRedAlliance() ? -x : x;
     }
 
+    public static Command onOffCommand(Consumer<Double> consumer, double on_value, double off_value) {
+        return new StartEndCommand(() -> consumer.accept(on_value), () -> consumer.accept(off_value));
+    }
+
     public static Command onOffCommand(Consumer<Double> consumer, double value) {
-        return new StartEndCommand(() -> consumer.accept(value), () -> consumer.accept(0.0));
+        return onOffCommand(consumer, value, 0);
     }
 
 
