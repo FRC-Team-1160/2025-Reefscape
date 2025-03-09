@@ -184,7 +184,7 @@ public class ElevatorRealIO extends Elevator {
         wrist_motor.setControl(new NeutralOut());
     }
 
-    
+
     // public Command intakeCoralCmd() {
     //     return Commands.sequence(
     //         new InstantCommand(() -> runShooter(0.25)),
@@ -217,7 +217,7 @@ public class ElevatorRealIO extends Elevator {
     public Command intakeCoralSequence(Supplier<Command> feedback) {
         return Commands.sequence(
             new StartEndCommand(() -> setState(TargetState.kStow), () -> setState(TargetState.kSource))
-                .until(() -> getElevatorHeight() < 0.01)
+                .until(() -> getElevatorHeight() <= 0)
             .andThen(intakeCoralCmd(feedback))
         ).finallyDo(() -> runShooter(0));
     }

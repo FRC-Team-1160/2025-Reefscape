@@ -132,9 +132,9 @@ class RobotContainer {
                 break;
             case kXBox:
                 SubsystemManager.instance.update(new JoystickInputs(
-                    driver_controller.getRawAxis(1) * (driver_controller.getRawButton(6) ? 0.3 : 1), 
-                    driver_controller.getRawAxis(0) * (driver_controller.getRawButton(6) ? 0.3 : 1), 
-                    driver_controller.getRawAxis(4) * (driver_controller.getRawButton(6) ? 0.6 : 1)));
+                    driver_controller.getRawAxis(1) * (driver_controller.getRawButton(6) ? 0.5 : 1), 
+                    driver_controller.getRawAxis(0) * (driver_controller.getRawButton(6) ? 0.5 : 1), 
+                    driver_controller.getRawAxis(4) * (driver_controller.getRawButton(6) ? 0.7 : 1)));
                 break;
             case kSimple:
                 SubsystemManager.instance.update(new JoystickInputs(
