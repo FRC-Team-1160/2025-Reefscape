@@ -180,6 +180,7 @@ public class SubsystemManager {
             default:
                 double stick_x = MathUtil.applyDeadband(-stick_inputs.drive_x(), 0.1, 1)
                      * SwerveConstants.DRIVE_SPEED;
+                SmartDashboard.putNumber("stick_x", stick_x);
                 double stick_y = MathUtil.applyDeadband(-stick_inputs.drive_y(), 0.1, 1)
                      * SwerveConstants.DRIVE_SPEED;
                 double stick_a = MathUtil.applyDeadband(-stick_inputs.drive_a(), 0.1, 1)
@@ -234,8 +235,13 @@ public class SubsystemManager {
         public Command alignReef(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getNearestReefPose,
-                0.2,//0.1 
+                0.1,
                 with_elevator ? TargetState.kL3 : null);
+        }
+
+        public Command alignReefAlgae() {
+            return getAlignCommand(
+                () -> SwervePIDController.instance.getNearestReefPose(0), 0.15, null);
         }
 
         public Command alignSource(boolean with_elevator) {

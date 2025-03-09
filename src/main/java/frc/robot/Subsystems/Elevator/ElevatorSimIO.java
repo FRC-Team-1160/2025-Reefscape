@@ -1,5 +1,7 @@
 package frc.robot.Subsystems.Elevator;
 
+import java.util.function.Supplier;
+
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -74,6 +76,7 @@ public class ElevatorSimIO extends Elevator {
         return Rotation2d.fromRadians(wrist_pos);
     }
 
+    public Command intakeCoralCmd(Supplier<Command> feedback) { return Commands.none(); }
     public Command intakeCoralCmd() {
         return Commands.none();
     }
@@ -81,6 +84,8 @@ public class ElevatorSimIO extends Elevator {
     public Command intakeAlgaeCmd() {
         return Commands.none();
     }
+
+    public Command intakeCoralSequence(Supplier<Command> feedback) { return Commands.none(); }
 
     public Command intakeCoralSequence() { return Commands.none(); }
 

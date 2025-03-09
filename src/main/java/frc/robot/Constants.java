@@ -222,8 +222,8 @@ public final class Constants {
         public static final double MAX_SPEED = 3;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 1.0 : 3.0;
-        public static final double TURN_SPEED = 1.0;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.0 : 3.0;
+        public static final double TURN_SPEED = 2.5;
 
         public static class Tracking {
             public static final double MAX_SPEED = 3;
@@ -328,11 +328,11 @@ public final class Constants {
             public static final double kL2 = 1.6; //TUNE
             public static final double kL3 = 3; //TUNE
             public static final double kL4 = 5.2; //TUNE
-            public static final double kL2Algae = 1.0; //TUNE
-            public static final double kL3Algae = 2.4; //TUNE
+            public static final double kL2Algae = 1.5; //TUNE
+            public static final double kL3Algae = 2.7; //TUNE
             public static final double kProcessor = 0.05; 
             public static final double kStow = 0.01;
-            public static final double kSource = 0.35;
+            public static final double kSource = 0.36;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
             public static final double kBarge = 5.2; //TUNE
@@ -340,7 +340,7 @@ public final class Constants {
         // TUNE
         public static class WristSetpoints {
             public static final double kReefCoral = 0.185;
-            public static final double kReefAlgae = 0.08;
+            public static final double kReefAlgae = 0.02;
             public static final double kProcessor = 0.05;
             public static final double kStow = 0.185;
             public static final Double kSource = 0.185;

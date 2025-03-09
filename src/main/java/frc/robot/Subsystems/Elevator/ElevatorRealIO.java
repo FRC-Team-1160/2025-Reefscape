@@ -2,8 +2,10 @@ package frc.robot.Subsystems.Elevator;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.FeedbackConfigs;
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -62,7 +64,7 @@ public class ElevatorRealIO extends Elevator {
     private double count;
 
     protected ElevatorRealIO() {
-        ele_motor = new TalonFX(PortConstants.ELEVATOR_MOTOR);
+        ele_motor = new TalonFX(PortConstants.ELEVATOR_MOTOR, "CANivore");
         wrist_motor = new TalonFX(PortConstants.WRIST_MOTOR);
 
         intake_motor = new SparkMax(PortConstants.INTAKE_MOTOR, MotorType.kBrushless);
@@ -179,8 +181,10 @@ public class ElevatorRealIO extends Elevator {
 
     public void zeroWrist() {
         wrist_motor.setPosition(0.195);
+        wrist_motor.setControl(new NeutralOut());
     }
 
+    
     // public Command intakeCoralCmd() {
     //     return Commands.sequence(
     //         new InstantCommand(() -> runShooter(0.25)),
@@ -191,20 +195,30 @@ public class ElevatorRealIO extends Elevator {
     // }
 
     public Command intakeCoralCmd() {
+        return intakeCoralCmd(() -> Commands.none());
+    }
+
+    public Command intakeCoralCmd(Supplier<Command> feedback) {
         return 
             new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
                 .until(this::getCoralStored)
-            .andThen(new WaitCommand(0.5))
+            .andThen(new WaitCommand(0.2))
             .andThen(new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
                 .withDeadline(new WaitCommand(0.2)))
+                .andThen(() -> runShooter(0))
+                .andThen(feedback.get())
             .finallyDo(() -> runShooter(0));
     }
 
     public Command intakeCoralSequence() {
+        return intakeCoralSequence(() -> Commands.none());
+    }
+
+    public Command intakeCoralSequence(Supplier<Command> feedback) {
         return Commands.sequence(
             new StartEndCommand(() -> setState(TargetState.kStow), () -> setState(TargetState.kSource))
                 .until(() -> getElevatorHeight() < 0.01)
-            .andThen(intakeCoralCmd())
+            .andThen(intakeCoralCmd(feedback))
         ).finallyDo(() -> runShooter(0));
     }
 
@@ -235,6 +249,8 @@ public class ElevatorRealIO extends Elevator {
     public void periodic() {
         super.periodic();
 
+        Logger.recordOutput("Elevator/Wrist Current", intake_motor.getOutputCurrent());
+
         if (!elevator_switch.get()) {
             if (update_zero) {
                 ele_motor.setPosition(0);
@@ -249,8 +265,8 @@ public class ElevatorRealIO extends Elevator {
         }
 
         if (ele_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled
-                && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.5) < 0.05
-                && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.02) {
+                && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.48) < 0.07
+                && Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.04) {
             count++;
             if (count >= 5) ele_motor.setControl(new VoltageOut(0.35));
         } else {

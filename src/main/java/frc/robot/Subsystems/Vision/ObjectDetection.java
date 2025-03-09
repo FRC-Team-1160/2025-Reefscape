@@ -282,7 +282,8 @@ public class ObjectDetection {
 
         // Increase timeouts
         for (VisionTarget t : tracked_targets) {
-            if (Math.abs(t.getAngle(robot_pose.transformBy(camera_transform_left)).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2) t.timeout++;
+            if (Math.abs(t.getAngle(robot_pose.transformBy(camera_transform_left)).getRadians()) < AlgaeParams.EXPECTED_RANGE / 2
+                || t.getDistance(robot_pose) < 1) t.timeout++;
             else t.timeout = 0;
         }
 
