@@ -26,6 +26,11 @@ public class DriveTrainRealIO extends DriveTrain {
         return new Rotation2d();
     }
 
+    public double getGyroRate(){
+        if (gyro != null) return -gyro.getRate(); 
+        return 0.0;
+    }
+
     public void resetGyroAngle() {
         if (gyro != null) gyro.zeroYaw();
     }

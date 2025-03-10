@@ -275,6 +275,7 @@ public abstract class DriveTrain extends SubsystemBase {
      */
     @AutoLogOutput
     public abstract Rotation2d getGyroAngle();
+    public abstract double getGyroRate();
 
     public abstract void resetGyroAngle();
 
