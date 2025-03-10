@@ -49,8 +49,8 @@ public class ElevatorSimIO extends Elevator {
         wrist_pid = true;
         if (wrist_setpoint == setpoint) return;
         wrist_setpoint = setpoint;
-        if (Math.abs(wrist_pos - setpoint) > 0.1) {
-            wrist_speed = (setpoint > wrist_pos) ? 1 : -1;
+        if (Math.abs(wrist_pos - setpoint) > 0.01) {
+            wrist_speed = (setpoint > wrist_pos) ? 0.15 : -0.15;
         } else {
             wrist_speed = 0;
         }
@@ -73,7 +73,7 @@ public class ElevatorSimIO extends Elevator {
     }
 
     public Rotation2d getWristAngle() {
-        return Rotation2d.fromRadians(wrist_pos);
+        return Rotation2d.fromRotations(wrist_pos);
     }
 
     public Command intakeCoralCmd(Supplier<Command> feedback) { return Commands.none(); }
@@ -94,6 +94,10 @@ public class ElevatorSimIO extends Elevator {
     public boolean getCoralStored() { return true; }
 
     public boolean getElevatorZeroed() { return ele_pos == 0; }
+
+    public boolean atSetpoint() {
+        return Math.abs(ele_setpoint - ele_pos) < 0.02 && Math.abs(wrist_setpoint - wrist_pos) < 0.02;
+    }
 
     @Override
     public void periodic() {
@@ -122,7 +126,7 @@ public class ElevatorSimIO extends Elevator {
             if (wrist_speed < 0) wrist_speed = 0;
         }
 
-        if (wrist_pid && (Math.abs(wrist_pos - wrist_setpoint) <= 0.1)) wrist_speed = 0;
+        if (wrist_pid && (Math.abs(wrist_pos - wrist_setpoint) <= 0.01)) wrist_speed = 0;
 
     }
 }

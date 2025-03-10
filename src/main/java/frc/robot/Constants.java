@@ -24,7 +24,7 @@ public final class Constants {
         public static final class ComponentZeroPoses {
             public static final Pose3d ELEVATOR_STAGE = new Pose3d(0.141, 0, 0.125, new Rotation3d());
             public static final Pose3d CARRIAGE = new Pose3d(0.14, 0, 0.145, new Rotation3d());
-            public static final Pose3d ALGAE_INTAKE = new Pose3d(0.237, 0, 0.432, new Rotation3d());
+            public static final Pose3d ALGAE_INTAKE = new Pose3d(0.237, 0, 0.432, new Rotation3d(0, 0.18, 0));
             public static final Pose3d FUNNEL = new Pose3d(0.09, 0, 0.6, new Rotation3d());
         }
     }
@@ -238,8 +238,8 @@ public final class Constants {
             public static final double MAX_ALIGN_SEPARATION = 0.5;
             public static final double ALIGN_SEPARATION_TOLERANCE = 0.15;
 
-            public static final double ANGLE_TOLERANCE = Units.degreesToRadians(5);
-            public static final double DISTANCE_TOLERANCE = 0.03;
+            public static final double ANGLE_TOLERANCE = Units.degreesToRadians(2);
+            public static final double DISTANCE_TOLERANCE = 0.02;
 
             public static class PIDConstants {
                 public static class Distance {
@@ -256,12 +256,12 @@ public final class Constants {
         }
 
         public static class DriveMotorConfigs {
-            public static final double kP = 0.1;
+            public static final double kP = 0.3;
             public static final double kI = 0;
-            public static final double kD = 0.0;
+            public static final double kD = 0.07;
             public static final double kS = 0.14;
             public static final double kV = 0.6; 
-            public static final double kA = 0;
+            public static final double kA = 0.7;
             public static final double kG = 0;
         }
 
@@ -278,13 +278,12 @@ public final class Constants {
 
     public static class ElevatorConstants {
 
-        /**Max speed of elevator in meters per second. */
-        public static final double MAX_SPEED = 0.05;
+        public static final double MAX_EXTENSION = 5.3;
 
-        public static final double MAX_EXTENSION = 5.4;
+        public static final double MIN_WRIST_ANGLE = -0.15;
+        public static final double MAX_WRIST_ANGLE = 0.195;
 
-        public static final double MIN_WRIST_ANGLE = Units.degreesToRadians(-20);
-        public static final double MAX_WRIST_ANGLE = Units.degreesToRadians(50);
+        public static final double GEAR_DIAMETER = Units.inchesToMeters(Math.PI * 1.75);
 
         public static class ElevatorConfigs {
             public static final double kP = 4;
@@ -297,8 +296,8 @@ public final class Constants {
         }
 
         public static class ElevatorMotionMagic {
-            public static final double VELOCITY = 2;
-            public static final double ACCELERATION = 4;
+            public static final double VELOCITY = 3;
+            public static final double ACCELERATION = 6;
             public static final double JERK = 0;
             public static final double EXPO_kV = 0;
             public static final double EXPO_kA = 0;

@@ -31,6 +31,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
 import frc.robot.SubsystemManager;
@@ -120,8 +121,18 @@ abstract public class Elevator extends SubsystemBase {
     }
 
     public Command setStateCmd(TargetState state) {
-        return new InstantCommand(() -> setState(state));
+        return new WaitUntilCommand(() -> m_current_state != state || atTarget())
+            .beforeStarting(() -> setState(state));
     }
+
+    public boolean atTarget() {
+        return atTarget(m_current_state);
+    }
+
+    public boolean atTarget(TargetState state) {
+        return Math.abs(getElevatorHeight() - state.elevator_setpoint) < 0.02
+             && Math.abs(getWristAngle().getRotations() - state.wrist_setpoint) < 0.02;
+        }    
 
     // VoltageOut() methods
     @AutoLogOutput
@@ -154,6 +165,8 @@ abstract public class Elevator extends SubsystemBase {
     public abstract boolean getCoralStored();
     @AutoLogOutput
     public abstract boolean getElevatorZeroed();
+    @AutoLogOutput
+    public abstract boolean atSetpoint();
 
     @Override
     public void periodic() {

@@ -1,12 +1,15 @@
 package frc.robot;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutputManager;
 
 import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
@@ -77,8 +80,27 @@ class RobotContainer {
 
     public RobotContainer() {
 
+        NamedCommands.registerCommands(Map.of(
+            "ElevatorL3", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)),
+            "ElevatorL4", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)),
+            "ShootCoral", RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.4).withTimeout(0.5),
+            "ReefNearest", SubsystemManager.instance.commands.alignReef(false),
+            "Reef10L", SubsystemManager.instance.commands.alignReef(12),
+            "Reef10L4", SubsystemManager.instance.commands.alignReefClose(12)
+        ));
+
         // Configure Autobuilder
         RobotConfig config;
+
+        AutoLogOutputManager.addObject(SubsystemManager.instance);
+        AutoLogOutputManager.addObject(SwervePIDController.instance);
+        AutoLogOutputManager.addObject(PathplannerController.instance);
+        AutoLogOutputManager.addObject(DriveTrain.instance);
+        AutoLogOutputManager.addObject(Elevator.instance);
+        AutoLogOutputManager.addObject(Funnel.instance);
+        AutoLogOutputManager.addObject(Climber.instance);
+        AutoLogOutputManager.addObject(Vision.instance);
+        AutoLogOutputManager.addObject(ObjectDetection.instance);
         
         try {
             config = RobotConfig.fromGUISettings();
@@ -92,7 +114,7 @@ class RobotContainer {
             SubsystemManager.instance.pose_estimator::resetPose,
             DriveTrain.instance::getOdomSpeeds,
             // Pathplanner commands are redirected to the PathplannerController instance
-            (speeds, feedforwards) -> PathplannerController.instance.acceptGeneratedSpeeds(speeds),
+            (speeds, feedforwards) -> PathplannerController.instance.acceptGeneratedSpeeds(speeds, feedforwards.accelerationsMPSSq()),
             new PPHolonomicDriveController(
                 new PIDConstants(
                     AutoConstants.translation_kP, 
@@ -108,18 +130,9 @@ class RobotContainer {
         );
 
         auto_chooser = AutoBuilder.buildAutoChooser();
-        SmartDashboard.putData("Auto Chooser", auto_chooser);   
+        auto_chooser.addOption("Testing", SubsystemManager.instance.commands.alignReef(false));
+        SmartDashboard.putData("Auto Chooser", auto_chooser);
         configureBindings();
-
-        AutoLogOutputManager.addObject(SubsystemManager.instance);
-        AutoLogOutputManager.addObject(SwervePIDController.instance);
-        AutoLogOutputManager.addObject(PathplannerController.instance);
-        AutoLogOutputManager.addObject(DriveTrain.instance);
-        AutoLogOutputManager.addObject(Elevator.instance);
-        AutoLogOutputManager.addObject(Funnel.instance);
-        AutoLogOutputManager.addObject(Climber.instance);
-        AutoLogOutputManager.addObject(Vision.instance);
-        AutoLogOutputManager.addObject(ObjectDetection.instance);
     }
 
     public void updateSubsystemManager() {
@@ -169,8 +182,8 @@ class RobotContainer {
                 new JoystickButton(driver_controller, 5)
                     .whileTrue(SubsystemManager.instance.commands.alignReef(false));
 
-                // new JoystickButton(driver_controller, 6).whileTrue(
-                //     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
+                new JoystickButton(driver_controller, 7).whileTrue(
+                    Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
                 break;
             case kSimple:
                 new JoystickButton(simp_stick, 8).onTrue(
@@ -230,7 +243,8 @@ class RobotContainer {
 
                 // Coral intake / shoot
                 new Trigger(() -> codriver_controller.getRawAxis(3) > 0.8).whileTrue(Commands.either(
-                    RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.5), 
+                    RobotUtils.onOffCommand(Elevator.instance::runShooter, 
+                        Elevator.instance.m_current_state == TargetState.kL4? 0.3 : 0.4), 
                     Commands.either(
                         RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3),
                         Elevator.instance.intakeCoralSequence(this::rumble),
@@ -284,10 +298,8 @@ class RobotContainer {
 
     }
 
-
-
     public Command getAutonomousCommand() {
-        return SubsystemManager.instance.commands.pathCmdWrapper(auto_chooser.getSelected());
+        return SubsystemManager.instance.commands.decoratePathplannerCmd(auto_chooser.getSelected());
     }
 }
   

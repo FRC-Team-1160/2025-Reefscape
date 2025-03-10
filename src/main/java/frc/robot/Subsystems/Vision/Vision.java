@@ -9,6 +9,7 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
+import org.littletonrobotics.junction.Logger;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -176,6 +177,8 @@ public class Vision {
         // Run MegaTag 2; always use blue origin
         PoseEstimate mt2_estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
 
+        Logger.recordOutput("Vision/Limelight Pose", mt2_estimate.pose);
+
         if (mt2_estimate == null) return Optional.empty();
         if (mt2_estimate.tagCount == 0) return Optional.empty();
         
@@ -254,6 +257,6 @@ public class Vision {
         }
 
         adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
-        adv_tags_pub.set(used_tag_poses);        
+        adv_tags_pub.set(used_tag_poses);
     }
 }

@@ -9,9 +9,13 @@ import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.SubsystemManager.RobotState.DriveStates;
+import frc.robot.Subsystems.Vision.Vision;
+import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
 public class Robot extends LoggedRobot {
     private Command autonomous_command;
@@ -36,6 +40,9 @@ public class Robot extends LoggedRobot {
         Logger.start(); // Start logging! No more data receivers, replay sources, or metadata values may be added.
 
         m_robot_container = new RobotContainer();
+
+        SmartDashboard.putData(CommandScheduler.getInstance());
+        CommandScheduler.getInstance().onCommandFinish(command -> System.out.println(command.getName()));
     }
 
     @Override
@@ -55,7 +62,8 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void autonomousInit() {
-        // autonomous_command = m_robot_container.getAutonomousCommand();
+        Vision.instance.setCameraPipelines(CameraMode.kStereoAprilTag);
+        autonomous_command = m_robot_container.getAutonomousCommand();
         if (autonomous_command != null) {
             autonomous_command.schedule();
         }
@@ -71,6 +79,8 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
+        Vision.instance.setCameraPipelines(CameraMode.kDefault);
+        SubsystemManager.instance.m_robot_state.drive_state = DriveStates.DRIVER_CONTROL;
         if (autonomous_command != null) {
             autonomous_command.cancel();
         }

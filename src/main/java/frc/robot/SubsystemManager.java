@@ -3,6 +3,7 @@ package frc.robot;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import org.json.simple.parser.ParseException;
@@ -36,6 +37,7 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Tracer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 
 import frc.robot.Constants.AutoConstants;
@@ -155,7 +157,8 @@ public class SubsystemManager {
         switch (m_robot_state.drive_state) {
 
             case PATHPLANNER_CONTROL:
-                DriveTrain.instance.setSwerveDrive(PathplannerController.instance.generated_speeds);
+                DriveTrain.instance.setSwerveDrive(PathplannerController.instance.generated_speeds, false);
+                DriveTrain.instance.setAccelerationFeedforwards(PathplannerController.instance.feedforwards);
                 break;
 
             case PID_ALIGNING:
@@ -195,6 +198,8 @@ public class SubsystemManager {
         }
 
         Logger.recordOutput("SubsystemManager/DriveState", m_robot_state.drive_state.toString());
+        Logger.recordOutput("PathplannerController/Running", 
+            CommandScheduler.getInstance().isScheduled(PathplannerController.instance.current_command));
     }
 
     public void setupOrchestra() {
@@ -232,11 +237,23 @@ public class SubsystemManager {
             return Elevator.instance.m_current_state.target_position.command_supplier.get();
         }
 
+        public Command alignReef(int index) {
+            return getAlignCommand(
+                () -> SwervePIDController.instance.getReefPose(index), 
+                0.05, 
+                null);
+        }
+
         public Command alignReef(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getNearestReefPose,
-                0.1,
+                Elevator.instance.m_current_state == TargetState.kL4 ? -0.01 : 0.05,
                 with_elevator ? TargetState.kL3 : null);
+        }
+
+        public Command alignReefClose(int index) {
+            return getAlignCommand(
+                () -> SwervePIDController.instance.getReefPose(index), -0.01, null);
         }
 
         public Command alignReefAlgae() {
@@ -263,32 +280,39 @@ public class SubsystemManager {
             return getAlignCommand(target_pose, target_distance, Rotation2d.kZero, elevator_state);
         }
 
+        public boolean checkDone() {
+            System.out.print(m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING);
+            System.out.print("    ");
+            System.out.println(SwervePIDController.instance.done);
+            return m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
+                    || SwervePIDController.instance.done;
+        }
+
         public Command getAlignCommand(
             Supplier<Pose2d> target_pose, 
             double target_distance, 
             Rotation2d offset, 
             TargetState elevator_state
         ) {
-            return new FunctionalCommand(
-                () -> {
+            return new FunctionalCommand(() -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
                     SwervePIDController.instance.reset_speeds = true;
                     SwervePIDController.instance.done = false;
-                    SwervePIDController.instance.configure(
-                        target_pose.get(), 
-                        target_distance,
-                        offset);
+                    SwervePIDController.instance.configure(target_pose.get(), target_distance, offset);
                     Elevator.instance.setState(elevator_state);
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
+                    for (int i = 0; i < 3; i++) System.out.println("STARTING");
                 },
-                () -> {},
+                () -> {System.out.println("RUNNING");},
                 canceled -> {
+                    for (int i = 0; i < 3; i++) System.out.println("DONE");
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
                 },
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
-                || (elevator_state != null && Elevator.instance.m_current_state != elevator_state)
-                || SwervePIDController.instance.done
+                () -> checkDone()
+                // () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
+                //     || (elevator_state != null && Elevator.instance.m_current_state != elevator_state)
+                //     || SwervePIDController.instance.done
             );
         }
 
@@ -314,24 +338,25 @@ public class SubsystemManager {
             );
         }
 
-        public Command pathCmdWrapper(Command path_cmd) {
-            return pathCmdWrapper(() -> path_cmd);
-        }
+        // public Command pathCmdWrapper(Supplier<Command> cmd_supplier) {
+        //     return new FunctionalCommand(
+        //         () -> {
+        //             m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
+        //             PathplannerController.instance.current_command = cmd_supplier.get();
+        //             PathplannerController.instance.cmdInitialize();
+        //         },
+        //         PathplannerController.instance::cmdExecute, 
+        //         (canceled) -> {
+        //             PathplannerController.instance.cmdEnd(canceled);
+        //         },
+        //         () -> PathplannerController.instance.cmdIsFinished() || 
+        //             m_robot_state.drive_state != RobotState.DriveStates.PATHPLANNER_CONTROL);
+        // }
 
-        public Command pathCmdWrapper(Supplier<Command> cmd_supplier) {
-            return new FunctionalCommand(
-                () -> {
-                    m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
-                    PathplannerController.instance.current_command = cmd_supplier.get();
-                    PathplannerController.instance.cmdInitialize();
-                },
-                PathplannerController.instance::cmdExecute, 
-                (canceled) -> {
-                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    PathplannerController.instance.cmdEnd(canceled);
-                },
-                () -> PathplannerController.instance.cmdIsFinished() || 
-                    m_robot_state.drive_state != RobotState.DriveStates.PATHPLANNER_CONTROL);
+        public Command decoratePathplannerCmd(Command cmd) {
+            return cmd
+                .beforeStarting(() -> m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL)
+                .andThen(() -> m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL);
         }
 
         public Command playMusic(String filename) {
@@ -348,6 +373,19 @@ public class SubsystemManager {
                 () -> {},
                 canceled -> orchestra.stop(),
                 () -> !orchestra.isPlaying());
+        }
+
+    }
+
+    public class AutoCommandManager {
+        public AutoCommandManager instance = new AutoCommandManager();
+        
+        Set<Command> stored_commands;
+        
+        private AutoCommandManager() {}
+
+        public void addCommand() {
+
         }
 
     }

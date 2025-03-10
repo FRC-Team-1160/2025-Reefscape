@@ -1,5 +1,7 @@
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
+import java.util.function.Consumer;
+
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
@@ -184,6 +186,10 @@ public abstract class DriveTrain extends SubsystemBase {
 
     public ChassisSpeeds getTargetOdomSpeeds() {
         return kinematics.toChassisSpeeds(module_states);
+    }
+
+    public void setAccelerationFeedforwards(double[] feedforwards) {
+        for (int i = 0; i < modules.length; i++) modules[i].acceleration_ff = feedforwards[i];
     }
 
     /**

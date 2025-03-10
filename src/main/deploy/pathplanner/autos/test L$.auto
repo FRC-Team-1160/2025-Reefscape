@@ -21,7 +21,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "ReefNearest"
+                        "name": "Reef10L4"
                       }
                     }
                   ]
@@ -34,13 +34,13 @@
                     {
                       "type": "wait",
                       "data": {
-                        "waitTime": 2.5
+                        "waitTime": 2.0
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "ElevatorL3"
+                        "name": "ElevatorL4"
                       }
                     }
                   ]

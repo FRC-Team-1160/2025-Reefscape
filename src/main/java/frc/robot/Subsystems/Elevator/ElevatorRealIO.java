@@ -184,15 +184,10 @@ public class ElevatorRealIO extends Elevator {
         wrist_motor.setControl(new NeutralOut());
     }
 
-
-    // public Command intakeCoralCmd() {
-    //     return Commands.sequence(
-    //         new InstantCommand(() -> runShooter(0.25)),
-    //         new WaitCommand(0.2),
-    //         new WaitUntilCommand(() -> shooter_motor.getOutputCurrent() > 10),
-    //         new WaitCommand(1.0)
-    //     ).finallyDo(() -> runShooter(0));
-    // }
+    public boolean atSetpoint() {
+        return Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.02
+             && Math.abs(wrist_motor.getClosedLoopError().getValueAsDouble()) < 0.02;
+    }
 
     public Command intakeCoralCmd() {
         return intakeCoralCmd(() -> Commands.none());

@@ -8,10 +8,11 @@ import edu.wpi.first.wpilibj.RobotState;
 public abstract class SwerveModule {
 
     public SwerveModuleState target_state;
+    public double acceleration_ff;
 
     protected SwerveModule() {
         target_state = new SwerveModuleState();
-
+        acceleration_ff = 0;
     }
 
     public void setState(SwerveModuleState state) {

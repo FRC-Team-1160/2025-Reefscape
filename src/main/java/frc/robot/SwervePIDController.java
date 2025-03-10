@@ -45,7 +45,7 @@ public class SwervePIDController {
     public Rotation2d rotation_offset;
 
     public boolean reset_speeds;
-
+    @AutoLogOutput
     public boolean done;
 
     public boolean align_right;
@@ -88,8 +88,8 @@ public class SwervePIDController {
                     )
                 );
             FieldPositions.reef[3*i + 1] = center;
-            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.18, Rotation2d.kZero));
-            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.18, Rotation2d.kZero));
+            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.13, Rotation2d.kZero));
+            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.2, Rotation2d.kZero));
             angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
@@ -119,8 +119,8 @@ public class SwervePIDController {
      * Returns the closest reef face to the robot. The driverstation-oriented face is 0, and the rest are numbered CCW increasing.
      * @return The number corresponding the closest reef face.
      */
+    @AutoLogOutput
     public int getNearestReefFace() {
-        Logger.recordOutput("FaceTest", 2);
         Translation2d robot_position = SubsystemManager.instance.getPoseEstimate().getTranslation();
         Rotation2d reef_angle = new Translation2d(
                 Reef.CENTER_X,
@@ -131,8 +131,13 @@ public class SwervePIDController {
         return (int) Math.floor(6 * ((reef_angle.getRotations() + 1 + 0.5 / Reef.NUM_SIDES) % 1));
     }
 
+    public Pose2d getReefPose(int index) {
+        Logger.recordOutput("SwervePIDController/Reef Pose Index", index);
+        return FieldPositions.reef[index];
+    }
+
     public Pose2d getNearestReefPose(int offset) {
-        return FieldPositions.reef[3 * getNearestReefFace() + 1 + offset];
+        return getReefPose(3 * getNearestReefFace() + 1 + offset);
     }
 
     public Pose2d getNearestReefPose() {
@@ -220,19 +225,21 @@ public class SwervePIDController {
 
         desired_ang_speed = ang_pid_controller.atSetpoint() ? 0 : desired_ang_speed + 0.2 * Math.signum(desired_ang_speed);
 
-        double h_spacing = Math.abs(MathUtil.applyDeadband(
+        double h_spacing = Math.min(0.5, Math.abs(MathUtil.applyDeadband(
             goal_pose.getTranslation().minus(robot_pose.getTranslation()).rotateBy(goal_pose.getRotation().unaryMinus()).getY(),
-            0.2, 0.5));
+            0.2, 0.5)));
+
+        double a_spacing = Math.abs(MathUtil.applyDeadband(
+            // Multiply by two because the maximum error, facing backwards, is 0.5 rotations
+            Units.radiansToRotations(ang_pid_controller.getError()) * 2,
+            Tracking.ALIGN_SEPARATION_TOLERANCE,
+            Tracking.MAX_ALIGN_SEPARATION));
 
         /* Shift the pose backwards by the target distance using a -x transform
            Add extra space for turning to goal distance if robot is not pointing towards target,
            with a small amount of tolerance */
         goal_pose = goal_pose.transformBy(new Transform2d(
-                -(target_distance + h_spacing + Math.abs(MathUtil.applyDeadband(
-                    // Multiply by two because the maximum error, facing backwards, is 0.5 rotations
-                    Units.radiansToRotations(ang_pid_controller.getError()) * 2,
-                    Tracking.ALIGN_SEPARATION_TOLERANCE,
-                    Tracking.MAX_ALIGN_SEPARATION))),
+                -(target_distance + Math.min(h_spacing + a_spacing, 0.6)),
                 0,
                 // Apply the rotational offset
                 rotation_offset
@@ -245,11 +252,12 @@ public class SwervePIDController {
         Translation2d goal_off = robot_pose.getTranslation().minus(goal_pose.getTranslation())
             .rotateBy(robot_pose.getRotation().unaryMinus());
 
+        Logger.recordOutput("SwervePIDController/Distance Error", dist_pid_controller.getError());
+        Logger.recordOutput("SwervePIDController/Angle Error", ang_pid_controller.getError());
         // Get PID forward speed and normalize
-        SmartDashboard.putNumber("error", goal_off.getNorm());
         done = dist_pid_controller.atSetpoint() && ang_pid_controller.atSetpoint();
         double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
-        if (dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.3;
+        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.15;
         goal_off = goal_off.times(speed / goal_off.getNorm());
 
         return applyMovementConstraints(new ChassisSpeeds(
