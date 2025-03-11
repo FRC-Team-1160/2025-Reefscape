@@ -167,7 +167,6 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void runShooter(double speed) {
-        SmartDashboard.putNumber("vibe check", speed);
         shooter_motor.set(-speed);
     }
 

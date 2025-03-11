@@ -85,9 +85,11 @@ class RobotContainer {
             "ElevatorL3", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)),
             "ElevatorL4", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)),
             "ShootCoral", RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.4).withTimeout(0.5),
-            "ReefNearest", SubsystemManager.instance.commands.alignReef(false),
-            "Reef10L", SubsystemManager.instance.commands.alignReef(12),
-            "Reef10L4", SubsystemManager.instance.commands.alignReefClose(12)
+            "ReefNearest", SubsystemManager.instance.commands.alignReef(),
+            "ReefNearestL4", SubsystemManager.instance.commands.alignReefClose(),
+            "ReefSwitchLeft", new InstantCommand(() -> SwervePIDController.instance.align_right = false),
+            "ReefSwitchRight", new InstantCommand(() -> SwervePIDController.instance.align_right = true),
+            "Reef10L", SubsystemManager.instance.commands.alignReef(12)
         ));
 
         for (int i = 1; i <= 6; i++) {
@@ -195,7 +197,7 @@ class RobotContainer {
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
 
                 new JoystickButton(driver_controller, 5)
-                    .whileTrue(SubsystemManager.instance.commands.alignReef(false));
+                    .whileTrue(SubsystemManager.instance.commands.alignReef());
 
                 new JoystickButton(driver_controller, 7).whileTrue(
                     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));

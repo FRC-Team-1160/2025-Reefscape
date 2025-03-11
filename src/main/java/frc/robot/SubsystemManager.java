@@ -183,7 +183,6 @@ public class SubsystemManager {
             default:
                 double stick_x = MathUtil.applyDeadband(-stick_inputs.drive_x(), 0.1, 1)
                      * SwerveConstants.DRIVE_SPEED;
-                SmartDashboard.putNumber("stick_x", stick_x);
                 double stick_y = MathUtil.applyDeadband(-stick_inputs.drive_y(), 0.1, 1)
                      * SwerveConstants.DRIVE_SPEED;
                 double stick_a = MathUtil.applyDeadband(-stick_inputs.drive_a(), 0.1, 1)
@@ -235,24 +234,21 @@ public class SubsystemManager {
             return Elevator.instance.m_current_state.target_position.command_supplier.get();
         }
 
-        public Command alignReef(int index) {
+        public Command alignReef(Integer index, double distance) {
             return getAlignCommand(
-                () -> SwervePIDController.instance.getReefPose(index), 
-                0.05, 
+                () -> index == null ? SwervePIDController.instance.getNearestReefPose()
+                     : SwervePIDController.instance.getReefPose(index), 
+                distance, 
                 null);
         }
 
-        public Command alignReef(boolean with_elevator) {
-            return getAlignCommand(
-                SwervePIDController.instance::getNearestReefPose,
-                Elevator.instance.m_current_state == TargetState.kL4 ? -0.01 : 0.05,
-                with_elevator ? TargetState.kL3 : null);
-        }
+        public Command alignReef(Integer index) { return alignReef(index, 0.05); }
 
-        public Command alignReefClose(int index) {
-            return getAlignCommand(
-                () -> SwervePIDController.instance.getReefPose(index), 0.01, null);
-        }
+        public Command alignReef() { return alignReef(null); }
+
+        public Command alignReefClose(Integer index) { return alignReef(index, 0.01); }
+
+        public Command alignReefClose() { return alignReefClose(null); }
 
         public Command alignReefAlgae() {
             return getAlignCommand(

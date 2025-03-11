@@ -56,7 +56,7 @@ abstract public class Elevator extends SubsystemBase {
         kL1(ElevatorSetpoints.kL1, WristSetpoints.kReefCoral, AlignCommand.kReefCoral), 
         kL2(ElevatorSetpoints.kL2, WristSetpoints.kReefCoral, AlignCommand.kReefCoral), 
         kL3(ElevatorSetpoints.kL3, WristSetpoints.kReefCoral, AlignCommand.kReefCoral), 
-        kL4(ElevatorSetpoints.kL4, WristSetpoints.kReefCoral, AlignCommand.kReefCoral),
+        kL4(ElevatorSetpoints.kL4, WristSetpoints.kReefCoral, AlignCommand.kReefCoralL4),
         kL2Algae(ElevatorSetpoints.kL2Algae, WristSetpoints.kReefAlgae, AlignCommand.kReefAlgae),
         kL3Algae(ElevatorSetpoints.kL3Algae, WristSetpoints.kReefAlgae, AlignCommand.kReefAlgae);
 
@@ -74,7 +74,8 @@ abstract public class Elevator extends SubsystemBase {
             kNone(() -> Commands.none()),
             kProcessor(() -> Commands.none()),
             kSource(() -> Commands.none()),
-            kReefCoral(() -> SubsystemManager.instance.commands.alignReef(false)),
+            kReefCoral(() -> SubsystemManager.instance.commands.alignReef()),
+            kReefCoralL4(() -> SubsystemManager.instance.commands.alignReefClose()),
             kReefAlgae(() -> SubsystemManager.instance.commands.alignReefAlgae()),
             kGround(() -> SubsystemManager.instance.commands.trackAlgae());
 
