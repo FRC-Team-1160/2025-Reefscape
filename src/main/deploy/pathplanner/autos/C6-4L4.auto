@@ -15,7 +15,7 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "Cage1-Reef8"
+                        "pathName": "Cage6-Reef4"
                       }
                     },
                     {
@@ -40,7 +40,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "ElevatorL3"
+                        "name": "ElevatorL4"
                       }
                     }
                   ]

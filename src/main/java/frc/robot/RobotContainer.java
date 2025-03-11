@@ -30,6 +30,7 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IOConstants;
+import frc.robot.SubsystemManager.PathplannerSpeeds;
 import frc.robot.SubsystemManager.RobotState.ElevatorStates;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
@@ -79,8 +80,8 @@ class RobotContainer {
     public DriveMode drive_mode = new DriveMode();
 
     public RobotContainer() {
-
-        NamedCommands.registerCommands(Map.of(
+        // Map.of returns immutable map, so create a mutable hashmap
+        HashMap<String, Command> commands_map = new HashMap<String, Command>(Map.of(
             "ElevatorL3", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)),
             "ElevatorL4", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)),
             "ShootCoral", RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.4).withTimeout(0.5),
@@ -89,12 +90,26 @@ class RobotContainer {
             "Reef10L4", SubsystemManager.instance.commands.alignReefClose(12)
         ));
 
+        for (int i = 1; i <= 6; i++) {
+            int face = 3 * ((i + 5) % 6);
+            commands_map.put("Reef" + String.valueOf(i * 2) + "L2", 
+                SubsystemManager.instance.commands.alignReef(face));
+            commands_map.put("Reef" + String.valueOf(i * 2) + "R2",
+                SubsystemManager.instance.commands.alignReef(face + 2));
+            commands_map.put("Reef" + String.valueOf(i * 2) + "L4",
+                SubsystemManager.instance.commands.alignReefClose(face));
+            commands_map.put("Reef" + String.valueOf(i * 2) + "R4",
+                SubsystemManager.instance.commands.alignReefClose(face + 2));
+        }
+
+        NamedCommands.registerCommands(commands_map);
+
+
         // Configure Autobuilder
         RobotConfig config;
 
         AutoLogOutputManager.addObject(SubsystemManager.instance);
         AutoLogOutputManager.addObject(SwervePIDController.instance);
-        AutoLogOutputManager.addObject(PathplannerController.instance);
         AutoLogOutputManager.addObject(DriveTrain.instance);
         AutoLogOutputManager.addObject(Elevator.instance);
         AutoLogOutputManager.addObject(Funnel.instance);
@@ -113,8 +128,9 @@ class RobotContainer {
             SubsystemManager.instance::getPoseEstimate,
             SubsystemManager.instance.pose_estimator::resetPose,
             DriveTrain.instance::getOdomSpeeds,
-            // Pathplanner commands are redirected to the PathplannerController instance
-            (speeds, feedforwards) -> PathplannerController.instance.acceptGeneratedSpeeds(speeds, feedforwards.accelerationsMPSSq()),
+            (speeds, feedforwards) -> SubsystemManager.instance.m_pathplanner_speeds = new PathplannerSpeeds(
+                    speeds, 
+                    feedforwards.accelerationsMPSSq()),
             new PPHolonomicDriveController(
                 new PIDConstants(
                     AutoConstants.translation_kP, 
@@ -130,7 +146,6 @@ class RobotContainer {
         );
 
         auto_chooser = AutoBuilder.buildAutoChooser();
-        auto_chooser.addOption("Testing", SubsystemManager.instance.commands.alignReef(false));
         SmartDashboard.putData("Auto Chooser", auto_chooser);
         configureBindings();
     }
@@ -247,7 +262,9 @@ class RobotContainer {
                         Elevator.instance.m_current_state == TargetState.kL4? 0.3 : 0.4), 
                     Commands.either(
                         RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3),
-                        Elevator.instance.intakeCoralSequence(this::rumble),
+                        RobotUtils.decorateCommandFeedback(
+                            Elevator.instance.intakeCoralSequence(),
+                            this::rumble),
                         Elevator.instance::getCoralStored),
                     () -> codriver_controller.getRawButton(8)));
 
@@ -280,9 +297,14 @@ class RobotContainer {
                     () -> Climber.instance.runClimber(-4), 
                     () -> Climber.instance.runClimber(0)));
 
-                new JoystickButton(codriver_controller, 7).whileTrue(new StartEndCommand(
-                        () -> Funnel.instance.setState(FunnelState.kDown), 
-                        () -> Funnel.instance.setState(FunnelState.kDown)));
+                new JoystickButton(codriver_controller, 7).whileTrue(Commands.either(
+                    new StartEndCommand(
+                        () -> Funnel.instance.setState(FunnelState.kOn), 
+                        () -> Funnel.instance.setState(FunnelState.kOff)),
+                    new StartEndCommand(
+                        () -> Funnel.instance.setState(FunnelState.kReverse), 
+                        () -> Funnel.instance.setState(FunnelState.kOff)),
+                    () -> codriver_controller.getRawButton(8)));
 
                 break;
         

@@ -1,6 +1,7 @@
 package frc.robot;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -82,15 +83,20 @@ public class SubsystemManager {
     }
 
     public RobotState m_robot_state = new RobotState();
-    public Commands commands = new Commands();
+    public final Commands commands = new Commands();
 
     public SwerveDrivePoseEstimator pose_estimator;
     
     public VisionTarget tracked_target;
 
-    StructArrayPublisher<Pose3d> adv_components_pub;
-
     public Orchestra orchestra;
+
+    public record PathplannerSpeeds(ChassisSpeeds chassis_speeds, double[] acceleration_feedforwards) {
+        public static PathplannerSpeeds kZero = 
+            new PathplannerSpeeds(new ChassisSpeeds(0, 0, 0), new double[4]);
+    };
+
+    public PathplannerSpeeds m_pathplanner_speeds;
 
     /** Creates a new SubsystemManager. */
     private SubsystemManager() {
@@ -103,17 +109,11 @@ public class SubsystemManager {
             VecBuilder.fill(0.01, 0.01, 0.01), 
             VecBuilder.fill(0.05, 0.05, 0.05));
 
-        setupDashboard();
+        m_pathplanner_speeds = PathplannerSpeeds.kZero;
 
         orchestra = new Orchestra();
         setupOrchestra();
 
-    }
-
-    public void setupDashboard() {
-        NetworkTableInstance inst = NetworkTableInstance.getDefault();
-        NetworkTable adv_swerve = inst.getTable("adv_swerve");
-        adv_components_pub = adv_swerve.getStructArrayTopic("Component Poses", Pose3d.struct).publish();
     }
 
     /**
@@ -157,8 +157,8 @@ public class SubsystemManager {
         switch (m_robot_state.drive_state) {
 
             case PATHPLANNER_CONTROL:
-                DriveTrain.instance.setSwerveDrive(PathplannerController.instance.generated_speeds, false);
-                DriveTrain.instance.setAccelerationFeedforwards(PathplannerController.instance.feedforwards);
+                DriveTrain.instance.setSwerveDrive(m_pathplanner_speeds.chassis_speeds, false);
+                DriveTrain.instance.setAccelerationFeedforwards(m_pathplanner_speeds.acceleration_feedforwards);
                 break;
 
             case PID_ALIGNING:
@@ -198,8 +198,6 @@ public class SubsystemManager {
         }
 
         Logger.recordOutput("SubsystemManager/DriveState", m_robot_state.drive_state.toString());
-        Logger.recordOutput("PathplannerController/Running", 
-            CommandScheduler.getInstance().isScheduled(PathplannerController.instance.current_command));
     }
 
     public void setupOrchestra() {
@@ -253,7 +251,7 @@ public class SubsystemManager {
 
         public Command alignReefClose(int index) {
             return getAlignCommand(
-                () -> SwervePIDController.instance.getReefPose(index), -0.01, null);
+                () -> SwervePIDController.instance.getReefPose(index), 0.01, null);
         }
 
         public Command alignReefAlgae() {
@@ -338,25 +336,13 @@ public class SubsystemManager {
             );
         }
 
-        // public Command pathCmdWrapper(Supplier<Command> cmd_supplier) {
-        //     return new FunctionalCommand(
-        //         () -> {
-        //             m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
-        //             PathplannerController.instance.current_command = cmd_supplier.get();
-        //             PathplannerController.instance.cmdInitialize();
-        //         },
-        //         PathplannerController.instance::cmdExecute, 
-        //         (canceled) -> {
-        //             PathplannerController.instance.cmdEnd(canceled);
-        //         },
-        //         () -> PathplannerController.instance.cmdIsFinished() || 
-        //             m_robot_state.drive_state != RobotState.DriveStates.PATHPLANNER_CONTROL);
-        // }
-
         public Command decoratePathplannerCmd(Command cmd) {
             return cmd
                 .beforeStarting(() -> m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL)
-                .andThen(() -> m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL);
+                .andThen(() -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    m_pathplanner_speeds = PathplannerSpeeds.kZero;
+                });
         }
 
         public Command playMusic(String filename) {

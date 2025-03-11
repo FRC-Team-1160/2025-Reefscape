@@ -190,10 +190,6 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public Command intakeCoralCmd() {
-        return intakeCoralCmd(() -> Commands.none());
-    }
-
-    public Command intakeCoralCmd(Supplier<Command> feedback) {
         return 
             new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
                 .until(this::getCoralStored)
@@ -201,19 +197,14 @@ public class ElevatorRealIO extends Elevator {
             .andThen(new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
                 .withDeadline(new WaitCommand(0.2)))
                 .andThen(() -> runShooter(0))
-                .andThen(feedback.get())
             .finallyDo(() -> runShooter(0));
     }
 
     public Command intakeCoralSequence() {
-        return intakeCoralSequence(() -> Commands.none());
-    }
-
-    public Command intakeCoralSequence(Supplier<Command> feedback) {
         return Commands.sequence(
             new StartEndCommand(() -> setState(TargetState.kStow), () -> setState(TargetState.kSource))
                 .until(() -> getElevatorHeight() <= 0)
-            .andThen(intakeCoralCmd(feedback))
+            .andThen(intakeCoralCmd())
         ).finallyDo(() -> runShooter(0));
     }
 

@@ -76,16 +76,9 @@ public class ElevatorSimIO extends Elevator {
         return Rotation2d.fromRotations(wrist_pos);
     }
 
-    public Command intakeCoralCmd(Supplier<Command> feedback) { return Commands.none(); }
-    public Command intakeCoralCmd() {
-        return Commands.none();
-    }
+    public Command intakeCoralCmd() { return Commands.none(); }
 
-    public Command intakeAlgaeCmd() {
-        return Commands.none();
-    }
-
-    public Command intakeCoralSequence(Supplier<Command> feedback) { return Commands.none(); }
+    public Command intakeAlgaeCmd() { return Commands.none(); }
 
     public Command intakeCoralSequence() { return Commands.none(); }
 

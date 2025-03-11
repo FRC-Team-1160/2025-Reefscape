@@ -60,6 +60,9 @@ public final class RobotUtils {
         return onOffCommand(consumer, value, 0);
     }
 
+    public static Command decorateCommandFeedback(Command command, Runnable feedback) {
+        return command.finallyDo(end -> {if (!end) feedback.run();});
+    }
 
     public record ArticulatedPose(Pose2d robot_pose, Pose3d[] component_poses) {
 
