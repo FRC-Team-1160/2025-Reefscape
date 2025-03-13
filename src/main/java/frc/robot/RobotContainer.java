@@ -325,7 +325,7 @@ public class RobotContainer {
      * @return The modified pathplanner sequence command selected on the dashboard.
      */
     public Command getAutonomousCommand() {
-        return SubsystemManager.instance.commands.decoratePathplannerCmd(auto_chooser.getSelected());
+        return SubsystemManager.instance.commands.decoratePathplannerCmd(auto_chooser::getSelected);
     }
 }
   
