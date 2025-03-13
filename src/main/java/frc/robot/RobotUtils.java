@@ -59,8 +59,11 @@ public final class RobotUtils {
      * @return Whether or not the robot is on red alliance.
      */
     public static boolean isRedAlliance() {
-        if (DriverStation.getAlliance().isEmpty()) return false;
-        return DriverStation.getAlliance().get() == Alliance.Red;
+        return false;
+
+        // if (DriverStation.getAlliance().isEmpty()) return false;
+        // // return DriverStation.getAlliance().get() == Alliance.Red;
+        // return true;
     }
 
     /**

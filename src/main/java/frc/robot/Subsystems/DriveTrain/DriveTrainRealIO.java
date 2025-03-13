@@ -7,6 +7,7 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.studica.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.SubsystemManager;
 
 public class DriveTrainRealIO extends DriveTrain {
 
@@ -29,6 +30,11 @@ public class DriveTrainRealIO extends DriveTrain {
     public double getGyroRate(){
         if (gyro != null) return -gyro.getRate(); 
         return 0.0;
+    }
+
+    public void setGyroAngle(double angle){
+        resetGyroAngle();
+        if (gyro != null) gyro.setAngleAdjustment(-angle);
     }
 
     public void resetGyroAngle() {

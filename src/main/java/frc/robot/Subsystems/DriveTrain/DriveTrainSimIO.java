@@ -21,6 +21,10 @@ public class DriveTrainSimIO extends DriveTrain {
         return 0.0;
     }
 
+    public void setGyroAngle(double angle) {
+        // angle = Rotation2d.fromDegrees(-angle);
+    }
+
     public void resetGyroAngle() {
         angle = new Rotation2d();
     }

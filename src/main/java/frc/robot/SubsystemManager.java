@@ -254,7 +254,7 @@ public class SubsystemManager {
 
         public Command alignReef() { return alignReef(null); }
 
-        public Command alignReefClose(Integer index) { return alignReef(index, 0.01); }
+        public Command alignReefClose(Integer index) { return alignReef(index, 0.02); }
 
         public Command alignReefClose() { return alignReefClose(null); }
 
@@ -294,7 +294,8 @@ public class SubsystemManager {
                     SwervePIDController.instance.done = false;
                     SwervePIDController.instance.configure(target_pose.get(), target_distance, offset);
                     Elevator.instance.setState(elevator_state);
-                    Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
+                    Vision.instance.setCameraPipelines(
+                    Vision.CameraMode.kStereoAprilTag);
                 },
                 () -> {},
                 canceled -> {
@@ -336,6 +337,7 @@ public class SubsystemManager {
                 .andThen(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     m_pathplanner_speeds = PathplannerSpeeds.kZero;
+                    DriveTrain.instance.setGyroAngle(180);
                 });
         }
 
