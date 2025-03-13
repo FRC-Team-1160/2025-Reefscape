@@ -31,7 +31,6 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IOConstants;
 import frc.robot.SubsystemManager.PathplannerSpeeds;
-import frc.robot.SubsystemManager.RobotState.ElevatorStates;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
@@ -42,8 +41,10 @@ import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.Vision;
 
-public 
-class RobotContainer {
+/** RobotContainer handles joystick and controller inputs to the code as well as autonomous sequences.
+ * Our use of singleton subsystem classes means that instances are no longer stored here.
+ */
+public class RobotContainer {
 
     public record JoystickInputs(double drive_x, double drive_y, double drive_a) {}
 
@@ -88,8 +89,7 @@ class RobotContainer {
             "ReefNearest", SubsystemManager.instance.commands.alignReef(),
             "ReefNearestL4", SubsystemManager.instance.commands.alignReefClose(),
             "ReefSwitchLeft", new InstantCommand(() -> SwervePIDController.instance.align_right = false),
-            "ReefSwitchRight", new InstantCommand(() -> SwervePIDController.instance.align_right = true),
-            "Reef10L", SubsystemManager.instance.commands.alignReef(12)
+            "ReefSwitchRight", new InstantCommand(() -> SwervePIDController.instance.align_right = true)
         ));
 
         for (int i = 1; i <= 6; i++) {
@@ -263,7 +263,7 @@ class RobotContainer {
                     RobotUtils.onOffCommand(Elevator.instance::runShooter, 
                         Elevator.instance.m_current_state == TargetState.kL4? 0.3 : 0.4), 
                     Commands.either(
-                        RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3),
+                        RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.2),
                         RobotUtils.decorateCommandFeedback(
                             Elevator.instance.intakeCoralSequence(),
                             this::rumble),

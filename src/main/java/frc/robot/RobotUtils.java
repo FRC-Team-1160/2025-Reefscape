@@ -82,8 +82,9 @@ public final class RobotUtils {
                 robot_pose,
                 zero_poses[0].plus(new Transform3d(0, 0, elevator_height * ElevatorConstants.GEAR_DIAMETER, Rotation3d.kZero)),
                 zero_poses[1].plus(new Transform3d(0, 0, elevator_height * ElevatorConstants.GEAR_DIAMETER * 2, Rotation3d.kZero)),
-                zero_poses[2].plus(new Transform3d(0, 0, 0, new Rotation3d(0, -intake_angle, 0)))
-                    .plus(new Transform3d(0, 0, elevator_height * ElevatorConstants.GEAR_DIAMETER * 2, Rotation3d.kZero)),
+                // zero_poses[2].plus(new Transform3d(0, 0, 0, new Rotation3d(0, -intake_angle, 0)))
+                    // .plus(new Transform3d(0, 0, elevator_height * ElevatorConstants.GEAR_DIAMETER * 2, Rotation3d.kZero)),
+                zero_poses[2].plus(new Transform3d(0, 0, elevator_height * ElevatorConstants.GEAR_DIAMETER * 2, new Rotation3d(0, -intake_angle, 0))),
                 zero_poses[3]);
         }
 

@@ -48,7 +48,6 @@ import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.RobotContainer.JoystickInputs;
 import frc.robot.RobotUtils.ArticulatedPose;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
-import frc.robot.SubsystemManager.RobotState.ElevatorStates;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
@@ -62,6 +61,9 @@ import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.VisionTarget;
 
+/** 
+ * The SubsystemManager coordinates all of the classes and ensures only one sequence is run at at time.
+ */
 public class SubsystemManager {
 
     public static final SubsystemManager instance = new SubsystemManager();
@@ -73,13 +75,7 @@ public class SubsystemManager {
             PID_ALIGNING,
             PATHPLANNER_CONTROL
         }
-
-        enum ElevatorStates {
-            FULL_CONTROL // Control via setpoint
-        }
-    
         public DriveStates drive_state = DriveStates.DRIVER_CONTROL;
-        public ElevatorStates elevator_state = ElevatorStates.FULL_CONTROL;
     }
 
     public RobotState m_robot_state = new RobotState();
@@ -203,6 +199,10 @@ public class SubsystemManager {
         setupOrchestra(Integer.MAX_VALUE);
     }
 
+    /**
+     * Clears and refills the orchestra to play MIDI sequences.
+     * @param tracks The number of tracks the midi file contains.
+     */
     public void setupOrchestra(int tracks) {
 
         if (Robot.isSimulation()) return; // Abort if robot is in simulation
@@ -228,8 +228,15 @@ public class SubsystemManager {
         }
     }
     
+    /**
+     * A class separating all of the command getters.
+     */
     public class Commands {
 
+        /**
+         * Selects an alignment or tracking command based on the current elevator state.
+         * @return A command to align with a game element or piece.
+         */
         public Command selectCommand() {
             return Elevator.instance.m_current_state.target_position.command_supplier.get();
         }
@@ -274,14 +281,6 @@ public class SubsystemManager {
             return getAlignCommand(target_pose, target_distance, Rotation2d.kZero, elevator_state);
         }
 
-        public boolean checkDone() {
-            System.out.print(m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING);
-            System.out.print("    ");
-            System.out.println(SwervePIDController.instance.done);
-            return m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
-                    || SwervePIDController.instance.done;
-        }
-
         public Command getAlignCommand(
             Supplier<Pose2d> target_pose, 
             double target_distance, 
@@ -295,18 +294,14 @@ public class SubsystemManager {
                     SwervePIDController.instance.configure(target_pose.get(), target_distance, offset);
                     Elevator.instance.setState(elevator_state);
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
-                    for (int i = 0; i < 3; i++) System.out.println("STARTING");
                 },
-                () -> {System.out.println("RUNNING");},
+                () -> {},
                 canceled -> {
-                    for (int i = 0; i < 3; i++) System.out.println("DONE");
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
                 },
-                () -> checkDone()
-                // () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
-                //     || (elevator_state != null && Elevator.instance.m_current_state != elevator_state)
-                //     || SwervePIDController.instance.done
+                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
+                     || SwervePIDController.instance.done
             );
         }
 
@@ -319,7 +314,6 @@ public class SubsystemManager {
                     // Reset pid speeds to real measured for acceleration calculations
                     SwervePIDController.instance.reset_speeds = true;
                     SwervePIDController.instance.configure(null, 0.8, Rotation2d.kZero);
-                    // Elevator.instance.setState(TargetState.kIntakePrepare);
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAlgae);
                 },
                 () -> {},
@@ -359,16 +353,4 @@ public class SubsystemManager {
 
     }
 
-    public class AutoCommandManager {
-        public AutoCommandManager instance = new AutoCommandManager();
-        
-        Set<Command> stored_commands;
-        
-        private AutoCommandManager() {}
-
-        public void addCommand() {
-
-        }
-
-    }
 }

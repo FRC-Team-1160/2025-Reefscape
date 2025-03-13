@@ -154,6 +154,14 @@ public class VisionTarget {
      * @param update_pose Whether or not to update the position of the target with this observation if matched.
      * @return Whether or not the observed target matches this target.
      */
+
+    /**
+     * Checks whether the observed target matches this target's position. Unmarks this target if so.
+     * @param observed_pose The observed target pose.
+     * @param robot_pose The robot's current pose.
+     * @param weight The weight of the new estimate
+     * @return Whether the target was matched.
+     */
     public boolean match(Pose2d observed_pose, Pose2d robot_pose, double weight) {
         // Check if the given pose has a close enough angle and distance
         if (inPositionTolerance(observed_pose) ||
