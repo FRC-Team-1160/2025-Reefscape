@@ -21,49 +21,109 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
 
+/** A collection of convenience methods. */
 public final class RobotUtils {
     
+    /**
+     * Returns the hypotenuse of two values using the pythagorean theorem.
+     * @param a The first value.
+     * @param b The second value.
+     * @return The hypotenuse of the two values.
+     */
     public static double hypot(double a, double b) {
         return Math.sqrt(a * a + b * b);
     }
 
+    /**
+     * Returns one side of a right triangle given a hypotenuse and side length.
+     * @param c The hypotenuse length.
+     * @param a The shorter side length.
+     * @return The third side length.
+     */
     public static double hypot_inverse(double c, double a) {
         return Math.sqrt(c * c - a * a);
     }
 
+    /**
+     * Clamp a value to a maximum absolute value.
+     * @param x The value to be clamped.
+     * @param maxAbs The maximum absolute value.
+     * @return The clamped value.
+     */
     public static double clampAbs(double x, double maxAbs) {
         return MathUtil.clamp(x, -maxAbs, maxAbs);
     }
 
+    /**
+     * Checks the alliance of the robot.
+     * @return Whether or not the robot is on red alliance.
+     */
     public static boolean isRedAlliance() {
         if (DriverStation.getAlliance().isEmpty()) return false;
         return DriverStation.getAlliance().get() == Alliance.Red;
     }
 
+    /**
+     * Flips a field X-coordinate based on alliance.
+     * @param x The original coordinate.
+     * @return The correct coordinate.
+     */
     public static double allianceFlipX(double x) {
         return isRedAlliance() ? FieldConstants.LENGTH - x : x;
     }
 
+    /**
+     * Flips a field Y-coordinate based on alliance.
+     * @param y The original coordinate.
+     * @return The correct coordinate.
+     */
     public static double allianceFlipY(double y) {
         return isRedAlliance() ? FieldConstants.WIDTH - y : y;
     }
 
+    /**
+     * Returns the negative of a value if the alliance is red.
+     * @param x The original value.
+     * @return The corrected value.
+     */
     public static double allianceNegate(double x) {
         return isRedAlliance() ? -x : x;
     }
 
+    /**
+     * Returns a StartEndCommand that takes one value on start and a second value on end.
+     * @param consumer The consumer to accept the double values.
+     * @param on_value The first value.
+     * @param off_value The final value.
+     * @return The composed command.
+     */
     public static Command onOffCommand(Consumer<Double> consumer, double on_value, double off_value) {
         return new StartEndCommand(() -> consumer.accept(on_value), () -> consumer.accept(off_value));
     }
 
+    /**
+     * Returns a StartEndCommand that takes one value on start and zero on end.
+     * @param consumer The consumer to accept the double values.
+     * @param value The first value.
+     * @return The composed command.
+     */
     public static Command onOffCommand(Consumer<Double> consumer, double value) {
         return onOffCommand(consumer, value, 0);
     }
 
+    /**
+     * Decorates a command with a feedback end condition.
+     * @param command The original command.
+     * @param feedback The callback to the feedback method.
+     * @return The modified command.
+     */
     public static Command decorateCommandFeedback(Command command, Runnable feedback) {
         return command.finallyDo(end -> {if (!end) feedback.run();});
     }
 
+    /**
+     * A convenience class for storing a pose along with its mechanism positions.
+     */
     public record ArticulatedPose(Pose2d robot_pose, Pose3d[] component_poses) {
 
         private final static Pose3d[] zero_poses = new Pose3d[] {

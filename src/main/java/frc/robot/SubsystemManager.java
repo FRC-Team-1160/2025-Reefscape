@@ -87,6 +87,7 @@ public class SubsystemManager {
 
     public Orchestra orchestra;
 
+    /** Stores a set of chassis speeds and acceleration feedforwards to accept PathPlanner output. */
     public record PathplannerSpeeds(ChassisSpeeds chassis_speeds, double[] acceleration_feedforwards) {
         public static PathplannerSpeeds kZero = 
             new PathplannerSpeeds(new ChassisSpeeds(0, 0, 0), new double[4]);

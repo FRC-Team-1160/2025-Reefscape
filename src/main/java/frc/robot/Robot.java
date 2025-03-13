@@ -17,6 +17,10 @@ import frc.robot.SubsystemManager.RobotState.DriveStates;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
+/** 
+ * The main Robot class. 
+ * Our class is slightly modified to implement AdvantageKit and add the subsystem manager to the command loop.
+*/
 public class Robot extends LoggedRobot {
     private Command autonomous_command;
 

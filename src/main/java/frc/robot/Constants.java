@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.RobotBase;
  */
 public final class Constants {
 
+    /** General miscellaneous constants. */
     public static class RobotConstants {
         public static final double LOOP_TIME_SECONDS = 0.02;
 
@@ -29,6 +30,7 @@ public final class Constants {
         }
     }
 
+    /** IDs for motors and DIO sensors. */
     public static final class PortConstants {
         // CAN IDs 
         public static final int STEER_MOTOR_FRONT_LEFT = 1;
@@ -61,51 +63,26 @@ public final class Constants {
 
         public static final int SERVO_LEFT = 0;
         public static final int SERVO_RIGHT = 1;
-
-        public static final int BREAK_BEAM = 3;
     }
 
+    /** Constants for controller ports, */
     public static class IOConstants {
         public static final int MAIN_PORT = 0;
         public static final int COPILOT_PORT = 1;
         public static final int LEFT_BOARD_PORT = 2;
         public static final int RIGHT_BOARD_PORT = 3;
-
-        public static final class Board {
-            public static final class Left {
-                public static final int SHOOT = 1;
-                public static final int AIM = 2;
-
-                public static final int AMP = 3;
-
-                public static final int SHOOT_OVERRIDE = 5;
-                public static final int REV = 6;
-
-                public static final int LEFT_CLIMB = 0;
-            }
-            
-            public static final class Right {
-                public static final int UP_DOWN_INTAKE = 1;
-                public static final int OVERRIDE = 4;
-                public static final int OUTTAKE = 9;
-                public static final int INTAKE = 8;
-
-                public static final int INC_OR_DEC_TAR = 3;
-                public static final int MOVE_TAR = 6;
-
-                public static final int RIGHT_CLIMB = 0;
-            }
-        }
     }
 
+    /** Constants for the Vision subsystem. */
     public static class VisionConstants {
         /**Width of the camera stream in pixels.*/
         public static final int SCREEN_WIDTH = 800;
         /**Height of the camera stream in pixels. */
         public static final int SCREEN_HEIGHT = 600;
-        /**Horizontal FOV of the camera in radians. */
+        /**Horizontal FOV of the cameras in radians. */
         public final static double CAMERA_X_FOV = Units.degreesToRadians(70);
 
+        /** Algae object detection parameters. */
         public class AlgaeParams {
             /** Range in which tracked targets are marked for deletion if not seen.*/
             public final static double EXPECTED_RANGE = Units.degreesToRadians(40);
@@ -133,7 +110,9 @@ public final class Constants {
             public final static double POSITION_TOLERANCE = 0.8;
         }
         
+        /** Robot-to-camera transforms for the 3 cameras. */
         public static class CameraTransforms {
+            /** Coordinate transform for the left camera. */
             public static class LeftCamera {
                 public static final double X = 0.15;
                 public static final double Y = 0.3;
@@ -144,6 +123,7 @@ public final class Constants {
                 public static final double YAW = Units.degreesToRadians(-20);
             }
 
+            /** Coordinate transform for the right camera. */
             public static class RightCamera {
                 public static final double X = 0.15;
                 public static final double Y = -0.3;
@@ -154,6 +134,7 @@ public final class Constants {
                 public static final double YAW = Units.degreesToRadians(20);
             }
 
+            /** Coordinate transform for the limelight. */
             public static class BackCamera {
                 public static final double X = 0; //TODO: find constants
                 public static final double Y = 0;
@@ -165,11 +146,13 @@ public final class Constants {
             }
         }
 
+        /** Coefficients for inverse regression fit distance approximation. */
         public static class EstimationParams {
             public static final double a = 261.3;
             public static final double b = -0.044;
         }
 
+        /** Terms for the object detection camera's internal matrix. */
         public static class CameraIntrinsics {
             public static final double f_x = 552.4060255333238;
             public static final double c_x = 353.4277563553747;
@@ -177,6 +160,7 @@ public final class Constants {
             public static final double c_y = 211.14820439067003;
         }
 
+        /** Distortion coefficients for the object detection camera. */
         public static class CameraDistortion {
             public static final double k1 = 0.01909844064431134;
             public static final double k2 = -0.06833877284448357;
@@ -214,6 +198,7 @@ public final class Constants {
         };
     }
 
+    /** Constants for the Swerve subsystem. */
     public static class SwerveConstants {
         public static final double WHEEL_DIAMETER = Units.inchesToMeters(4) * Math.PI;
         public static final double GEAR_RATIO = 5.01;
@@ -225,6 +210,7 @@ public final class Constants {
         public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.0 : 3.0;
         public static final double TURN_SPEED = 2.5;
 
+        /** Constraints and settings for automatic alignment. */
         public static class Tracking {
             public static final double MAX_SPEED = 3;
             public static final double MAX_ACCEL = 5.0;
@@ -241,6 +227,7 @@ public final class Constants {
             public static final double ANGLE_TOLERANCE = Units.degreesToRadians(2);
             public static final double DISTANCE_TOLERANCE = 0.02;
 
+            /** Coefficients for distance and angular PID controllers. */
             public static class PIDConstants {
                 public static class Distance {
                     public static final double kP = 1.5;
@@ -255,6 +242,7 @@ public final class Constants {
             }
         }
 
+        /** Configured PID values for drive motors. */
         public static class DriveMotorConfigs {
             public static final double kP = 0.3;
             public static final double kI = 0;
@@ -265,6 +253,7 @@ public final class Constants {
             public static final double kG = 0;
         }
 
+        /** Configured PID values for steer motors. */
         public static class SteerMotorConfigs {
             public static final double kP = 15;
             public static final double kI = 0;
@@ -276,6 +265,7 @@ public final class Constants {
         }
     }
 
+    /** Constants for the Elevator subsystem. */
     public static class ElevatorConstants {
 
         public static final double MAX_EXTENSION = 5.3;
@@ -285,6 +275,7 @@ public final class Constants {
 
         public static final double GEAR_DIAMETER = Units.inchesToMeters(Math.PI * 1.75);
 
+        /** Configured PID values for elevator motors. */
         public static class ElevatorConfigs {
             public static final double kP = 4;
             public static final double kI = 0;
@@ -295,6 +286,7 @@ public final class Constants {
             public static final double kG = 0.4;
         }
 
+        /** Configured Motion Magic coefficients for the elevator motor. */
         public static class ElevatorMotionMagic {
             public static final double VELOCITY = 3;
             public static final double ACCELERATION = 6;
@@ -303,6 +295,7 @@ public final class Constants {
             public static final double EXPO_kA = 0;
         }
 
+        /** Configured PID values for the elevator motor. */
         public static class WristConfigs {
             public static final double kP = 5;
             public static final double kI = 0;
@@ -313,6 +306,7 @@ public final class Constants {
             public static final double kG = 0.18;
         }
 
+        /** Configured Motion Magic coefficients for the wrist motor. */
         public static class WristMotionMagic {
             public static final double VELOCITY = 0.5;
             public static final double ACCELERATION = 1.5;
@@ -321,7 +315,7 @@ public final class Constants {
             public static final double EXPO_kA = 0;
         }
 
-        // TUNE
+        /** Height presets for the elevator, in gear rotations */
         public static class ElevatorSetpoints {
             public static final double kL1 = 0.8; //TUNE
             public static final double kL2 = 1.6; //TUNE
@@ -336,7 +330,8 @@ public final class Constants {
             public static final double kIntakePrepare = 0.5; //TUNE
             public static final double kBarge = 5.2; //TUNE
         }
-        // TUNE
+        
+        /** Angle presets for the wrist, in rotations. */
         public static class WristSetpoints {
             public static final double kReefCoral = 0.185;
             public static final double kReefAlgae = 0.02;
@@ -349,20 +344,7 @@ public final class Constants {
         }
     }
 
-    public static class FunnelConstants {
-        public static class ServoLeft {
-            public static final double UP = 30;
-            public static final double DOWN = 150;
-            public static final double START = 150;
-        }
-        
-        public static class ServoRight {
-            public static final double UP = 150;
-            public static final double DOWN = 30;
-            public static final double START = 30;
-        }
-    }
-
+    /** PID correction constants for PathPlanner. */
     public static class AutoConstants {
         public static final double translation_kP = 0d;
         public static final double translation_kI = 0d;
@@ -373,11 +355,13 @@ public final class Constants {
         public static final double rotation_kD = 0d;
     }
 
+    /** Constants relating to the game field. */
     public static class FieldConstants {
 
         public static final double WIDTH = Units.inchesToMeters(317);
         public static final double LENGTH = Units.inchesToMeters(690.875);
 
+        /** Dimensions of the reef. */
         public static class Reef {
             public static final double INNER_RADIUS = Units.inchesToMeters(65.5) / 2;
             public static final double CENTER_X = RobotUtils.allianceFlipX(Units.feetToMeters(12) + INNER_RADIUS);
@@ -385,32 +369,18 @@ public final class Constants {
             public static final int NUM_SIDES = 6;
         }
 
+        /** Dimensions of the coral station. */
         public static class CoralStation {
             public static final double CENTER_X = RobotUtils.allianceFlipX(Units.inchesToMeters(33.51));
             public static final double CENTER_Y = Units.inchesToMeters(25.8);
             public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Units.degreesToRadians(54));
         }
 
+        /** Dimensions of the Algae Processor */
         public static class AlgaeProcessor {
             public static final double CENTER_X = RobotUtils.allianceFlipX(Units.inchesToMeters(235.73));
             public static final double CENTER_Y = RobotUtils.allianceFlipY(0);
             public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Math.PI / 2);
         }
-
-        public static class AprilTags {
-            public static final Transform3d TAG_1 = new Transform3d(
-                0, 0, 0,
-                new Rotation3d(0, 0, 0)
-            );
-        }
     }
-
-    public static class PathConstants {
-
-        public static final double MAX_SPEED = 2.0;
-        public static final double MAX_ACCEL = 3.0;
-        public static final double MAX_ANG_SPEED = 4.0;
-        public static final double MAX_ANG_ACCEL = 6.0;
-    }
-
 }

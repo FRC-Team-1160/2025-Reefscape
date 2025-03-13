@@ -34,6 +34,7 @@ import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
+/** Controls automatic alignment for driver assistance. */
 public class SwervePIDController {
 
     public static SwervePIDController instance = new SwervePIDController();
@@ -50,6 +51,7 @@ public class SwervePIDController {
 
     public boolean align_right;
 
+    /** Stores the poses of alignment targets on the field. */
     public static class FieldPositions {
         static Pose2d[] reef, source;
         static Pose2d processor;

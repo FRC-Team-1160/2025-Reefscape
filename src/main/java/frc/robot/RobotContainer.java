@@ -41,7 +41,8 @@ import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.Vision;
 
-/** RobotContainer handles joystick and controller inputs to the code as well as autonomous sequences.
+/** 
+ * RobotContainer handles joystick and controller inputs to the code as well as autonomous sequences.
  * Our use of singleton subsystem classes means that instances are no longer stored here.
  */
 public class RobotContainer {
@@ -64,12 +65,13 @@ public class RobotContainer {
     }
 
     public class DriveMode {
+        /** An enum representing the different ways this robot can be driven. */
         public enum Drive {
             kXBox,
             kJoysticks,
             kSimple
         }
-
+        /** An enum representing the different ways this robot can be controlled. */
         public enum Codrive {
             kXBox,
             kSimple
@@ -80,6 +82,7 @@ public class RobotContainer {
 
     public DriveMode drive_mode = new DriveMode();
 
+    /** Class constructor. */
     public RobotContainer() {
         // Map.of returns immutable map, so create a mutable hashmap
         HashMap<String, Command> commands_map = new HashMap<String, Command>(Map.of(
@@ -105,7 +108,6 @@ public class RobotContainer {
         }
 
         NamedCommands.registerCommands(commands_map);
-
 
         // Configure Autobuilder
         RobotConfig config;
@@ -207,12 +209,6 @@ public class RobotContainer {
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
                 break;
         }
-
-
-        // new JoystickButton(simp_stick, 3).whileTrue(new StartEndCommand(
-        //     () -> Funnel.instance.setState(FunnelState.kDown),
-        //     () -> Funnel.instance.setState(FunnelState.kUp))
-        // );
 
         switch (drive_mode.codriver) {
             case kXBox:
@@ -322,6 +318,10 @@ public class RobotContainer {
 
     }
 
+    /**
+     * Decorates a PathPlanner sequence with setter functions to integrate into our modified framework.
+     * @return The modified pathplanner sequence command selected on the dashboard.
+     */
     public Command getAutonomousCommand() {
         return SubsystemManager.instance.commands.decoratePathplannerCmd(auto_chooser.getSelected());
     }

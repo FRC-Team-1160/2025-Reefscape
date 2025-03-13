@@ -25,6 +25,7 @@ import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
 
+/** The drive subsystem. */
 public abstract class DriveTrain extends SubsystemBase {
 
     public static final DriveTrain instance = Robot.isReal() ? new DriveTrainRealIO() : new DriveTrainSimIO();
@@ -72,7 +73,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * @param y_speed    The Y-axis speed in m/s. Left is positive.
      * @param a_speed    Angular speed in rad/s. CCW is positive.
      */
-
     public void setSwerveDrive(double x_speed, double y_speed, double a_speed) {
         // Convert speeds from field's frame of reference to robot's frame of reference
         setSwerveDrive(ChassisSpeeds.fromFieldRelativeSpeeds(x_speed, y_speed, a_speed, getGyroAngle()));
@@ -82,7 +82,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * Calculates and sends inputs to swerve modules given robot-relative speeds. Assumes discretization is needed. 
      * @param chassis_speeds The desired robot-relative chassis speeds.
      */
-
     public void setSwerveDrive(ChassisSpeeds chassis_speeds) {
         setSwerveDrive(chassis_speeds, true);
     }
@@ -92,7 +91,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * @param chassis_speeds The desired robot-relative chassis speeds.
      * @param discretize Whether or not to perform discretization. Some library methods provide pre-discretized chassis speeds.
      */
-
     public void setSwerveDrive(ChassisSpeeds chassis_speeds, boolean discretize) {
 
         Logger.recordOutput("DriveTrain/Input Speeds", chassis_speeds);
@@ -116,7 +114,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * Sends calculated inputs to swerve modules.
      * @param module_states The desired module states.
      */
-
     public void setModules(SwerveModuleState[] module_states) {
         for (int i = 0; i < modules.length; i++) {
             modules[i].setState(module_states[i]);
@@ -129,7 +126,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * @param speeds The desired chassis speeds.
      * @return The adjusted chassis speeds.
      */
-
     public ChassisSpeeds discretize_chassis_speeds(ChassisSpeeds speeds) {
         double dt = RobotConstants.LOOP_TIME_SECONDS;
         // Makes a Pose2d for the target delta over one time loop
@@ -148,7 +144,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * Returns the measured swerve module positions for odometry.
      * @return The measured swerve module positions.
      */
-
     public SwerveModulePosition[] getModulePositions() {
         var positions = new SwerveModulePosition[modules.length];
         for (int i = 0; i < modules.length; i++) {
@@ -174,7 +169,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * Calculates current speeds using SwerveDriveKinematics odometry.
      * @return The calculated robot-relative chassis speeds.
      */
-
     public ChassisSpeeds getOdomSpeeds() {
         return kinematics.toChassisSpeeds(getModuleStates());
     }
@@ -183,7 +177,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * Calculates current target speeds using SwerveDriveKinematics odometry and target states.
      * @return The calculated robot-relative chassis speeds.
      */
-
     public ChassisSpeeds getTargetOdomSpeeds() {
         return kinematics.toChassisSpeeds(module_states);
     }
@@ -195,7 +188,6 @@ public abstract class DriveTrain extends SubsystemBase {
     /**
      * One-time method to instantiate NT publishers for AdvantageScope and Elastic.
      */
-
     private void setupDashboard() {
 
         // Create swerve drive publishers for elastic dashboard (one time setup, auto-call lambdas)
@@ -262,12 +254,6 @@ public abstract class DriveTrain extends SubsystemBase {
     }
 
     /**
-     * Publishes telemetry readings to AdvantageScope.
-     */
-
-    private void publishAdv() {}
-
-    /**
      * Gets either the measured yaw from the AHRS or the calculated angle from the
      * simulation.
      * Forward is 0, CCW is positive.
@@ -275,8 +261,15 @@ public abstract class DriveTrain extends SubsystemBase {
      */
     @AutoLogOutput
     public abstract Rotation2d getGyroAngle();
+    /**
+     * Returns the rate at which the gyro is spinning.
+     * @return The gyro rate in degrees per second.
+     */
     public abstract double getGyroRate();
 
+    /**
+     * Resets the gyroscope angle to 0.
+     */
     public abstract void resetGyroAngle();
 
     /**
@@ -286,7 +279,6 @@ public abstract class DriveTrain extends SubsystemBase {
      * @param sensor_port The port number of the module's CANcoder.
      * @return The constructed SwerveModule object.
      */
-
     protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port);
 
     @Override
