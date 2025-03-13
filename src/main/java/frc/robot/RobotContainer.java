@@ -86,6 +86,7 @@ public class RobotContainer {
     public RobotContainer() {
         // Map.of returns immutable map, so create a mutable hashmap
         HashMap<String, Command> commands_map = new HashMap<String, Command>(Map.of(
+            "ElevatorL2", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL2)),
             "ElevatorL3", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL3)),
             "ElevatorL4", new InstantCommand(() -> Elevator.instance.setState(TargetState.kL4)),
             "ShootCoral", RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.4).withTimeout(0.5),
@@ -150,6 +151,7 @@ public class RobotContainer {
         );
 
         auto_chooser = AutoBuilder.buildAutoChooser();
+        auto_chooser.addOption("Do Nothing", Commands.none());
         SmartDashboard.putData("Auto Chooser", auto_chooser);
         configureBindings();
     }
@@ -201,8 +203,8 @@ public class RobotContainer {
                 new JoystickButton(driver_controller, 5)
                     .whileTrue(SubsystemManager.instance.commands.alignReef());
 
-                new JoystickButton(driver_controller, 7).whileTrue(
-                    Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
+                // new JoystickButton(driver_controller, 7).whileTrue(
+                //     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
                 break;
             case kSimple:
                 new JoystickButton(simp_stick, 8).onTrue(

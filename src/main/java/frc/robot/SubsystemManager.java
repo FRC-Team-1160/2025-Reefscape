@@ -329,7 +329,10 @@ public class SubsystemManager {
 
         public Command decoratePathplannerCmd(Command cmd) {
             return cmd
-                .beforeStarting(() -> m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL)
+                .beforeStarting(() -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
+                    Elevator.instance.zeroWrist();
+                })
                 .andThen(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     m_pathplanner_speeds = PathplannerSpeeds.kZero;

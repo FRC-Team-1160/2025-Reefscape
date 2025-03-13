@@ -207,8 +207,8 @@ public final class Constants {
         public static final double MAX_SPEED = 3;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.0 : 3.0;
-        public static final double TURN_SPEED = 2.5;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 4.0 : 3.0;
+        public static final double TURN_SPEED = 3;
 
         /** Constraints and settings for automatic alignment. */
         public static class Tracking {
