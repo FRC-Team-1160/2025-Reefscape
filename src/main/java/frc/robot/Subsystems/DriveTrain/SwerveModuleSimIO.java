@@ -14,13 +14,13 @@ public class SwerveModuleSimIO extends SwerveModule {
     public PIDController sim_angle_pid;
     public PIDController sim_velocity_pid;
 
-    public SwerveModuleSimIO() {
+    protected SwerveModuleSimIO() {
         angle = new Rotation2d();
         speed = 0;
 
-        sim_angle_pid = new PIDController(0.1, 0, 0); //tune to actual swerve
+        sim_angle_pid = new PIDController(1, 0, 0); //tune to actual swerve
         sim_angle_pid.enableContinuousInput(-0.5, 0.5);
-        sim_velocity_pid = new PIDController(0.4, 0, 0); //tune to actual swerve
+        sim_velocity_pid = new PIDController(0.5, 0, 0); //tune to actual swerve
     }
 
     public void setAngle(Rotation2d angle) {
@@ -45,7 +45,7 @@ public class SwerveModuleSimIO extends SwerveModule {
 
     public double getPosition() { return position; }
 
-    public SwerveModuleState getModuleState() {
+    protected SwerveModuleState getModuleState() {
         return new SwerveModuleState(getSpeed(), getAngle());
     }
 

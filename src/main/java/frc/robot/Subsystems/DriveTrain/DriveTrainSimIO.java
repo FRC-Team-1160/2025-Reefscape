@@ -1,18 +1,24 @@
 package frc.robot.Subsystems.DriveTrain;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import frc.robot.Constants.RobotConstants;
 
 public class DriveTrainSimIO extends DriveTrain {
     
     Rotation2d angle;
+    private double gyro_rate;
 
-    public DriveTrainSimIO() {
+    protected DriveTrainSimIO() {
         angle = new Rotation2d();
     }
 
     public Rotation2d getGyroAngle() {
         if (angle != null) return angle;
         return new Rotation2d();
+    }
+    
+    public double getGyroRate(){
+        return 0.0;
     }
 
     public void resetGyroAngle() {
@@ -26,6 +32,9 @@ public class DriveTrainSimIO extends DriveTrain {
     @Override
     public void periodic() {
         super.periodic();
-        angle = angle.plus(Rotation2d.fromRadians(kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond * 0.02));
+        Rotation2d diff = Rotation2d.fromRadians(
+            kinematics.toChassisSpeeds(getModuleStates()).omegaRadiansPerSecond * RobotConstants.LOOP_TIME_SECONDS);
+        gyro_rate = diff.getDegrees();
+        angle = angle.plus(diff);
     }
 }

@@ -1,4 +1,14 @@
 {
+  "Keyboard 0 Settings": {
+    "window": {
+      "visible": true
+    }
+  },
+  "Keyboard 1 Settings": {
+    "window": {
+      "visible": true
+    }
+  },
   "System Joysticks": {
     "window": {
       "enabled": false
@@ -9,26 +19,32 @@
       "axisConfig": [
         {
           "decKey": 65,
-          "incKey": 68
+          "incKey": 68,
+          "keyRate": 0.20000000298023224
         },
         {
           "decKey": 87,
-          "incKey": 83
+          "incKey": 83,
+          "keyRate": 1.0
         },
         {
-          "decKey": 69,
           "decayRate": 0.0,
-          "incKey": 82,
           "keyRate": 0.009999999776482582
         }
       ],
-      "axisCount": 3,
-      "buttonCount": 4,
+      "axisCount": 2,
+      "buttonCount": 10,
       "buttonKeys": [
         90,
         88,
         67,
-        86
+        86,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1,
+        -1
       ],
       "povConfig": [
         {
@@ -47,15 +63,17 @@
     {
       "axisConfig": [
         {
-          "decKey": 74,
-          "incKey": 76
+          "decKey": 81,
+          "decayRate": 0.10000000149011612,
+          "incKey": 69,
+          "keyRate": 0.10000000149011612
         },
         {
           "decKey": 73,
           "incKey": 75
         }
       ],
-      "axisCount": 2,
+      "axisCount": 1,
       "buttonCount": 4,
       "buttonKeys": [
         77,
@@ -93,5 +111,14 @@
       "buttonCount": 0,
       "povCount": 0
     }
-  ]
+  ],
+  "robotJoysticks": [
+    {
+      "guid": "Keyboard0"
+    },
+    {
+      "guid": "Keyboard1"
+    }
+  ],
+  "useEnableDisableHotkeys": true
 }
