@@ -272,6 +272,8 @@ public abstract class DriveTrain extends SubsystemBase {
      */
     public abstract void resetGyroAngle();
 
+    public abstract void setGyroAngle(double angle);
+
     /**
      * Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.
      * @param drive_port    The port number of the drive motor.
