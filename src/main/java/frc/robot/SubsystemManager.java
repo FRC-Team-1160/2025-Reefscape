@@ -301,6 +301,7 @@ public class SubsystemManager {
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
+                    SwervePIDController.instance.done = false;
                 },
                 () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
                      || SwervePIDController.instance.done
@@ -337,7 +338,7 @@ public class SubsystemManager {
                 .andThen(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     m_pathplanner_speeds = PathplannerSpeeds.kZero;
-                    DriveTrain.instance.setGyroAngle(180);
+                    DriveTrain.instance.setGyroAngle(-SubsystemManager.instance.getPoseEstimate().getRotation().getDegrees());
                 });
         }
 

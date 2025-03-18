@@ -33,12 +33,15 @@ public class DriveTrainRealIO extends DriveTrain {
     }
 
     public void setGyroAngle(double angle){
-        resetGyroAngle();
-        if (gyro != null) gyro.setAngleAdjustment(-angle);
+        if (gyro == null) return;        
+        gyro.zeroYaw();
+        gyro.setAngleAdjustment(angle);
     }
 
     public void resetGyroAngle() {
-        if (gyro != null) gyro.zeroYaw();
+        if (gyro == null) return;
+        gyro.zeroYaw();
+        gyro.setAngleAdjustment(0);
     }
 
     public List<TalonFX> getTalons() {

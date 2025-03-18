@@ -207,7 +207,7 @@ public final class Constants {
         public static final double MAX_SPEED = 3;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 4.0 : 3.0;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 2.75 : 3.0;
         public static final double TURN_SPEED = 3;
 
         /** Constraints and settings for automatic alignment. */
@@ -269,6 +269,7 @@ public final class Constants {
     public static class ElevatorConstants {
 
         public static final double MAX_EXTENSION = 5.3;
+        public static final double MIN_EXTENSION = -0.1;
 
         public static final double MIN_WRIST_ANGLE = -0.15;
         public static final double MAX_WRIST_ANGLE = 0.195;
@@ -288,7 +289,7 @@ public final class Constants {
 
         /** Configured Motion Magic coefficients for the elevator motor. */
         public static class ElevatorMotionMagic {
-            public static final double VELOCITY = 3;
+            public static final double VELOCITY = 3.25;
             public static final double ACCELERATION = 6;
             public static final double JERK = 0;
             public static final double EXPO_kV = 0;
@@ -321,11 +322,11 @@ public final class Constants {
             public static final double kL2 = 1.6; //TUNE
             public static final double kL3 = 3; //TUNE
             public static final double kL4 = 5.2; //TUNE
-            public static final double kL2Algae = 1.5; //TUNE
+            public static final double kL2Algae = 1.3; //TUNE
             public static final double kL3Algae = 2.7; //TUNE
-            public static final double kProcessor = 0.05; 
-            public static final double kStow = -0.01;
-            public static final double kSource = 0.487;
+            public static final double kProcessor = -0.03;
+            public static final double kStow = -0.03;
+            public static final double kSource = 0.46;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
             public static final double kBarge = 5.2; //TUNE
@@ -338,7 +339,7 @@ public final class Constants {
             public static final double kProcessor = 0.05;
             public static final double kStow = 0.185;
             public static final Double kSource = 0.185;
-            public static final double kIntake = -0.1;
+            public static final double kIntake = -0.03;
             public static final double kIntakePrepare = 0.05;
             public static final Double kBarge = null;
         }

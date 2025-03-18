@@ -203,6 +203,9 @@ public class RobotContainer {
                 new JoystickButton(driver_controller, 5)
                     .whileTrue(SubsystemManager.instance.commands.alignReef());
 
+                // new JoystickButton(driver_controller, 7).onTrue(
+                //     new InstantCommand(() -> DriveTrain.instance.setGyroAngle(90)));
+
                 // new JoystickButton(driver_controller, 7).whileTrue(
                 //     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
                 break;
@@ -241,13 +244,17 @@ public class RobotContainer {
 
                 // Elevator manual
                 new Trigger(() -> Math.abs(codriver_controller.getRawAxis(1)) > 0.25).whileTrue(
-                    new RunCommand(() -> Elevator.instance.runElevator(0.35 - 1.5 * codriver_controller.getRawAxis(1)))
+                    new RunCommand(() -> Elevator.instance.runElevator(0.35 - 2.5 * codriver_controller.getRawAxis(1)))
                         .finallyDo(Elevator.instance::stopElevator));
                 
                 // Wrist manual
                 new Trigger(() -> Math.abs(codriver_controller.getRawAxis(5)) > 0.2).whileTrue(
-                    new RunCommand(() -> Elevator.instance.runWrist(-codriver_controller.getRawAxis(5)))
+                    new RunCommand(() -> Elevator.instance.runWrist(-1.3 * codriver_controller.getRawAxis(5)))
                         .finallyDo(Elevator.instance::stopWrist));
+                
+                // Wrist stow
+                new JoystickButton(codriver_controller, 9).onTrue(
+                    new InstantCommand(() -> Elevator.instance.setWristSetpoint(0.185)));
                 
                 // Coral reef left/right
                 new Trigger(() -> codriver_controller.getPOV() == 90).onTrue(
@@ -259,7 +266,7 @@ public class RobotContainer {
                 // Coral intake / shoot
                 new Trigger(() -> codriver_controller.getRawAxis(3) > 0.8).whileTrue(Commands.either(
                     RobotUtils.onOffCommand(Elevator.instance::runShooter, 
-                        Elevator.instance.m_current_state == TargetState.kL4? 0.3 : 0.4), 
+                        Elevator.instance.m_current_state == TargetState.kL4? 0.2 : 0.1), 
                     Commands.either(
                         RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.2),
                         RobotUtils.decorateCommandFeedback(
@@ -289,12 +296,13 @@ public class RobotContainer {
                     () -> Elevator.instance.runIntake(0.7), 
                     () -> Elevator.instance.runIntake(0)));
 
+                // Climber
                 new Trigger(() -> codriver_controller.getPOV() == 0).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(6), 
+                    () -> Climber.instance.runClimber(5), 
                     () -> Climber.instance.runClimber(0)));
 
                 new Trigger(() -> codriver_controller.getPOV() == 180).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(-4), 
+                    () -> Climber.instance.runClimber(-2.5),
                     () -> Climber.instance.runClimber(0)));
 
                 new JoystickButton(codriver_controller, 7).whileTrue(Commands.either(

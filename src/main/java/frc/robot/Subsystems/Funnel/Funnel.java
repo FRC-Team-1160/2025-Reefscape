@@ -4,6 +4,8 @@
 
 package frc.robot.Subsystems.Funnel;
 
+import org.littletonrobotics.junction.AutoLogOutput;
+
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Robot;
@@ -11,6 +13,10 @@ import frc.robot.Robot;
 abstract public class Funnel extends SubsystemBase {
 
     public static final Funnel instance = Robot.isReal() ? new FunnelRealIO() : new FunnelSimIO();
+
+    private int count;
+
+    private FunnelState m_state = FunnelState.kOff;
 
     public enum FunnelState {
         kOn(-0.7, 0.7),
@@ -28,13 +34,23 @@ abstract public class Funnel extends SubsystemBase {
     protected Funnel() {}
 
     public void setState(FunnelState target) {
+        m_state = target;
         setLeftServo(target.left);
         setRightServo(target.right);
+    }
+    
+    @AutoLogOutput
+    public boolean getDown() {
+        return count > 150;
     }
 
     protected abstract void setLeftServo(double setpoint);
     protected abstract void setRightServo(double setpoint);
 
     @Override
-    public void periodic() {}
+    public void periodic() {
+        if (m_state != FunnelState.kOff) {
+            count++;
+        }
+    }
 }

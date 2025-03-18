@@ -132,7 +132,7 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public double runWrist(double speed) {
-        wrist_motor.setControl(new VoltageOut(speed));
+        // wrist_motor.setControl(new VoltageOut(speed));
         return speed;
     }
 
@@ -145,21 +145,21 @@ public class ElevatorRealIO extends Elevator {
     }
 
     protected void runWristMotionMagic(double setpoint) {
-        wrist_motor.setControl(new MotionMagicVoltage(setpoint));
+        // wrist_motor.setControl(new MotionMagicVoltage(setpoint));
     }
 
     public void stopWrist() {
-        wrist_motor.setControl(new MotionMagicVoltage(wrist_motor.getPosition().getValueAsDouble()));
+        // wrist_motor.setControl(new MotionMagicVoltage(wrist_motor.getPosition().getValueAsDouble()));
     }
 
     public void changeWristSetpoint(double rate) {
-        if (wrist_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled) {
-            wrist_motor.setControl(new MotionMagicVoltage(
-                wrist_motor.getClosedLoopReference().getValueAsDouble() + rate * 0.02));
-        } else {
-            wrist_motor.setControl(new MotionMagicVoltage(
-                wrist_motor.getPosition().getValueAsDouble() + rate * 0.02));
-        }
+        // if (wrist_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled) {
+        //     wrist_motor.setControl(new MotionMagicVoltage(
+        //         wrist_motor.getClosedLoopReference().getValueAsDouble() + rate * 0.02));
+        // } else {
+        //     wrist_motor.setControl(new MotionMagicVoltage(
+        //         wrist_motor.getPosition().getValueAsDouble() + rate * 0.02));
+        // }
     }
 
     public void runIntake(double speed) {
@@ -179,7 +179,7 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void zeroWrist() {
-        wrist_motor.setPosition(0.195);
+        wrist_motor.setPosition(0.19);
         wrist_motor.setControl(new NeutralOut());
     }
 
@@ -236,15 +236,16 @@ public class ElevatorRealIO extends Elevator {
 
         Logger.recordOutput("Elevator/Wrist Current", intake_motor.getOutputCurrent());
 
-        if (!elevator_switch.get()) {
+        if (getElevatorZeroed()) {
             if (update_zero) {
                 ele_motor.setPosition(0);
+                ele_motor.setControl(new VoltageOut(0));
                 update_zero = false;
             }
         } else {
-            if (ele_motor.getPosition().getValueAsDouble() < 0) {
-                ele_motor.setPosition(0);
-            } else {
+            // if (ele_motor.getPosition().getValueAsDouble() < 0) {
+            //     ele_motor.setPosition(0);
+            if (ele_motor.getPosition().getValueAsDouble() > 0) {
                 update_zero = true;
             }
         }

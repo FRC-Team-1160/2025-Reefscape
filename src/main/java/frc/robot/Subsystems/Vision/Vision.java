@@ -23,6 +23,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructArrayPublisher;
@@ -58,7 +59,7 @@ public class Vision {
     Pose2d robot_pose;
 
     public enum CameraMode {
-        kDefault(0, 1),
+        kDefault(0, 0),
         kStereoAprilTag(0, 0),
         kStereoAlgae(1, 1);
         
@@ -83,7 +84,7 @@ public class Vision {
         adv_tags_pub = adv_vision.getStructArrayTopic("Used Tags", Pose3d.struct).publish();
 
         camera_left = new PhotonCamera("OV9281");
-        camera_right = new PhotonCamera("OV9782");
+        camera_right = new PhotonCamera("Arducam_OV9281_USB_Camera");
 
         AprilTagFieldLayout APRILTAG_FIELD_LAYOUT = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
 
@@ -114,9 +115,9 @@ public class Vision {
         apriltags_map[0] = null;
         for(int i = 0; i < VisionConstants.APRILTAG_POSES.length; i++) {
             apriltags_map[i + 1] = new Pose3d(
-                VisionConstants.APRILTAG_POSES[i][0],
-                VisionConstants.APRILTAG_POSES[i][1],
-                VisionConstants.APRILTAG_POSES[i][2],
+                Units.inchesToMeters(VisionConstants.APRILTAG_POSES[i][0]),
+                Units.inchesToMeters(VisionConstants.APRILTAG_POSES[i][1]),
+                Units.inchesToMeters(VisionConstants.APRILTAG_POSES[i][2]),
                 new Rotation3d(
                     0,
                     VisionConstants.APRILTAG_POSES[i][4],
@@ -208,8 +209,8 @@ public class Vision {
     public void setCameraPipelines(CameraMode mode) {
         if (mode == m_camera_mode || Robot.isSimulation()) return;
         // Don't reset if already on this pipeline.
-        if (camera_left.getPipelineIndex() != mode.left) camera_left.setPipelineIndex(mode.left);
-        if (camera_right.getPipelineIndex() != mode.right) camera_right.setPipelineIndex(mode.right);
+        // if (camera_left.getPipelineIndex() != mode.left) camera_left.setPipelineIndex(mode.left);
+        // if (camera_right.getPipelineIndex() != mode.right) camera_right.setPipelineIndex(mode.right);
         m_camera_mode = mode;
     }
 
@@ -242,12 +243,12 @@ public class Vision {
             }
         );
 
-        readLimelightResults().ifPresent(
-            result -> {
-                vision_poses.add(result.pose);
-                used_ids.addAll(used_ids);
-            }
-        );
+        // readLimelightResults().ifPresent(
+        //     result -> {
+        //         vision_poses.add(result.pose);
+        //         used_ids.addAll(used_ids);
+        //     }
+        // );
 
         Pose3d[] used_tag_poses = new Pose3d[used_ids.size()];
 
@@ -256,7 +257,7 @@ public class Vision {
             used_tag_poses[i++] = apriltags_map[id];
         }
 
-        adv_poses_pub.set(vision_poses.toArray(Pose2d[]::new));
-        adv_tags_pub.set(used_tag_poses);
+        Logger.recordOutput("Vision/Poses", vision_poses.toArray(Pose2d[]::new));
+        Logger.recordOutput("Vision/Tags", used_tag_poses);
     }
 }

@@ -18,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
@@ -51,6 +52,8 @@ public class SwervePIDController {
 
     public boolean align_right;
 
+    private Timer push_timer;
+
     /** Stores the poses of alignment targets on the field. */
     public static class FieldPositions {
         static Pose2d[] reef, source;
@@ -73,6 +76,8 @@ public class SwervePIDController {
         done = false;
         align_right = true;
 
+        push_timer = new Timer();
+
         fillFieldPositions();
     }
 
@@ -90,8 +95,8 @@ public class SwervePIDController {
                     )
                 );
             FieldPositions.reef[3*i + 1] = center;
-            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.13, Rotation2d.kZero));
-            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.2, Rotation2d.kZero));
+            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.15, Rotation2d.kZero));
+            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.19, Rotation2d.kZero));
             angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
@@ -227,9 +232,9 @@ public class SwervePIDController {
 
         desired_ang_speed = ang_pid_controller.atSetpoint() ? 0 : desired_ang_speed + 0.2 * Math.signum(desired_ang_speed);
 
-        double h_spacing = Math.min(0.5, Math.abs(MathUtil.applyDeadband(
-            goal_pose.getTranslation().minus(robot_pose.getTranslation()).rotateBy(goal_pose.getRotation().unaryMinus()).getY(),
-            0.2, 0.5)));
+        Translation2d target_relative_off = goal_pose.getTranslation().minus(robot_pose.getTranslation())
+            .rotateBy(goal_pose.getRotation().unaryMinus());
+        double h_spacing = Math.min(0.5, Math.abs(target_relative_off.getY()));
 
         double a_spacing = Math.abs(MathUtil.applyDeadband(
             // Multiply by two because the maximum error, facing backwards, is 0.5 rotations
@@ -241,7 +246,7 @@ public class SwervePIDController {
            Add extra space for turning to goal distance if robot is not pointing towards target,
            with a small amount of tolerance */
         goal_pose = goal_pose.transformBy(new Transform2d(
-                -(target_distance + Math.min(h_spacing + a_spacing, 0.6)),
+                -(target_distance + Math.min(MathUtil.applyDeadband(h_spacing, 0.2, 0.5) + a_spacing, 0.6)),
                 0,
                 // Apply the rotational offset
                 rotation_offset
@@ -257,7 +262,15 @@ public class SwervePIDController {
         Logger.recordOutput("SwervePIDController/Distance Error", dist_pid_controller.getError());
         Logger.recordOutput("SwervePIDController/Angle Error", ang_pid_controller.getError());
         // Get PID forward speed and normalize
-        done = dist_pid_controller.atSetpoint() && ang_pid_controller.atSetpoint();
+        if (target_distance > 0) done = dist_pid_controller.atSetpoint() && ang_pid_controller.atSetpoint();
+        else if (ang_pid_controller.atSetpoint() && h_spacing < Tracking.DISTANCE_TOLERANCE 
+             && Math.abs(target_relative_off.getX()) < Math.abs(target_distance) + 0.01) {
+            if (push_timer.hasElapsed(1)) {
+                done = true;
+                push_timer.reset();
+            } else if (!push_timer.isRunning()) push_timer.restart();
+        } else push_timer.reset();
+
         double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
         if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.15;
         goal_off = goal_off.times(speed / goal_off.getNorm());

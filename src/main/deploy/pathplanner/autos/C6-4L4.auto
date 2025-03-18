@@ -21,7 +21,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "ReefNearest"
+                        "name": "ReefNearestL4"
                       }
                     }
                   ]
@@ -47,6 +47,12 @@
                 }
               }
             ]
+          }
+        },
+        {
+          "type": "wait",
+          "data": {
+            "waitTime": 3.0
           }
         },
         {

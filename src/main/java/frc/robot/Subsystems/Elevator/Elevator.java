@@ -107,7 +107,7 @@ abstract public class Elevator extends SubsystemBase {
      * @param setpoint The setpoint in meters. 0 is the lowest elevator height.
      */
     public void setElevatorSetpoint(double setpoint) {
-        runEleMotionMagic(MathUtil.clamp(setpoint, 0, ElevatorConstants.MAX_EXTENSION));
+        runEleMotionMagic(MathUtil.clamp(setpoint, ElevatorConstants.MIN_EXTENSION, ElevatorConstants.MAX_EXTENSION));
     }
 
     /**

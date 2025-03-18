@@ -15,13 +15,13 @@
                     {
                       "type": "path",
                       "data": {
-                        "pathName": "Cage1-Reef8"
+                        "pathName": "Cage1-Reef10"
                       }
                     },
                     {
                       "type": "named",
                       "data": {
-                        "name": "ReefNearestL4"
+                        "name": "ReefNearest"
                       }
                     }
                   ]
@@ -40,7 +40,7 @@
                     {
                       "type": "named",
                       "data": {
-                        "name": "ElevatorL4"
+                        "name": "ElevatorL2"
                       }
                     }
                   ]

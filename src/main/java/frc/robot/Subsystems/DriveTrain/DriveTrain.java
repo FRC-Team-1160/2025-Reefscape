@@ -278,7 +278,7 @@ public abstract class DriveTrain extends SubsystemBase {
      * Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.
      * @param drive_port    The port number of the drive motor.
      * @param steer_port    The port number of the steer motor.
-     * @param sensor_port The port number of the module's CANcoder.
+     * @param sensor_port   The port number of the module's CANcoder.
      * @return The constructed SwerveModule object.
      */
     protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port);
