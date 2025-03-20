@@ -1,6 +1,7 @@
 package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
@@ -162,6 +163,7 @@ public class Vision {
                 cache.last_ambiguity = result.getBestTarget().poseAmbiguity;
                 fiducials.add(result.getBestTarget().fiducialId);
             }
+
             // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
             if (pose != null) SubsystemManager.instance.pose_estimator.addVisionMeasurement(
                 pose, 
@@ -172,6 +174,9 @@ public class Vision {
     }
 
     public Optional<CameraResults> readLimelightResults() {
+        Pose2d pose = null;
+        ArrayList<Integer> ids = new ArrayList<Integer>();
+
         // Limelight MegaTag2 uses the robot yaw
         LimelightHelpers.SetRobotOrientation(
             "", robot_pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
@@ -182,24 +187,32 @@ public class Vision {
 
         if (mt2_estimate == null) return Optional.empty();
         if (mt2_estimate.tagCount == 0) return Optional.empty();
-        
-        pose_cache_limelight.addPose(
-            mt2_estimate.pose, 
-            SubsystemManager.instance.getPoseEstimate(), 
-            mt2_estimate.timestampSeconds);
 
-        SubsystemManager.instance.pose_estimator.addVisionMeasurement(
-            mt2_estimate.pose, 
-            mt2_estimate.timestampSeconds,
-            pose_cache_limelight.getWeightedStdevs());
-
-        ArrayList<Integer> ids = new ArrayList<Integer>();
-
-        for (RawFiducial tag : mt2_estimate.rawFiducials) {
-            ids.add(tag.id);
+        // Check if AprilTag is within a distance, if not then we won't use it
+        double minDistance = Arrays.stream(mt2_estimate.rawFiducials)
+                                .mapToDouble(fiducial -> fiducial.distToCamera)
+                                .min()
+                                .orElse(Double.NaN); 
+        if (minDistance > 0.5){ // Only use pose estimate when distance is less than 0.5 meters
+            pose = null;
+        }else{
+            pose = mt2_estimate.pose;
+            pose_cache_limelight.addPose(
+                pose, 
+                SubsystemManager.instance.getPoseEstimate(), 
+                mt2_estimate.timestampSeconds);
+    
+            SubsystemManager.instance.pose_estimator.addVisionMeasurement(
+                pose, 
+                mt2_estimate.timestampSeconds,
+                pose_cache_limelight.getWeightedStdevs());
+    
+            for (RawFiducial tag : mt2_estimate.rawFiducials) {
+                ids.add(tag.id);
+            }
         }
-
-        return Optional.of(new CameraResults(mt2_estimate.pose, ids));
+        
+        return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, ids));
     }
 
     /**
@@ -242,13 +255,13 @@ public class Vision {
                 used_ids.addAll(result.ids);
             }
         );
-
-        // readLimelightResults().ifPresent(
-        //     result -> {
-        //         vision_poses.add(result.pose);
-        //         used_ids.addAll(used_ids);
-        //     }
-        // );
+        
+        readLimelightResults().ifPresent(
+            result -> {
+                vision_poses.add(result.pose);
+                used_ids.addAll(used_ids);
+            }
+        );
 
         Pose3d[] used_tag_poses = new Pose3d[used_ids.size()];
 
