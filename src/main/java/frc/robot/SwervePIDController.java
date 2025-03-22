@@ -18,6 +18,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -54,12 +55,6 @@ public class SwervePIDController {
 
     private Timer push_timer;
 
-    /** Stores the poses of alignment targets on the field. */
-    public static class FieldPositions {
-        static Pose2d[] reef, source;
-        static Pose2d processor;
-    }
-
     private SwervePIDController() {
         target_pose = new Pose2d();
 
@@ -77,70 +72,32 @@ public class SwervePIDController {
         align_right = true;
 
         push_timer = new Timer();
-
-        fillFieldPositions();
-    }
-
-    private void fillFieldPositions() {
-        FieldPositions.reef = new Pose2d[Reef.NUM_SIDES * 3];
-        Rotation2d angle = Rotation2d.kPi;
-        for (int i = 0; i < Reef.NUM_SIDES; i++) {
-            Pose2d center = new Pose2d(
-                Reef.CENTER_X,
-                Reef.CENTER_Y,
-                angle).plus(new Transform2d(
-                        Reef.INNER_RADIUS + RobotConstants.BASE_WIDTH / 2,
-                        0,
-                        Rotation2d.kPi
-                    )
-                );
-            FieldPositions.reef[3*i + 1] = center;
-            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.15, Rotation2d.kZero));
-            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.19, Rotation2d.kZero));
-            angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
-        }
-
-        FieldPositions.source = new Pose2d[] {
-            // right source
-            new Pose2d(
-                CoralStation.CENTER_X,
-                CoralStation.CENTER_Y,
-                Rotation2d.fromRadians(CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
-            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kZero)),
-            // left source
-            new Pose2d(
-                CoralStation.CENTER_X,
-                FieldConstants.WIDTH - CoralStation.CENTER_Y,
-                Rotation2d.fromRadians(-CoralStation.ANGLE_RADIANS)
-            ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kPi))
-        };
-
-        FieldPositions.processor = new Pose2d(
-            AlgaeProcessor.CENTER_X,
-            AlgaeProcessor.CENTER_Y,
-            Rotation2d.fromRadians(AlgaeProcessor.ANGLE_RADIANS)
-        ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kPi));
     }
 
     /**
-     * Returns the closest reef face to the robot. The driverstation-oriented face is 0, and the rest are numbered CCW increasing.
+     * Returns the closest reef to the robot. The driverstation-oriented face is 0, and the rest are numbered CCW increasing.
      * @return The number corresponding the closest reef face.
      */
     @AutoLogOutput
-    public int getNearestReefFace() {
-        Translation2d robot_position = SubsystemManager.instance.getPoseEstimate().getTranslation();
-        Rotation2d reef_angle = new Translation2d(
+    public int getNearestReefIndex() {
+        double reef_angle = new Translation2d(
                 Reef.CENTER_X,
                 Reef.CENTER_Y
-            ).minus(robot_position).getAngle();
+            ).minus(SubsystemManager.instance.getPoseEstimate().getTranslation()).getAngle().getRotations();
         /* Get angle to the reef (in rotations), add 1 to remove negatives and 1/12 to shift by half a face. 
            Round and multiply by 6 to get face # */
-        return (int) Math.floor(6 * ((reef_angle.getRotations() + 1 + 0.5 / Reef.NUM_SIDES) % 1));
+        return 3 * (int) Math.floor(6 * ((reef_angle + 1 + 0.5 / Reef.NUM_SIDES) % 1))
+             + (RobotState.isAutonomous() ? Reef.NUM_SIDES * (reef_angle + 0.5) % 1 < 0.5 ? 2 : 0
+             : align_right ? 2 : 0);
+    }
+
+    public int getNearestReefFace() {
+        return (int) Math.floor(getNearestReefIndex() / 3.0);
     }
 
     public Pose2d getReefPose(int index) {
         Logger.recordOutput("SwervePIDController/Reef Pose Index", index);
-        return FieldPositions.reef[index];
+        return FieldHandler.FieldPositions.reef[index];
     }
 
     public Pose2d getNearestReefPose(int offset) {
@@ -148,15 +105,15 @@ public class SwervePIDController {
     }
 
     public Pose2d getNearestReefPose() {
-        return getNearestReefPose(align_right ? 1 : -1);
+        return FieldHandler.FieldPositions.reef[getNearestReefIndex()];
     }
 
     public Pose2d getProcessorPose(){
-        return FieldPositions.processor;
+        return FieldHandler.FieldPositions.processor;
     }
 
     public Pose2d getNearestSourcePose() {
-        return FieldPositions.source[SubsystemManager.instance.getPoseEstimate().getY() < FieldConstants.WIDTH / 2 ? 0 : 1];
+        return FieldHandler.FieldPositions.source[SubsystemManager.instance.getPoseEstimate().getY() < FieldConstants.WIDTH / 2 ? 0 : 1];
     }
 
     public void configure(Pose2d target_pose, Double target_distance, Rotation2d rotation_offset) {
@@ -246,7 +203,7 @@ public class SwervePIDController {
            Add extra space for turning to goal distance if robot is not pointing towards target,
            with a small amount of tolerance */
         goal_pose = goal_pose.transformBy(new Transform2d(
-                -(target_distance + Math.min(MathUtil.applyDeadband(h_spacing, 0.2, 0.5) + a_spacing, 0.6)),
+                -(target_distance + Math.min(MathUtil.applyDeadband(h_spacing, 0.3, 0.5) + a_spacing, 0.6)),
                 0,
                 // Apply the rotational offset
                 rotation_offset
@@ -258,6 +215,10 @@ public class SwervePIDController {
         // Find goal to robot translation
         Translation2d goal_off = robot_pose.getTranslation().minus(goal_pose.getTranslation())
             .rotateBy(robot_pose.getRotation().unaryMinus());
+
+        double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
+        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.15;
+        goal_off = goal_off.times(speed / goal_off.getNorm());
 
         Logger.recordOutput("SwervePIDController/Distance Error", dist_pid_controller.getError());
         Logger.recordOutput("SwervePIDController/Angle Error", ang_pid_controller.getError());
@@ -271,15 +232,10 @@ public class SwervePIDController {
             } else if (!push_timer.isRunning()) push_timer.restart();
         } else push_timer.reset();
 
-        double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
-        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.15;
-        goal_off = goal_off.times(speed / goal_off.getNorm());
-
         return applyMovementConstraints(new ChassisSpeeds(
                 goal_off.getX(),
                 goal_off.getY(),
                 desired_ang_speed));
-
     }
 
 }

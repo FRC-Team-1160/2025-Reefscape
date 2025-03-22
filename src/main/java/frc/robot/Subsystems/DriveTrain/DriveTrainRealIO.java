@@ -35,7 +35,7 @@ public class DriveTrainRealIO extends DriveTrain {
     public void setGyroAngle(double angle){
         if (gyro == null) return;        
         gyro.zeroYaw();
-        gyro.setAngleAdjustment(angle);
+        gyro.setAngleAdjustment(-angle);
     }
 
     public void resetGyroAngle() {

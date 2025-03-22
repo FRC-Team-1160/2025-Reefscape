@@ -204,7 +204,7 @@ public final class Constants {
         public static final double GEAR_RATIO = 5.01;
         public static final double OFFSET = 0.31;
 
-        public static final double MAX_SPEED = 3;
+        public static final double MAX_SPEED = 7;
         public static final double MAX_STEER_SPEED = 2;
 
         public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 2.75 : 3.0;
@@ -326,34 +326,37 @@ public final class Constants {
             public static final double kL3Algae = 2.7; //TUNE
             public static final double kProcessor = -0.03;
             public static final double kStow = -0.03;
-            public static final double kSource = 0.46;
+            public static final double kSource= 0.46;
             public static final double kIntake = 0.05;
             public static final double kIntakePrepare = 0.5; //TUNE
             public static final double kBarge = 5.2; //TUNE
-        }
-        
-        /** Angle presets for the wrist, in rotations. */
-        public static class WristSetpoints {
-            public static final double kReefCoral = 0.185;
-            public static final double kReefAlgae = 0.02;
-            public static final double kProcessor = 0.05;
-            public static final double kStow = 0.185;
-            public static final Double kSource = 0.185;
-            public static final double kIntake = -0.03;
-            public static final double kIntakePrepare = 0.05;
-            public static final Double kBarge = null;
         }
     }
 
     /** PID correction constants for PathPlanner. */
     public static class AutoConstants {
-        public static final double translation_kP = 0d;
+        public static final double translation_kP = 0.2;
         public static final double translation_kI = 0d;
         public static final double translation_kD = 0d;
         
-        public static final double rotation_kP = 0d;
+        public static final double rotation_kP = 0.1;
         public static final double rotation_kI = 0d;
         public static final double rotation_kD = 0d;
+
+        public static final double MAX_SPEED = 3;
+        public static final double MAX_ACCEL = 5;
+        public static final double MAX_ANG_SPEED = Math.PI;
+        public static final double MAX_ANG_ACCEL = Math.PI * 2;
+        
+        public static class Paths {
+            public static final double START_X = FieldConstants.LENGTH / 2 - 1;
+            public static final double ALIGN_DISTANCE = 0.5;
+            public static final double BARGE_CONTROL = 0.3;
+            public static final double REEF_CONTROL = 1.5;
+            public static final double SOURCE_CONTROL = 0.5;
+        }
+
+        public static final int PREVIEW_DETAIL = 0;
     }
 
     /** Constants relating to the game field. */
@@ -382,6 +385,17 @@ public final class Constants {
             public static final double CENTER_X = RobotUtils.allianceFlipX(Units.inchesToMeters(235.73));
             public static final double CENTER_Y = RobotUtils.allianceFlipY(0);
             public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Math.PI / 2);
+        }
+
+        public static class Barge {
+            public static final double CENTER_X = FieldConstants.LENGTH / 2;
+            public static final double CAGE_1 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(127.375);
+            public static final double CAGE_2 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(84.375);
+            public static final double CAGE_3 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(41.5);
+            public static final double MIDDLE = FieldConstants.WIDTH / 2;
+            public static final double CAGE_4 = FieldConstants.WIDTH - CAGE_3;
+            public static final double CAGE_5 = FieldConstants.WIDTH - CAGE_2;
+            public static final double CAGE_6 = FieldConstants.WIDTH - CAGE_1;
         }
     }
 }

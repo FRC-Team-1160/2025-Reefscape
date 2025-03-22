@@ -46,7 +46,6 @@ public class Robot extends LoggedRobot {
         m_robot_container = new RobotContainer();
 
         SmartDashboard.putData(CommandScheduler.getInstance());
-        CommandScheduler.getInstance().onCommandFinish(command -> System.out.println(command.getName()));
     }
 
     @Override
@@ -83,7 +82,7 @@ public class Robot extends LoggedRobot {
 
     @Override
     public void teleopInit() {
-        Vision.instance.setCameraPipelines(CameraMode.kDefault);
+        Vision.instance.setCameraPipelines(CameraMode.kStereoAprilTag);
         SubsystemManager.instance.m_robot_state.drive_state = DriveStates.DRIVER_CONTROL;
         if (autonomous_command != null) {
             autonomous_command.cancel();

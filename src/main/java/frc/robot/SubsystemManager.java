@@ -3,6 +3,7 @@ package frc.robot;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -39,8 +40,10 @@ import edu.wpi.first.wpilibj.Tracer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
@@ -79,7 +82,7 @@ public class SubsystemManager {
     }
 
     public RobotState m_robot_state = new RobotState();
-    public final Commands commands = new Commands();
+    public final RobotCommands commands = new RobotCommands();
 
     public SwerveDrivePoseEstimator pose_estimator;
     
@@ -130,7 +133,7 @@ public class SubsystemManager {
         return new ArticulatedPose(
             getPoseEstimate(), 
             Elevator.instance.getElevatorHeight(), 
-            Elevator.instance.getWristAngle().getRadians()).component_poses();
+            0).component_poses();
     }
 
     /**
@@ -232,22 +235,24 @@ public class SubsystemManager {
     /**
      * A class separating all of the command getters.
      */
-    public class Commands {
+    public class RobotCommands {
 
         /**
          * Selects an alignment or tracking command based on the current elevator state.
          * @return A command to align with a game element or piece.
          */
         public Command selectCommand() {
-            return Elevator.instance.m_current_state.target_position.command_supplier.get();
+            return new DeferredCommand(
+                () -> Elevator.instance.m_current_state.target_position.command_supplier.get(),
+                new HashSet<Subsystem>());
         }
 
         public Command alignReef(Integer index, double distance) {
             return getAlignCommand(
                 () -> index == null ? SwervePIDController.instance.getNearestReefPose()
                      : SwervePIDController.instance.getReefPose(index), 
-                distance, 
-                null);
+                distance
+            ).withName("Align Reef");
         }
 
         public Command alignReef(Integer index) { return alignReef(index, 0.05); }
@@ -264,47 +269,42 @@ public class SubsystemManager {
         }
 
         public Command alignSource(boolean with_elevator) {
-            return getAlignCommand(
+            return getAlignCommand( 
                 SwervePIDController.instance::getNearestSourcePose, 
-                0.2, 
-                Rotation2d.kPi,
-                with_elevator ? TargetState.kSource : null);
+                0.05, 
+                Rotation2d.kPi
+            ).withName("Align Source");
         }
 
         public Command alignProcessor(boolean with_elevator) {
             return getAlignCommand(
                 SwervePIDController.instance::getProcessorPose, 
-                0.5,
-                with_elevator ? TargetState.kProcessor : null);
+                0.5);
         }
 
-        public Command getAlignCommand(Supplier<Pose2d> target_pose, double target_distance, TargetState elevator_state) {
-            return getAlignCommand(target_pose, target_distance, Rotation2d.kZero, elevator_state);
+        public Command getAlignCommand(Supplier<Pose2d> target_pose, double target_distance) {
+            return getAlignCommand(target_pose, target_distance, Rotation2d.kZero);
         }
 
         public Command getAlignCommand(
             Supplier<Pose2d> target_pose, 
             double target_distance, 
-            Rotation2d offset, 
-            TargetState elevator_state
+            Rotation2d offset
         ) {
             return new FunctionalCommand(() -> {
                     m_robot_state.drive_state = DriveStates.PID_ALIGNING;
                     SwervePIDController.instance.reset_speeds = true;
                     SwervePIDController.instance.done = false;
                     SwervePIDController.instance.configure(target_pose.get(), target_distance, offset);
-                    Elevator.instance.setState(elevator_state);
-                    Vision.instance.setCameraPipelines(
-                    Vision.CameraMode.kStereoAprilTag);
+                    // Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 },
                 () -> {},
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
+                    // Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
                     SwervePIDController.instance.done = false;
                 },
-                () -> m_robot_state.drive_state != RobotState.DriveStates.PID_ALIGNING 
-                     || SwervePIDController.instance.done
+                () -> SwervePIDController.instance.done
             );
         }
 
@@ -329,12 +329,13 @@ public class SubsystemManager {
             );
         }
 
-        public Command decoratePathplannerCmd(Supplier<Command> cmd) {
-            return cmd.get()
-                .beforeStarting(() -> {
-                    m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
-                    Elevator.instance.zeroWrist();
-                })
+        public Command decoratePathplannerCmd(Command cmd) {
+            return cmd.beforeStarting(
+                () -> m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL);
+        }
+
+        public Command decorateAutoCmd(Supplier<Command> cmd) {
+            return Commands.deferredProxy(cmd)          
                 .andThen(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     m_pathplanner_speeds = PathplannerSpeeds.kZero;

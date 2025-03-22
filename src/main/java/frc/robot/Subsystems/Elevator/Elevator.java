@@ -27,17 +27,20 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Robot;
+import frc.robot.RobotUtils;
 import frc.robot.SubsystemManager;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorSetpoints;
-import frc.robot.Constants.ElevatorConstants.WristSetpoints;
 
 abstract public class Elevator extends SubsystemBase {
 
@@ -47,24 +50,21 @@ abstract public class Elevator extends SubsystemBase {
 
     // An enum to represent different target states for the elevator, containing elevator and wrist setpoints
     public enum TargetState {
-        kStow(ElevatorSetpoints.kStow, WristSetpoints.kStow, AlignCommand.kNone), 
-        kProcessor(ElevatorSetpoints.kProcessor, WristSetpoints.kProcessor, AlignCommand.kProcessor),
-        kSource(ElevatorSetpoints.kSource, WristSetpoints.kSource, AlignCommand.kSource),
-        kIntake(ElevatorSetpoints.kIntake, WristSetpoints.kIntake, AlignCommand.kGround),
-        kIntakePrepare(ElevatorSetpoints.kIntakePrepare, WristSetpoints.kIntakePrepare, AlignCommand.kGround),
-        kBarge(ElevatorSetpoints.kBarge, WristSetpoints.kBarge, AlignCommand.kNone),
-        kL1(ElevatorSetpoints.kL1, WristSetpoints.kReefCoral, AlignCommand.kReefCoral), 
-        kL2(ElevatorSetpoints.kL2, WristSetpoints.kReefCoral, AlignCommand.kReefCoral), 
-        kL3(ElevatorSetpoints.kL3, WristSetpoints.kReefCoral, AlignCommand.kReefCoral), 
-        kL4(ElevatorSetpoints.kL4, WristSetpoints.kReefCoral, AlignCommand.kReefCoralL4),
-        kL2Algae(ElevatorSetpoints.kL2Algae, WristSetpoints.kReefAlgae, AlignCommand.kReefAlgae),
-        kL3Algae(ElevatorSetpoints.kL3Algae, WristSetpoints.kReefAlgae, AlignCommand.kReefAlgae);
+        kStow(ElevatorSetpoints.kStow, true, AlignCommand.kNone), 
+        kSource(ElevatorSetpoints.kSource, null, AlignCommand.kSource),
+        kL1(ElevatorSetpoints.kL1, false, AlignCommand.kReefCoral), 
+        kL2(ElevatorSetpoints.kL2, false, AlignCommand.kReefCoral), 
+        kL3(ElevatorSetpoints.kL3, false, AlignCommand.kReefCoral), 
+        kL4(ElevatorSetpoints.kL4, false, AlignCommand.kReefCoral),
+        kL2Algae(ElevatorSetpoints.kL2Algae, true, AlignCommand.kReefAlgae),
+        kL3Algae(ElevatorSetpoints.kL3Algae, true, AlignCommand.kReefAlgae);
 
 
-        public final Double elevator_setpoint, wrist_setpoint;
+        public final Double elevator_setpoint;
+        public final Boolean wrist_setpoint;
         public final AlignCommand target_position;
 
-        private TargetState(Double elevator_setpoint, Double wrist_setpoint, AlignCommand target_position) {
+        private TargetState(Double elevator_setpoint, Boolean wrist_setpoint, AlignCommand target_position) {
             this.elevator_setpoint = elevator_setpoint;
             this.wrist_setpoint = wrist_setpoint;
             this.target_position = target_position;
@@ -73,7 +73,7 @@ abstract public class Elevator extends SubsystemBase {
         public enum AlignCommand {
             kNone(() -> Commands.none()),
             kProcessor(() -> Commands.none()),
-            kSource(() -> Commands.none()),
+            kSource(() -> SubsystemManager.instance.commands.alignSource(false)),
             kReefCoral(() -> SubsystemManager.instance.commands.alignReef()),
             kReefCoralL4(() -> SubsystemManager.instance.commands.alignReefClose()),
             kReefAlgae(() -> SubsystemManager.instance.commands.alignReefAlgae()),
@@ -99,7 +99,7 @@ abstract public class Elevator extends SubsystemBase {
         if (state == null) return;
         m_current_state = state;
         setElevatorSetpoint(state.elevator_setpoint);
-        if (state.wrist_setpoint != null) setWristSetpoint(state.wrist_setpoint);
+        setWrist(state.wrist_setpoint);
     }
 
     /**
@@ -110,30 +110,19 @@ abstract public class Elevator extends SubsystemBase {
         runEleMotionMagic(MathUtil.clamp(setpoint, ElevatorConstants.MIN_EXTENSION, ElevatorConstants.MAX_EXTENSION));
     }
 
-    /**
-     * Sets the target setpoint for internal wrist PID
-     * @param setpoint The setpoint in meters. 0 is the lowest elevator height.
-     */
-    public void setWristSetpoint(double setpoint) {
-        runWristMotionMagic(MathUtil.clamp(
-                setpoint, 
-                ElevatorConstants.MIN_WRIST_ANGLE, 
-                ElevatorConstants.MAX_WRIST_ANGLE));
-    }
-
     public Command setStateCmd(TargetState state) {
         return new WaitUntilCommand(() -> m_current_state != state || atTarget())
             .beforeStarting(() -> setState(state));
     }
 
+    @AutoLogOutput
     public boolean atTarget() {
         return atTarget(m_current_state);
     }
 
     public boolean atTarget(TargetState state) {
-        return Math.abs(getElevatorHeight() - state.elevator_setpoint) < 0.02
-             && Math.abs(getWristAngle().getRotations() - state.wrist_setpoint) < 0.02;
-        }    
+        return Math.abs(getElevatorHeight() - state.elevator_setpoint) < 0.02;
+    }
 
     // VoltageOut() methods
     @AutoLogOutput
@@ -142,23 +131,36 @@ abstract public class Elevator extends SubsystemBase {
     public abstract double runWrist(double speed);
     // PID set methods
     protected abstract void runEleMotionMagic(double setpoint);
-    protected abstract void runWristMotionMagic(double setpoint);
+
     public abstract void stopElevator();
-    public abstract void stopWrist();
+
+    public void setWrist(Boolean up) {
+        if (up != null) CommandScheduler.getInstance().schedule(setWristCmd(up));
+    }
+    public abstract Command setWristCmd(boolean up);
+
     // Spark set methods
-    public abstract void runIntake(double speed);
+    public abstract void runAlgae(double speed);
     public abstract void runShooter(double speed);
     // Getters
     @AutoLogOutput
     public abstract double getElevatorHeight();
-    @AutoLogOutput
-    public abstract Rotation2d getWristAngle();
 
-    public abstract Command intakeCoralCmd();
-    public abstract Command intakeCoralSequence();
-    public abstract Command intakeAlgaeCmd();
+    public Command intakeCoralCmd(boolean exit_early) {
+        Command end_sequence = new WaitCommand(0.2)
+            .andThen(RobotUtils.onOffCommand(this::runShooter, 0.2))
+            .withTimeout(0.2);
+        return RobotUtils.onOffCommand(this::runShooter, 0.2)
+                .until(this::getCoralStored)
+                .andThen(exit_early
+                     ? new InstantCommand(() -> CommandScheduler.getInstance().schedule(end_sequence))
+                     : end_sequence
+                ).finallyDo(() -> runShooter(0));
+    }
 
-    public abstract void zeroWrist();
+    public Command intakeCoralCmd() {
+        return intakeCoralCmd(false);
+    }
 
     @AutoLogOutput
     public abstract boolean getCoralStored();

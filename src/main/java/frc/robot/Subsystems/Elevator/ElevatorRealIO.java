@@ -34,28 +34,30 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
+import frc.robot.RobotUtils;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorConfigs;
 import frc.robot.Constants.ElevatorConstants.ElevatorMotionMagic;
 import frc.robot.Constants.ElevatorConstants.WristConfigs;
 import frc.robot.Constants.ElevatorConstants.WristMotionMagic;
-import frc.robot.Constants.ElevatorConstants.WristSetpoints;
 
 
 public class ElevatorRealIO extends Elevator {
 
-    protected TalonFX ele_motor, wrist_motor;
+    protected TalonFX ele_motor;
 
-    private SparkMax intake_motor, shooter_motor;
+    private SparkMax algae_motor, wrist_motor, shooter_motor;
 
     private DigitalInput elevator_switch, coral_switch;
 
@@ -65,10 +67,10 @@ public class ElevatorRealIO extends Elevator {
 
     protected ElevatorRealIO() {
         ele_motor = new TalonFX(PortConstants.ELEVATOR_MOTOR, "CANivore");
-        wrist_motor = new TalonFX(PortConstants.WRIST_MOTOR);
-
-        intake_motor = new SparkMax(PortConstants.INTAKE_MOTOR, MotorType.kBrushless);
-        shooter_motor = new SparkMax(27, MotorType.kBrushless);
+        
+        wrist_motor = new SparkMax(PortConstants.WRIST_MOTOR, MotorType.kBrushless);
+        algae_motor = new SparkMax(PortConstants.INTAKE_MOTOR, MotorType.kBrushless);
+        shooter_motor = new SparkMax(PortConstants.SHOOTER_MOTOR, MotorType.kBrushless);
 
         elevator_switch = new DigitalInput(0);
         coral_switch = new DigitalInput(1);
@@ -97,33 +99,8 @@ public class ElevatorRealIO extends Elevator {
 
         ele_motor.getConfigurator().apply(ele_configs);
 
-        TalonFXConfiguration wrist_configs = new TalonFXConfiguration();
-        wrist_configs.Slot0 = new Slot0Configs()
-            .withKP(WristConfigs.kP)
-            .withKI(WristConfigs.kI)
-            .withKD(WristConfigs.kD)
-            .withKS(WristConfigs.kS)
-            .withKV(WristConfigs.kV)
-            .withKA(WristConfigs.kA)
-            .withKG(WristConfigs.kG);
-
-        wrist_configs.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-
-        wrist_configs.Feedback.SensorToMechanismRatio = 72;
-
-        wrist_configs.MotionMagic = new MotionMagicConfigs()
-            .withMotionMagicCruiseVelocity(WristMotionMagic.VELOCITY)
-            .withMotionMagicAcceleration(WristMotionMagic.ACCELERATION)
-            .withMotionMagicJerk(WristMotionMagic.JERK)
-            .withMotionMagicExpo_kV(WristMotionMagic.EXPO_kV)
-            .withMotionMagicExpo_kA(WristMotionMagic.EXPO_kA);          
-
-        wrist_motor.getConfigurator().apply(wrist_configs);
-
         update_zero = true;
         count = 0;
-
-        // zeroWrist();
     }
 
     public double runElevator(double speed) {
@@ -132,8 +109,12 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public double runWrist(double speed) {
-        // wrist_motor.setControl(new VoltageOut(speed));
+        wrist_motor.setVoltage(-speed);
         return speed;
+    }
+
+    public Command setWristCmd(boolean up) {
+        return RobotUtils.onOffCommand(this::runWrist, up ? 2 : -1.5, up ? 0 : 0).withTimeout(0.5);
     }
 
     protected void runEleMotionMagic(double setpoint){
@@ -144,26 +125,8 @@ public class ElevatorRealIO extends Elevator {
         ele_motor.setControl(new VoltageOut(0.35));
     }
 
-    protected void runWristMotionMagic(double setpoint) {
-        // wrist_motor.setControl(new MotionMagicVoltage(setpoint));
-    }
-
-    public void stopWrist() {
-        // wrist_motor.setControl(new MotionMagicVoltage(wrist_motor.getPosition().getValueAsDouble()));
-    }
-
-    public void changeWristSetpoint(double rate) {
-        // if (wrist_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled) {
-        //     wrist_motor.setControl(new MotionMagicVoltage(
-        //         wrist_motor.getClosedLoopReference().getValueAsDouble() + rate * 0.02));
-        // } else {
-        //     wrist_motor.setControl(new MotionMagicVoltage(
-        //         wrist_motor.getPosition().getValueAsDouble() + rate * 0.02));
-        // }
-    }
-
-    public void runIntake(double speed) {
-        intake_motor.set(speed);
+    public void runAlgae(double speed) {
+        algae_motor.set(speed);
     }
 
     public void runShooter(double speed) {
@@ -174,51 +137,12 @@ public class ElevatorRealIO extends Elevator {
         return ele_motor.getPosition().getValueAsDouble();
     }
 
-    public Rotation2d getWristAngle() {
-        return Rotation2d.fromRotations(wrist_motor.getPosition().getValueAsDouble());
-    }
-
-    public void zeroWrist() {
-        wrist_motor.setPosition(0.19);
-        wrist_motor.setControl(new NeutralOut());
-    }
-
     public boolean atSetpoint() {
-        return Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.02
-             && Math.abs(wrist_motor.getClosedLoopError().getValueAsDouble()) < 0.02;
-    }
-
-    public Command intakeCoralCmd() {
-        return 
-            new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
-                .until(this::getCoralStored)
-            .andThen(new WaitCommand(0.2))
-            .andThen(new StartEndCommand(() -> runShooter(0.2), () -> runShooter(0))
-                .withDeadline(new WaitCommand(0.2)))
-                .andThen(() -> runShooter(0))
-            .finallyDo(() -> runShooter(0));
-    }
-
-    public Command intakeCoralSequence() {
-        return Commands.sequence(
-            new StartEndCommand(() -> setState(TargetState.kStow), () -> setState(TargetState.kSource))
-                .until(() -> getElevatorHeight() <= 0)
-            .andThen(intakeCoralCmd())
-        ).finallyDo(() -> runShooter(0));
-    }
-
-    public Command intakeAlgaeCmd() {
-        return Commands.sequence(
-            new InstantCommand(() -> runIntake(-0.7)),
-            new WaitCommand(0.1),
-            new WaitUntilCommand(() -> intake_motor.getOutputCurrent() > 11),
-            new InstantCommand(() -> runIntake(-0.3)),
-            new WaitCommand(1)
-        ).finallyDo(() -> runIntake(0));
+        return Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.02;
     }
 
     public List<TalonFX> getTalons() {
-        return Arrays.asList(ele_motor, wrist_motor);
+        return Arrays.asList(ele_motor);
     }
 
     public boolean getCoralStored() {
@@ -234,7 +158,7 @@ public class ElevatorRealIO extends Elevator {
     public void periodic() {
         super.periodic();
 
-        Logger.recordOutput("Elevator/Wrist Current", intake_motor.getOutputCurrent());
+        Logger.recordOutput("Elevator/Wrist Current", wrist_motor.getOutputCurrent());
 
         if (getElevatorZeroed()) {
             if (update_zero) {
@@ -243,8 +167,6 @@ public class ElevatorRealIO extends Elevator {
                 update_zero = false;
             }
         } else {
-            // if (ele_motor.getPosition().getValueAsDouble() < 0) {
-            //     ele_motor.setPosition(0);
             if (ele_motor.getPosition().getValueAsDouble() > 0) {
                 update_zero = true;
             }
@@ -261,7 +183,6 @@ public class ElevatorRealIO extends Elevator {
 
         if (DriverStation.isDisabled()) {
             ele_motor.setControl(new NeutralOut());
-            wrist_motor.setControl(new NeutralOut());
         }
     }
 }
