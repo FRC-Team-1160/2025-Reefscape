@@ -1,9 +1,12 @@
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
-import java.util.function.Consumer;
+import java.io.IOException;
 
+import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
+
+import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -12,14 +15,11 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+
 import frc.robot.Robot;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.RobotConstants;
@@ -37,6 +37,8 @@ public abstract class DriveTrain extends SubsystemBase {
     /** The desired module states. */
     @AutoLogOutput
     public SwerveModuleState[] module_states;
+
+    public RobotConfig config;
 
     /** Creates a new DriveTrain. */
     protected DriveTrain() {
@@ -64,6 +66,13 @@ public abstract class DriveTrain extends SubsystemBase {
                 new SwerveModuleState()
         };
 
+        try {
+            config = RobotConfig.fromGUISettings();
+        } catch (IOException | ParseException e) {
+            e.printStackTrace();
+            config = null;
+        }
+        
         setupDashboard();
     }
 

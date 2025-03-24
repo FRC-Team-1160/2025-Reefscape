@@ -3,7 +3,6 @@ package frc.robot.Subsystems.Vision;
 import java.util.LinkedList;
 
 import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
@@ -24,7 +23,7 @@ public class VisionPoseCache {
 
     /** Creates a new VisionPoseCache. */
     public VisionPoseCache() {
-        POSE_TIMEOUT = 0.25;
+        POSE_TIMEOUT = 0.5;
         cache = new LinkedList<CachedPose>();
         sums = new double[3];
         sum_squares = new double[3];

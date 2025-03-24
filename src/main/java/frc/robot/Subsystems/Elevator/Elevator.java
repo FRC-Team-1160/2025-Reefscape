@@ -1,41 +1,19 @@
 package frc.robot.Subsystems.Elevator;
 
-import static edu.wpi.first.units.Units.Meter;
-import static edu.wpi.first.units.Units.Meters;
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.Volts;
-
-import java.lang.annotation.Target;
-import java.util.HashMap;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.units.Units;
-import edu.wpi.first.units.VelocityUnit;
-import edu.wpi.first.units.VoltageUnit;
-import edu.wpi.first.units.measure.MutDistance;
-import edu.wpi.first.units.measure.MutLinearVelocity;
-import edu.wpi.first.units.measure.MutTime;
-import edu.wpi.first.units.measure.MutVelocity;
-import edu.wpi.first.units.measure.MutVoltage;
-import edu.wpi.first.units.measure.Velocity;
-import edu.wpi.first.units.measure.Voltage;
-import edu.wpi.first.wpilibj.RobotController;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+
 import frc.robot.Robot;
 import frc.robot.RobotUtils;
 import frc.robot.SubsystemManager;
@@ -52,12 +30,12 @@ abstract public class Elevator extends SubsystemBase {
     public enum TargetState {
         kStow(ElevatorSetpoints.kStow, true, AlignCommand.kNone), 
         kSource(ElevatorSetpoints.kSource, null, AlignCommand.kSource),
-        kL1(ElevatorSetpoints.kL1, false, AlignCommand.kReefCoral), 
-        kL2(ElevatorSetpoints.kL2, false, AlignCommand.kReefCoral), 
-        kL3(ElevatorSetpoints.kL3, false, AlignCommand.kReefCoral), 
-        kL4(ElevatorSetpoints.kL4, false, AlignCommand.kReefCoral),
-        kL2Algae(ElevatorSetpoints.kL2Algae, true, AlignCommand.kReefAlgae),
-        kL3Algae(ElevatorSetpoints.kL3Algae, true, AlignCommand.kReefAlgae);
+        kL1(ElevatorSetpoints.kL1, null, AlignCommand.kReefCoral), 
+        kL2(ElevatorSetpoints.kL2, null, AlignCommand.kReefCoral), 
+        kL3(ElevatorSetpoints.kL3, null, AlignCommand.kReefCoral), 
+        kL4(ElevatorSetpoints.kL4, null, AlignCommand.kReefCoral),
+        kL2Algae(ElevatorSetpoints.kL2Algae, false, AlignCommand.kReefAlgae),
+        kL3Algae(ElevatorSetpoints.kL3Algae, false, AlignCommand.kReefAlgae);
 
 
         public final Double elevator_setpoint;
@@ -121,7 +99,7 @@ abstract public class Elevator extends SubsystemBase {
     }
 
     public boolean atTarget(TargetState state) {
-        return Math.abs(getElevatorHeight() - state.elevator_setpoint) < 0.02;
+        return Math.abs(Math.max(0, getElevatorHeight()) - Math.max(0, state.elevator_setpoint)) < 0.03;
     }
 
     // VoltageOut() methods
@@ -147,9 +125,9 @@ abstract public class Elevator extends SubsystemBase {
     public abstract double getElevatorHeight();
 
     public Command intakeCoralCmd(boolean exit_early) {
-        Command end_sequence = new WaitCommand(0.2)
-            .andThen(RobotUtils.onOffCommand(this::runShooter, 0.2))
-            .withTimeout(0.2);
+        Command end_sequence = new WaitCommand(0.1)
+            .andThen(RobotUtils.onOffCommand(this::runShooter, 0.15)
+                .withTimeout(0.2));
         return RobotUtils.onOffCommand(this::runShooter, 0.2)
                 .until(this::getCoralStored)
                 .andThen(exit_early

@@ -1,10 +1,6 @@
 package frc.robot;
 
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.AutoLogOutputManager;
 import org.littletonrobotics.junction.Logger;
 
 import edu.wpi.first.math.MathUtil;
@@ -15,26 +11,15 @@ import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.util.Units;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import frc.robot.Constants.FieldConstants.AlgaeProcessor;
-import frc.robot.Constants.FieldConstants.CoralStation;
+
 import frc.robot.Constants.FieldConstants.Reef;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants.Tracking;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Angle;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Distance;
-import frc.robot.SubsystemManager.RobotState.DriveStates;
-import frc.robot.Subsystems.Elevator.Elevator.TargetState;
-import frc.robot.Subsystems.Vision.Vision;
-import frc.robot.Subsystems.Vision.Vision.CameraMode;
 
 /** Controls automatic alignment for driver assistance. */
 public class SwervePIDController {

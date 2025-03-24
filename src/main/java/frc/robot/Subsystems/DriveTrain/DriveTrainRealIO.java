@@ -7,7 +7,6 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.studica.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Rotation2d;
-import frc.robot.SubsystemManager;
 
 public class DriveTrainRealIO extends DriveTrain {
 

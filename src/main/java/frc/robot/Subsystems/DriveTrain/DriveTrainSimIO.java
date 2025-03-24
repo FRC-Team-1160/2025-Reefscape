@@ -1,11 +1,12 @@
 package frc.robot.Subsystems.DriveTrain;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+
 import frc.robot.Constants.RobotConstants;
 
 public class DriveTrainSimIO extends DriveTrain {
     
-    Rotation2d angle;
+    private Rotation2d angle;
     private double gyro_rate;
 
     protected DriveTrainSimIO() {
@@ -18,11 +19,11 @@ public class DriveTrainSimIO extends DriveTrain {
     }
     
     public double getGyroRate(){
-        return 0.0;
+        return gyro_rate;
     }
 
     public void setGyroAngle(double angle) {
-        // angle = Rotation2d.fromDegrees(-angle);
+        this.angle = Rotation2d.fromDegrees(-angle);
     }
 
     public void resetGyroAngle() {

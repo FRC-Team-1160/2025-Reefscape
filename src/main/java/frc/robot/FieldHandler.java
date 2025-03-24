@@ -1,21 +1,16 @@
 package frc.robot;
 
-import java.io.IOException;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Set;
 import java.util.function.Supplier;
 
-import org.json.simple.parser.ParseException;
+import org.littletonrobotics.junction.Logger;
 
 import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.commands.FollowPathCommand;
-import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.GoalEndState;
 import com.pathplanner.lib.path.IdealStartingState;
 import com.pathplanner.lib.path.PathConstraints;
@@ -33,16 +28,14 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.AutoConstants.Paths;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Constants.FieldConstants.AlgaeProcessor;
@@ -55,7 +48,7 @@ public class FieldHandler {
 
     public static FieldHandler instance = new FieldHandler();
 
-    public SendableChooser<AutoPos>[] auto_menus;
+    public List<SendableChooser<AutoPos>> auto_menus;
 
     public Field2d auto_preview;
 
@@ -83,35 +76,35 @@ public class FieldHandler {
         kCage6("Cage 6", () -> new Pose2d(Paths.START_X, Barge.CAGE_6, Rotation2d.kPi), 
             Rotation2d.kPi, Paths.BARGE_CONTROL),
 
-        kReef2L("Reef 2 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 15 : 6], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 120 : -60), Paths.REEF_CONTROL),
-        kReef2R("Reef 2 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 17 : 8], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 120 : -60), Paths.REEF_CONTROL),
-        kReef4L("Reef 4 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 12 : 3], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 60 : -120), Paths.REEF_CONTROL),
-        kReef4R("Reef 4 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 14 : 5], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 60 : -120), Paths.REEF_CONTROL),
-        kReef6L("Reef 6 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 9 : 0], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 0 : 180), Paths.REEF_CONTROL),
-        kReef6R("Reef 6 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 11 : 2], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 0 : 180), Paths.REEF_CONTROL),
-        kReef8L("Reef 8 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 6 : 15], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -60 : 120), Paths.REEF_CONTROL),
-        kReef8R("Reef 8 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 8 : 17], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -60 : 120), Paths.REEF_CONTROL),
-        kReef10L("Reef 10 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 3 : 12], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -120 : 60), Paths.REEF_CONTROL),
-        kReef10R("Reef 10 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 5 : 14], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -120 : 60), Paths.REEF_CONTROL),
-        kReef12L("Reef 12 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 0 : 9], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 180 : 0), Paths.REEF_CONTROL),
-        kReef12R("Reef 12 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 2 : 11], 
-            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 180 : 0), Paths.REEF_CONTROL),
+        kReef2L("2 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 15 : 6], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 120 : -60), Paths.REEF_CONTROL_CLOSE),
+        kReef2R("2 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 17 : 8], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 120 : -60), Paths.REEF_CONTROL_CLOSE),
+        kReef4L("4 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 12 : 3], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 60 : -120), Paths.REEF_CONTROL_FAR),
+        kReef4R("4 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 14 : 5], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 60 : -120), Paths.REEF_CONTROL_FAR),
+        kReef6L("6 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 9 : 0], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 0 : 180), Paths.REEF_CONTROL_FAR),
+        kReef6R("6 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 11 : 2], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 0 : 180), Paths.REEF_CONTROL_FAR),
+        kReef8L("8 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 6 : 15], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -60 : 120), Paths.REEF_CONTROL_FAR),
+        kReef8R("8 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 8 : 17], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -60 : 120), Paths.REEF_CONTROL_FAR),
+        kReef10L("10 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 3 : 12], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -120 : 60), Paths.REEF_CONTROL_CLOSE),
+        kReef10R("10 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 5 : 14], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? -120 : 60), Paths.REEF_CONTROL_CLOSE),
+        kReef12L("12 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 0 : 9], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 180 : 0), Paths.REEF_CONTROL_CLOSE),
+        kReef12R("12 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 2 : 11], 
+            Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 180 : 0), Paths.REEF_CONTROL_CLOSE),
 
         kSourceL("Source Left", () -> FieldPositions.source[1].transformBy(new Transform2d(0, 0, Rotation2d.kPi)),
-            Rotation2d.fromRadians(FieldConstants.CoralStation.ANGLE_RADIANS).unaryMinus(), Paths.REEF_CONTROL),      
+            Rotation2d.fromRadians(FieldConstants.CoralStation.ANGLE_RADIANS).unaryMinus(), Paths.SOURCE_CONTROL),      
         kSourceR("Source Right", () -> FieldPositions.source[0].transformBy(new Transform2d(0, 0, Rotation2d.kPi)),
-            Rotation2d.fromRadians(FieldConstants.CoralStation.ANGLE_RADIANS), Paths.REEF_CONTROL);
+            Rotation2d.fromRadians(FieldConstants.CoralStation.ANGLE_RADIANS), Paths.SOURCE_CONTROL);
 
         public String name;
         public Pose2d pose;
@@ -154,7 +147,7 @@ public class FieldHandler {
 
     private FieldHandler() {
         auto_preview = new Field2d();
-        auto_menus = new SendableChooser[4];
+        auto_menus = new ArrayList<SendableChooser<AutoPos>>(Collections.nCopies(4, new SendableChooser<AutoPos>()));
         fillFieldPositions();
         for (AutoPos pos : AutoPos.values()) pos.compose();
         fillAutoPositions();
@@ -228,8 +221,8 @@ public class FieldHandler {
                     )
                 );
             FieldPositions.reef[3*i + 1] = center;
-            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.15, Rotation2d.kZero));
-            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.19, Rotation2d.kZero));
+            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.16, Rotation2d.kZero));
+            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.18, Rotation2d.kZero));
             angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
@@ -261,65 +254,73 @@ public class FieldHandler {
     }
 
     public void rebuildAutoMenus() {
-        // for (SendableChooser<AutoPos> menu : auto_menus) if (menu != null) menu.close();
-        if (auto_menus[0] != null) auto_menus[0].close();
-        auto_menus[0] = new SendableChooser<AutoPos>();
-        for (AutoPos pos : auto_positions_start) auto_menus[0].addOption(pos.name, pos);
-        auto_menus[0].setDefaultOption(AutoPos.kBargeMiddle.name, AutoPos.kBargeMiddle);
-        auto_menus[0].onChange(pos -> autoMenuUpdateCallback(1));
-        SmartDashboard.putData("Auto Start", auto_menus[0]);
-
+        auto_menus.set(0, new SendableChooser<AutoPos>());
+        for (AutoPos pos : auto_positions_start) auto_menus.get(0).addOption(pos.name, pos);
+        auto_menus.get(0).setDefaultOption(AutoPos.kBargeMiddle.name, AutoPos.kBargeMiddle);
+        auto_menus.get(0).onChange(pos -> autoMenuUpdateCallback(1));
+        SmartDashboard.putData("Auto Start", auto_menus.get(0));
     }
 
     public void updateGenericChooser(int index) {
-        auto_menus[index] = new SendableChooser<AutoPos>();
-        if (auto_menus[index - 1].getSelected() == null) return;
-        AutoPos[] opts = auto_positions_map.get(auto_menus[index - 1].getSelected());
-        auto_menus[index].setDefaultOption(AutoPos.kEnd.name, AutoPos.kEnd);
-        if (opts.length > 0) for (AutoPos pos : opts) auto_menus[index].addOption(pos.name, pos);
-        if (index + 1 < auto_menus.length) auto_menus[index].onChange(pos -> autoMenuUpdateCallback(index + 1));
-        else auto_menus[index].onChange(pos -> updatePreview());
-        String key = "Auto Menu " + String.valueOf(index);
-        if (!SmartDashboard.containsKey(key)) SmartDashboard.putData(key, auto_menus[index]);
+        auto_menus.set(index, new SendableChooser<AutoPos>());
+        if (auto_menus.get(index - 1).getSelected() == null) return;
+        AutoPos[] opts = auto_positions_map.get(auto_menus.get(index - 1).getSelected());
+        auto_menus.get(index).setDefaultOption(AutoPos.kEnd.name, AutoPos.kEnd);
+        for (AutoPos pos : opts) auto_menus.get(index).addOption(pos.name, pos);
+        if (index + 1 < auto_menus.size()) auto_menus.get(index).onChange(pos -> autoMenuUpdateCallback(index + 1));
+        else auto_menus.get(index).onChange(pos -> updatePreview());
+        String key = "Auto " + (index % 2 == 0 ? "Source " : "Reef ") + String.valueOf((index + 1) / 2);
+        if (!SmartDashboard.containsKey(key)) SmartDashboard.putData(key, auto_menus.get(index));
     }
 
+    /**
+     * Generates a bezier curve path between two positions for autonomous.
+     * @param start The starting position.
+     * @param end The ending position.
+     * @return The generated PathPlannerPath.
+     */
     public PathPlannerPath getPath(AutoPos start, AutoPos end) {
+        // Generate PathPlanner Waypoints
         Waypoint start_point = start.getWaypoint(true);
         Waypoint end_point = end.getWaypoint(false);
 
         Translation2d reef_center = new Translation2d(FieldConstants.Reef.CENTER_X, FieldConstants.Reef.CENTER_Y);
+        // Angles the reef to each endpoint
         double end_angle = end_point.anchor().minus(reef_center).getAngle().getRotations();
         double start_angle = start_point.anchor().minus(reef_center).getAngle().getRotations();
 
-        Waypoint mid_point;
-
+        Waypoint mid_point = null;
+        // Add an extra control point in the middle if the path must go around the reef
         boolean add_midpoint = Math.abs(0.5 - Math.abs(end_angle - start_angle)) < 0.5 - 2.0 / Reef.NUM_SIDES;
+
         if (add_midpoint) {
             Pose2d mid_pose = new Pose2d(
                 reef_center.plus(new Translation2d(
+                        /* Position new control point with distance to reef being the harmonic mean of the distances of
+                         * other two control points. */
                         Math.sqrt(end_point.anchor().getDistance(reef_center) * start_point.anchor().getDistance(reef_center)), 
                         0
-                    ).rotateBy(Rotation2d.fromRotations((start_angle + end_angle) / 2
-                         + (Math.abs(end_angle - start_angle) > 0.5 ? 0.5 : 0)))), 
+                        // Control point bisects the angle between two points and reef center 
+                    ).rotateBy(Rotation2d.fromRotations((start_angle + end_angle) / 2.0
+                         + (Math.abs(end_angle - start_angle) > 0.5 ? 0.5 : 0)))),
+                // Draw control handles roughly parallel to the straight line between start and end points
                 end_point.anchor().plus(end_point.prevControl()).minus(
                     start_point.anchor().plus(start_point.nextControl())).getAngle()
             );
 
+            // Generate control handle points by transform the previously orientated pose forward and backward
             mid_point = new Waypoint(
-            mid_pose.transformBy(new Transform2d(
-                -end_point.anchor().getDistance(start_point.anchor()) / 6,
-                0, 
-                Rotation2d.kZero)).getTranslation(), 
-            mid_pose.getTranslation(), 
-            mid_pose.transformBy(new Transform2d(
-                end_point.anchor().getDistance(start_point.anchor()) / 6, 
-                0,
-                Rotation2d.kZero)).getTranslation());
-        } else {
-            mid_point = null;
+                mid_pose.transformBy(new Transform2d(
+                    -end_point.anchor().getDistance(start_point.anchor()) / 6,
+                    0, 
+                    Rotation2d.kZero)).getTranslation(), 
+                mid_pose.getTranslation(), 
+                mid_pose.transformBy(new Transform2d(
+                    end_point.anchor().getDistance(start_point.anchor()) / 6, 
+                    0,
+                    Rotation2d.kZero)).getTranslation());
         }
-        System.out.println(String.valueOf(end.rotation.getRotations()) + " " + String.valueOf(end.pose.getRotation().getRotations()));
-        System.out.println((end.rotation == end.pose.getRotation() ? -1 : 1));
+
         return new PathPlannerPath(
             add_midpoint ? Arrays.asList(start_point, mid_point, end_point) : Arrays.asList(start_point, end_point),
             new PathConstraints(
@@ -328,31 +329,27 @@ public class FieldHandler {
                 AutoConstants.MAX_ANG_SPEED, 
                 AutoConstants.MAX_ANG_ACCEL), 
             new IdealStartingState(0, start.rotation), 
-            new GoalEndState(Math.abs(end.rotation.minus(end.pose.getRotation()).getRotations()) < 0.1 ? 0 : 2, end.rotation));
+            new GoalEndState(1.5, end.rotation));
     }
 
     public void updatePreview() {
-        RobotConfig config;
-        try {
-            config = RobotConfig.fromGUISettings();
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-            config = null;
-        }
+
         for (SendableChooser<AutoPos> menu : auto_menus) if (menu == null || menu.getSelected() == null) return;
 
         List<Pose2d> preview_poses = new ArrayList<Pose2d>(); 
         List<PathPlannerTrajectoryState> pp_states = new ArrayList<PathPlannerTrajectoryState>();
-        for (int i = 0; i + 1 < auto_menus.length; i++) {
-            if (auto_menus[i + 1].getSelected() == AutoPos.kEnd) break;
-            var temp = getPath(auto_menus[i].getSelected(), auto_menus[i + 1].getSelected())
-                .generateTrajectory(new ChassisSpeeds(), auto_menus[0].getSelected().rotation, config)
-                    .getStates();
+        for (int i = 0; i + 1 < auto_menus.size(); i++) {
+            if (auto_menus.get(i + 1).getSelected() == AutoPos.kEnd) break;
+            var temp = getPath(auto_menus.get(i).getSelected(), auto_menus.get(i + 1).getSelected())
+                .generateTrajectory(
+                    new ChassisSpeeds(), auto_menus.get(0).getSelected().rotation, 
+                    DriveTrain.instance.config
+                ).getStates();
             pp_states.addAll(temp);
             for (int d = 1; d <= AutoConstants.PREVIEW_DETAIL; d++) {
                 preview_poses.add(temp.get(temp.size() * d / (AutoConstants.PREVIEW_DETAIL + 1)).pose);
             }
-            preview_poses.add(auto_menus[i + 1].getSelected().getActualPose());
+            preview_poses.add(auto_menus.get(i + 1).getSelected().getActualPose());
         }
 
         List<Trajectory.State> traj_states = new ArrayList<Trajectory.State>();
@@ -363,52 +360,70 @@ public class FieldHandler {
                 0, 
                 pp_state.pose, 
                 0));
+
+        auto_preview.close();
+        auto_preview = new Field2d();
+
+        auto_preview.setRobotPose(auto_menus.get(0).getSelected().getActualPose());
         
         if (traj_states.size() > 0) auto_preview.getObject("auto_traj").setTrajectory(new Trajectory(traj_states));
         else auto_preview.getObject("auto_traj").setTrajectory(new Trajectory());
 
-        auto_preview.setRobotPose(auto_menus[0].getSelected().getActualPose());
+        for (int i = 0; i < auto_menus.size() * (AutoConstants.PREVIEW_DETAIL + 1); i += 8)
+            auto_preview.getObject("poses_" + String.valueOf(i / 8))
+                .setPoses(i < preview_poses.size()
+                     ? preview_poses.subList(i, Math.min(i + 8, preview_poses.size()))
+                     : new ArrayList<Pose2d>());
+        Logger.recordOutput("FieldHandler/pose", auto_preview.getRobotPose());
 
-        for (int i = 0; i < preview_poses.size(); i += 10)
-            auto_preview.getObject("poses_" + String.valueOf(i / 10))
-                .setPoses(preview_poses.subList(i, Math.min(i + 10, preview_poses.size())));
+        SmartDashboard.putData("Auto Preview", auto_preview);
+        auto_preview.setRobotPose(auto_menus.get(0).getSelected().getActualPose());
     }
 
     public Command buildAuto() {
-        RobotConfig config;
-        try {
-            config = RobotConfig.fromGUISettings();
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-            config = null;
-        }
+        // Initialize command group
         SequentialCommandGroup sequence = new SequentialCommandGroup();
+        // Pre-allocate space
         AutoPos start;
-        AutoPos end = auto_menus[0].getSelected();
+        AutoPos end = auto_menus.get(0).getSelected();
+        // Reset the pose_estimator pose to the auto starting position
         SubsystemManager.instance.pose_estimator.resetPose(end.getActualPose());
-        for (int i = 0; i + 1 < auto_menus.length; i++) {
+        for (int i = 0; i + 1 < auto_menus.size(); i++) {
+            // The end enum from the previous section becomes the start for the next
             start = end;
-            end = auto_menus[i + 1].getSelected();
+            end = auto_menus.get(i + 1).getSelected();
+
             if (end == AutoPos.kEnd) break;
+
+            // Generate the path between two anchor points
             PathPlannerPath path = getPath(start, end);
-            TargetState target = end.name.contains("Reef") ? TargetState.kL4 : TargetState.kSource;
+
+            TargetState target = end.name().contains("Reef") ? TargetState.kL4 : TargetState.kSource;
+
             sequence.addCommands(
+                // Run two command sequences in parallel
                 new ParallelCommandGroup(
+                    // Sequence 1: Following a PathPlanner curve into automatic alignment
                     new SequentialCommandGroup(
                         SubsystemManager.instance.commands.decoratePathplannerCmd(AutoBuilder.followPath(path)),
+                        // Select alignment target based on elevator state
                         SubsystemManager.instance.commands.selectCommand()),
+                    // Sequence 2: Wait for some time, then move the elevator to desired position
                     new SequentialCommandGroup(
+                        // Wait longer if elevator is low, bring down quickly if elevator is high
                         new WaitCommand(target != TargetState.kL4 ? 0.5 : 
                             path.generateTrajectory(
                                 new ChassisSpeeds(), 
-                                start.rotation, config
+                                start.rotation, 
+                                DriveTrain.instance.config
                             ).getTotalTimeSeconds() - 1.5),
                         Elevator.instance.setStateCmd(target))),
+                // Post-path command, intaking or shooting depending on elevator state
                 target == TargetState.kSource ? Elevator.instance.intakeCoralCmd()
-                     : RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3).withTimeout(0.5)
+                     : RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3).withTimeout(1)
             );
         }
-
+        sequence.addCommands(Elevator.instance.setStateCmd(TargetState.kSource));
         return sequence;
     }
 }

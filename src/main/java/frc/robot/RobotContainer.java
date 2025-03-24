@@ -1,22 +1,18 @@
 package frc.robot;
 
-import java.io.IOException;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
-import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutputManager;
 
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Joystick;
-import edu.wpi.first.wpilibj.RobotState;
 import edu.wpi.first.wpilibj.GenericHID.RumbleType;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -29,14 +25,12 @@ import edu.wpi.first.wpilibj2.command.StartEndCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.IOConstants;
 import frc.robot.SubsystemManager.PathplannerSpeeds;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
-import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
@@ -59,8 +53,6 @@ public class RobotContainer {
 
     private final SendableChooser<Command> auto_chooser;
 
-    private Command auto_command;
-
     public Command rumble() {
         return new StartEndCommand(
             () -> codriver_controller.setRumble(RumbleType.kLeftRumble, 1),
@@ -80,8 +72,8 @@ public class RobotContainer {
             kXBox,
             kSimple
         }
-        public final Drive driver = Drive.kXBox;
-        public final Codrive codriver = Codrive.kXBox;
+        public final Drive driver = Drive.kSimple;
+        public final Codrive codriver = Codrive.kSimple;
     }
 
     public DriveMode drive_mode = new DriveMode();
@@ -114,11 +106,6 @@ public class RobotContainer {
 
         NamedCommands.registerCommands(commands_map);
 
-        FieldHandler.instance.rebuildAutoMenus();
-
-        // Configure Autobuilder
-        RobotConfig config;
-
         AutoLogOutputManager.addObject(SubsystemManager.instance);
         AutoLogOutputManager.addObject(SwervePIDController.instance);
         AutoLogOutputManager.addObject(DriveTrain.instance);
@@ -127,13 +114,6 @@ public class RobotContainer {
         AutoLogOutputManager.addObject(Climber.instance);
         AutoLogOutputManager.addObject(Vision.instance);
         AutoLogOutputManager.addObject(ObjectDetection.instance);
-        
-        try {
-            config = RobotConfig.fromGUISettings();
-        } catch (IOException | ParseException e) {
-            e.printStackTrace();
-            config = null;
-        }
 
         AutoBuilder.configure(
             SubsystemManager.instance::getPoseEstimate,
@@ -151,7 +131,7 @@ public class RobotContainer {
                     AutoConstants.rotation_kP, 
                     AutoConstants.rotation_kI, 
                     AutoConstants.rotation_kD)),
-            config,
+            DriveTrain.instance.config,
             () -> RobotUtils.isRedAlliance(),
             DriveTrain.instance // Reference to drive subsystem to set requirements; unfortunately required to instantiate
         );
@@ -221,6 +201,13 @@ public class RobotContainer {
             case kSimple:
                 new JoystickButton(simp_stick, 8).onTrue(
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
+
+                new JoystickButton(simp_stick, 5)
+                    .whileTrue(SubsystemManager.instance.commands.alignReef());
+
+                new JoystickButton(simp_stick, 6).whileTrue(
+                    Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
+
                 break;
         }
 
@@ -245,13 +232,23 @@ public class RobotContainer {
 
                 // Elevator manual
                 new Trigger(() -> Math.abs(codriver_controller.getRawAxis(1)) > 0.25).whileTrue(
-                    new RunCommand(() -> Elevator.instance.runElevator(0.35 - 2.5 * codriver_controller.getRawAxis(1)))
+                    new RunCommand(() -> Elevator.instance.runElevator(0.35 - 2.5 * MathUtil.applyDeadband(codriver_controller.getRawAxis(1), 0.25)))
                         .finallyDo(Elevator.instance::stopElevator));
                 
                 // Wrist manual
-                new Trigger(() -> Math.abs(codriver_controller.getRawAxis(5)) > 0.8).onTrue(
-                    Elevator.instance.setWristCmd(codriver_controller.getRawAxis(5) < 0 ? false : true));
-                
+                new Trigger(() -> Math.abs(codriver_controller.getRawAxis(5)) > 0.2).whileTrue(
+                    Commands.either(new RunCommand(() ->
+                            Elevator.instance.runWrist(
+                                -3 * MathUtil.applyDeadband(codriver_controller.getRawAxis(5), 0.2))
+                        ).finallyDo(() -> Elevator.instance.runWrist(0)),
+                    Elevator.instance.setWristCmd(codriver_controller.getRawAxis(5) < 0),
+                    () -> codriver_controller.getRawButton(8)));
+
+                // Algae
+                new JoystickButton(codriver_controller, 5).whileTrue(
+                    RobotUtils.onOffCommand(Elevator.instance::runAlgae, 
+                    codriver_controller.getRawButton(8) ? -0.5 : 0.5));
+
                 // Coral reef left/right
                 new Trigger(() -> codriver_controller.getPOV() == 90).onTrue(
                     new InstantCommand(() -> SwervePIDController.instance.align_right = true));
@@ -273,11 +270,11 @@ public class RobotContainer {
 
                 // Climber
                 new Trigger(() -> codriver_controller.getPOV() == 0).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(5), 
+                    () -> Climber.instance.runClimber(4), 
                     () -> Climber.instance.runClimber(0)));
 
                 new Trigger(() -> codriver_controller.getPOV() == 180).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(-2.5),
+                    () -> Climber.instance.runClimber(-2),
                     () -> Climber.instance.runClimber(0)));
 
                 new JoystickButton(codriver_controller, 7).whileTrue(Commands.either(
@@ -292,12 +289,49 @@ public class RobotContainer {
                 break;
         
             case kSimple:
-                new JoystickButton(simp_stick, 4).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(6), 
-                    () -> Climber.instance.runClimber(0)));
-                new JoystickButton(simp_stick, 1).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(-3), 
-                    () -> Climber.instance.runClimber(0)));
+                new JoystickButton(simp_stick, 8).onTrue(
+                    new InstantCommand(() -> DriveTrain.instance.resetGyroAngle()));
+                // Elevator manual
+                new Trigger(() -> Math.abs(simp_stick.getRawAxis(5)) > 0.4).whileTrue(
+                    new RunCommand(() -> Elevator.instance.runElevator(0.35 - 2.5 * MathUtil.applyDeadband(simp_stick.getRawAxis(5), 0.4)))
+                        .finallyDo(Elevator.instance::stopElevator));
+
+                // Coral intake / shoot
+                new Trigger(() -> simp_stick.getRawAxis(3) > 0.8).whileTrue(Commands.either(
+                    RobotUtils.onOffCommand(Elevator.instance::runShooter, 
+                        Elevator.instance.m_current_state == TargetState.kL4? 0.2 : 0.1), 
+                    Commands.either(
+                        RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.2),
+                        RobotUtils.decorateCommandFeedback(
+                            Elevator.instance.intakeCoralCmd().beforeStarting(Elevator.instance.setStateCmd(TargetState.kSource)),
+                            this::rumble),
+                        Elevator.instance::getCoralStored),
+                    () -> simp_stick.getRawButton(8)));
+
+
+                // Reef setpoints
+                new JoystickButton(simp_stick, 3).onTrue(
+                    Elevator.instance.setStateCmd(TargetState.kL1));
+
+                new JoystickButton(simp_stick, 1).onTrue(Commands.either(
+                    Elevator.instance.setStateCmd(TargetState.kL2Algae),
+                    Elevator.instance.setStateCmd(TargetState.kL2),
+                    () -> simp_stick.getRawButton(6)));
+
+                new JoystickButton(simp_stick, 2).onTrue(Commands.either(
+                    Elevator.instance.setStateCmd(TargetState.kL3Algae),
+                    Elevator.instance.setStateCmd(TargetState.kL3),
+                    () -> simp_stick.getRawButton(6)));
+
+                new JoystickButton(simp_stick, 4).onTrue(
+                    Elevator.instance.setStateCmd(TargetState.kL4));
+
+                // Coral reef left/right
+                new Trigger(() -> simp_stick.getPOV() == 90).onTrue(
+                    new InstantCommand(() -> SwervePIDController.instance.align_right = true));
+        
+                new Trigger(() -> simp_stick.getPOV() == 270).onTrue(
+                    new InstantCommand(() -> SwervePIDController.instance.align_right = false));
                 break;
         }
 

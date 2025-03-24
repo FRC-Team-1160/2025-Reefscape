@@ -2,7 +2,6 @@ package frc.robot;
 
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 
@@ -50,16 +49,12 @@ public final class Constants {
 
         // public static final int ELEVATOR_MOTOR_LEFT = 9;
         public static final int ELEVATOR_MOTOR = 17;
-
-        public static final int WRIST_MOTOR = 14;
-
-        public static final int CLIMBER_MOTOR_LEFT = 12;
-        public static final int CLIMBER_MOTOR_RIGHT = 13;
+    
+        public static final int ALGAE_MOTOR = 4;
+        public static final int WRIST_MOTOR = 27;
 
         // Krakens get CAN ID priority because theyre simply better
-        public static final int SHOOTER_MOTOR = 27;
-
-        public static final int INTAKE_MOTOR = 30;
+        public static final int SHOOTER_MOTOR = 8;
 
         public static final int SERVO_LEFT = 0;
         public static final int SERVO_RIGHT = 1;
@@ -133,17 +128,6 @@ public final class Constants {
                 public static final double PITCH = 0;
                 public static final double YAW = Units.degreesToRadians(20);
             }
-
-            /** Coordinate transform for the limelight. */
-            public static class BackCamera {
-                public static final double X = 0; //TODO: find constants
-                public static final double Y = 0;
-                public static final double Z = 0;
-
-                public static final double ROLL = 0;
-                public static final double PITCH = 0;
-                public static final double YAW = 0;
-            }
         }
 
         /** Coefficients for inverse regression fit distance approximation. */
@@ -207,7 +191,7 @@ public final class Constants {
         public static final double MAX_SPEED = 7;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 2.75 : 3.0;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 1.5 : 3.0;
         public static final double TURN_SPEED = 3;
 
         /** Constraints and settings for automatic alignment. */
@@ -224,8 +208,8 @@ public final class Constants {
             public static final double MAX_ALIGN_SEPARATION = 0.5;
             public static final double ALIGN_SEPARATION_TOLERANCE = 0.15;
 
-            public static final double ANGLE_TOLERANCE = Units.degreesToRadians(2);
-            public static final double DISTANCE_TOLERANCE = 0.02;
+            public static final double ANGLE_TOLERANCE = Units.degreesToRadians(1.5);
+            public static final double DISTANCE_TOLERANCE = 0.015;
 
             /** Coefficients for distance and angular PID controllers. */
             public static class PIDConstants {
@@ -268,23 +252,20 @@ public final class Constants {
     /** Constants for the Elevator subsystem. */
     public static class ElevatorConstants {
 
-        public static final double MAX_EXTENSION = 5.3;
+        public static final double MAX_EXTENSION = 5.2;
         public static final double MIN_EXTENSION = -0.1;
-
-        public static final double MIN_WRIST_ANGLE = -0.15;
-        public static final double MAX_WRIST_ANGLE = 0.195;
 
         public static final double GEAR_DIAMETER = Units.inchesToMeters(Math.PI * 1.75);
 
         /** Configured PID values for elevator motors. */
         public static class ElevatorConfigs {
-            public static final double kP = 4;
+            public static final double kP = 8;
             public static final double kI = 0;
-            public static final double kD = 0.3;
-            public static final double kS = 0.15;
-            public static final double kV = 1.8;
-            public static final double kA = 0.1;
-            public static final double kG = 0.4;
+            public static final double kD = 0.25;
+            public static final double kS = 0.17;
+            public static final double kV = 1.75;
+            public static final double kA = 0.18;
+            public static final double kG = 0.35;
         }
 
         /** Configured Motion Magic coefficients for the elevator motor. */
@@ -318,18 +299,14 @@ public final class Constants {
 
         /** Height presets for the elevator, in gear rotations */
         public static class ElevatorSetpoints {
-            public static final double kL1 = 0.8; //TUNE
-            public static final double kL2 = 1.6; //TUNE
-            public static final double kL3 = 3; //TUNE
-            public static final double kL4 = 5.2; //TUNE
-            public static final double kL2Algae = 1.3; //TUNE
-            public static final double kL3Algae = 2.7; //TUNE
-            public static final double kProcessor = -0.03;
-            public static final double kStow = -0.03;
-            public static final double kSource= 0.46;
-            public static final double kIntake = 0.05;
-            public static final double kIntakePrepare = 0.5; //TUNE
-            public static final double kBarge = 5.2; //TUNE
+            public static final double kL1 = 0.6; //TUNE
+            public static final double kL2 = 1.3; //TUNE
+            public static final double kL3 = 2.7; //TUNE
+            public static final double kL4 = 5.12; //TUNE
+            public static final double kL2Algae = 0.4; //TUNE
+            public static final double kL3Algae = 1.4; //TUNE
+            public static final double kStow = -0.05;
+            public static final double kSource = -0.05;
         }
     }
 
@@ -343,8 +320,8 @@ public final class Constants {
         public static final double rotation_kI = 0d;
         public static final double rotation_kD = 0d;
 
-        public static final double MAX_SPEED = 3;
-        public static final double MAX_ACCEL = 5;
+        public static final double MAX_SPEED = 2;
+        public static final double MAX_ACCEL = 4;
         public static final double MAX_ANG_SPEED = Math.PI;
         public static final double MAX_ANG_ACCEL = Math.PI * 2;
         
@@ -352,11 +329,12 @@ public final class Constants {
             public static final double START_X = FieldConstants.LENGTH / 2 - 1;
             public static final double ALIGN_DISTANCE = 0.5;
             public static final double BARGE_CONTROL = 0.3;
-            public static final double REEF_CONTROL = 1.5;
+            public static final double REEF_CONTROL_CLOSE = 0.5;
+            public static final double REEF_CONTROL_FAR = 1;
             public static final double SOURCE_CONTROL = 0.5;
         }
 
-        public static final int PREVIEW_DETAIL = 0;
+        public static final int PREVIEW_DETAIL = 2;
     }
 
     /** Constants relating to the game field. */

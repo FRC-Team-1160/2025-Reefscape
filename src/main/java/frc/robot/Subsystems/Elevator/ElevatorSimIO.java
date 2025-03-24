@@ -1,11 +1,8 @@
 package frc.robot.Subsystems.Elevator;
 
-import java.util.function.Supplier;
-
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
+
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.RobotConstants;
 

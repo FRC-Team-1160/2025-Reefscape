@@ -2,21 +2,18 @@ package frc.robot;
 
 import java.util.function.Consumer;
 
-import org.littletonrobotics.junction.AutoLogOutput;
-
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.StructArrayPublisher;
 import edu.wpi.first.networktables.StructPublisher;
-import edu.wpi.first.units.Unit;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
+
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.FieldConstants;
 import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
@@ -59,11 +56,10 @@ public final class RobotUtils {
      * @return Whether or not the robot is on red alliance.
      */
     public static boolean isRedAlliance() {
-        return false;
+        if (Robot.isReal()) return false; // CHANGE THIS VALUE AND DEPLOY
 
-        // if (DriverStation.getAlliance().isEmpty()) return false;
-        // // return DriverStation.getAlliance().get() == Alliance.Red;
-        // return true;
+        if (DriverStation.getAlliance().isEmpty()) return false;
+        return DriverStation.getAlliance().get() == Alliance.Red;
     }
 
     /**

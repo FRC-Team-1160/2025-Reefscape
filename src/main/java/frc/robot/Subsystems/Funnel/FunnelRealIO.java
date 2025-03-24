@@ -1,9 +1,6 @@
 package frc.robot.Subsystems.Funnel;
 
 import edu.wpi.first.wpilibj.PWM;
-import edu.wpi.first.wpilibj.Servo;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
-import frc.robot.Constants.PortConstants;
 
 public class FunnelRealIO extends Funnel {
 

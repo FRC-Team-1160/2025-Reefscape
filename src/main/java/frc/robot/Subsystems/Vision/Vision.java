@@ -19,6 +19,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.util.Units;
@@ -29,6 +30,7 @@ import frc.robot.LimelightHelpers;
 import frc.robot.LimelightHelpers.PoseEstimate;
 import frc.robot.LimelightHelpers.RawFiducial;
 import frc.robot.Robot;
+import frc.robot.RobotUtils;
 import frc.robot.SubsystemManager;
 import frc.robot.Constants.VisionConstants;
 import frc.robot.Constants.VisionConstants.CameraTransforms.LeftCamera;
@@ -143,22 +145,30 @@ public class Vision {
             var opt_pose = photon_pose_estimator.update(result);
             if (opt_pose.isEmpty()) continue;
 
+            var frame_tags = new ArrayList<Integer>();
+            // Check if result has multiple tags; store ambiguity and read used apriltag IDs
+            if (result.multitagResult.isPresent()) {
+                cache.last_ambiguity = result.multitagResult.get().estimatedPose.ambiguity;
+                for (Short id : result.multitagResult.get().fiducialIDsUsed) {
+                    frame_tags.add(id.intValue());
+                }
+            } else {
+                cache.last_ambiguity = result.getBestTarget().poseAmbiguity;
+                frame_tags.add(result.getBestTarget().fiducialId);
+            }
+
+            double max_dist = Arrays.stream(frame_tags.toArray())
+                .mapToDouble(id -> apriltags_map[(int)id].getTranslation().getNorm())
+                .max()
+                .orElse(Double.NaN); 
+
+            if (max_dist < 0.4) break;
+
             EstimatedRobotPose estimate = opt_pose.get();
             pose = estimate.estimatedPose.toPose2d();
 
             // Cache pose for fluctuation calculations
             cache.addPose(pose, SubsystemManager.instance.getPoseEstimate(), estimate.timestampSeconds);
-
-            // Check if result has multiple tags; store ambiguity and read used apriltag IDs
-            if (result.multitagResult.isPresent()) {
-                cache.last_ambiguity = result.multitagResult.get().estimatedPose.ambiguity;
-                for (Short id : result.multitagResult.get().fiducialIDsUsed) {
-                    fiducials.add(id.intValue());
-                }
-            } else {
-                cache.last_ambiguity = result.getBestTarget().poseAmbiguity;
-                fiducials.add(result.getBestTarget().fiducialId);
-            }
 
             // Directly add our vision estimates to the PoseEstimator; there are too many arguments for a Consumer
             if (pose != null) SubsystemManager.instance.pose_estimator.addVisionMeasurement(
@@ -170,45 +180,43 @@ public class Vision {
     }
 
     public Optional<CameraResults> readLimelightResults() {
-        Pose2d pose = null;
         ArrayList<Integer> ids = new ArrayList<Integer>();
 
         // Limelight MegaTag2 uses the robot yaw
         LimelightHelpers.SetRobotOrientation(
-            "", robot_pose.getRotation().getDegrees(), 0, 0, 0, 0, 0);
+            "", robot_pose.getRotation().plus(RobotUtils.isRedAlliance() ? Rotation2d.kPi : Rotation2d.kZero).getDegrees()
+                , 0, 0, 0, 0, 0);
         // Run MegaTag 2; always use blue origin
-        PoseEstimate mt2_estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue_MegaTag2("");
+        PoseEstimate mt2_estimate = LimelightHelpers.getBotPoseEstimate_wpiBlue("");
 
         Logger.recordOutput("Vision/Limelight Pose", mt2_estimate.pose);
 
-        if (mt2_estimate == null) return Optional.empty();
         if (mt2_estimate.tagCount == 0) return Optional.empty();
 
         // Check if AprilTag is within a distance, if not then we won't use it
-        double minDistance = Arrays.stream(mt2_estimate.rawFiducials)
+        double max_dist = Arrays.stream(mt2_estimate.rawFiducials)
                                 .mapToDouble(fiducial -> fiducial.distToCamera)
-                                .min()
+                                .max()
                                 .orElse(Double.NaN); 
-        if (minDistance > 0.5){ // Only use pose estimate when distance is less than 0.5 meters
-            pose = null;
-        }else{
-            pose = mt2_estimate.pose;
-            pose_cache_limelight.addPose(
-                pose, 
-                SubsystemManager.instance.getPoseEstimate(), 
-                mt2_estimate.timestampSeconds);
-    
-            SubsystemManager.instance.pose_estimator.addVisionMeasurement(
-                pose, 
-                mt2_estimate.timestampSeconds,
-                pose_cache_limelight.getWeightedStdevs());
-    
-            for (RawFiducial tag : mt2_estimate.rawFiducials) {
-                ids.add(tag.id);
-            }
+        // Only use pose estimate when distance is less than 0.5 meters
+        if (max_dist > 2.5) return Optional.empty();
+        
+        Pose2d pose = mt2_estimate.pose;
+        pose_cache_limelight.addPose(
+            pose, 
+            SubsystemManager.instance.getPoseEstimate(), 
+            mt2_estimate.timestampSeconds);
+
+        SubsystemManager.instance.pose_estimator.addVisionMeasurement(
+            pose, 
+            mt2_estimate.timestampSeconds,
+            pose_cache_limelight.getWeightedStdevs());
+
+        for (RawFiducial tag : mt2_estimate.rawFiducials) {
+            ids.add(tag.id);
         }
         
-        return pose == null ? Optional.empty() : Optional.of(new CameraResults(pose, ids));
+        return Optional.of(new CameraResults(pose, ids));
     }
 
     /**

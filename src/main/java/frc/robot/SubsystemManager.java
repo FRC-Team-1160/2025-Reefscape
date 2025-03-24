@@ -1,65 +1,38 @@
 package frc.robot;
 
-import java.io.IOException;
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.function.Supplier;
 
-import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.ConnectedMotorValue;
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.config.PIDConstants;
-import com.pathplanner.lib.config.RobotConfig;
-import com.pathplanner.lib.controllers.PPHolonomicDriveController;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.networktables.StructArrayPublisher;
-import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.Timer;
-import edu.wpi.first.wpilibj.Tracer;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
 import edu.wpi.first.wpilibj2.command.Subsystem;
-import frc.robot.Constants.AutoConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.Constants.RobotConstants.ComponentZeroPoses;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.RobotContainer.JoystickInputs;
 import frc.robot.RobotUtils.ArticulatedPose;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
-import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
-import frc.robot.Subsystems.DriveTrain.DriveTrainSimIO;
 import frc.robot.Subsystems.Elevator.Elevator;
 import frc.robot.Subsystems.Elevator.ElevatorRealIO;
-import frc.robot.Subsystems.Elevator.Elevator.TargetState;
-import frc.robot.Subsystems.Funnel.Funnel;
-import frc.robot.Subsystems.Funnel.FunnelRealIO;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.VisionTarget;
@@ -181,11 +154,11 @@ public class SubsystemManager {
                 }
 
             default:
-                double stick_x = MathUtil.applyDeadband(-stick_inputs.drive_x(), 0.1, 1)
+                double stick_x = MathUtil.applyDeadband(-stick_inputs.drive_x(), 0.2, 1)
                      * SwerveConstants.DRIVE_SPEED;
-                double stick_y = MathUtil.applyDeadband(-stick_inputs.drive_y(), 0.1, 1)
+                double stick_y = MathUtil.applyDeadband(-stick_inputs.drive_y(), 0.2, 1)
                      * SwerveConstants.DRIVE_SPEED;
-                double stick_a = MathUtil.applyDeadband(-stick_inputs.drive_a(), 0.1, 1)
+                double stick_a = MathUtil.applyDeadband(-stick_inputs.drive_a(), 0.2, 1)
                      * SwerveConstants.TURN_SPEED;
 
                 double stick_speed = RobotUtils.hypot(stick_x, stick_y);
@@ -302,7 +275,7 @@ public class SubsystemManager {
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     // Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
-                    SwervePIDController.instance.done = false;
+                    // SwervePIDController.instance.done = false;
                 },
                 () -> SwervePIDController.instance.done
             );
