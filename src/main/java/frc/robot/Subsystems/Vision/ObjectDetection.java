@@ -1,8 +1,10 @@
 package frc.robot.Subsystems.Vision;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.DoubleStream;
 
 import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
@@ -182,10 +184,10 @@ public class ObjectDetection {
         getClosestTarget().ifPresent(
             target -> Logger.recordOutput("ObjectDetection/Closest Target", target.getPose3d()));
 
-        Pose3d[] target_poses = new Pose3d[tracked_targets.size()];
-        for (int i = 0; i < tracked_targets.size(); i++) {
-            target_poses[i] = tracked_targets.get(i).getPose3d();
-        }
+
+        Pose3d[] target_poses = Arrays.stream(tracked_targets.toArray())
+            .map(t -> ((VisionTarget) t).getPose3d()).toArray(Pose3d[]::new);
+
         Logger.recordOutput("ObjectDetection/Tracked Targets", target_poses);
     }
 
@@ -199,38 +201,24 @@ public class ObjectDetection {
         // calculate poses for each target
         for (PhotonTrackedTarget target : pipeline_result.getTargets()) {
 
-            Point[] corner_points = new Point[4];
-
-            for (int i = 0; i < 4; i++) {
-                TargetCorner c = target.getMinAreaRectCorners().get(i);
-                corner_points[i] = new Point(c.x, c.y);
-            }
+            Point[] corner_points = Arrays.stream(target.getMinAreaRectCorners().toArray())
+                .map(c -> new Point(((TargetCorner) c).x, ((TargetCorner) c).y)).toArray(Point[]::new);
 
             temp_mat.fromArray(corner_points);
 
-            Calib3d.undistortImagePoints(
-                temp_mat,
-                dest_mat,
-                camera_instrinsics_mat,
-                dist_coeffs_mat);
+            Calib3d.undistortImagePoints(temp_mat, dest_mat, camera_instrinsics_mat, dist_coeffs_mat);
 
             // Corners are returned in an unordered list; get extrema
-            double minX = Double.MAX_VALUE;
-            double minY = Double.MAX_VALUE;
-            double maxX = Double.MIN_VALUE;
-            double maxY = Double.MIN_VALUE;
+            DoubleStream x_stream = Arrays.stream(dest_mat.toArray()).mapToDouble(corner -> corner.x);
+            DoubleStream y_stream = Arrays.stream(dest_mat.toArray()).mapToDouble(corner -> corner.x);
 
-            for (Point corner : dest_mat.toArray()) {
-                minX = Math.min(minX, corner.x);
-                maxX = Math.max(maxX, corner.x);
-                minY = Math.min(minY, corner.y);
-                maxY = Math.max(maxY, corner.y);
-            }
+            double max_x = x_stream.max().orElse(Double.NaN);
+            double min_x = x_stream.min().orElse(Double.NaN);
 
-            double width = maxX - minX;
-            double height = maxY - minY;
+            double width = max_x - min_x;
+            double height = y_stream.max().orElse(Double.NaN) - y_stream.min().orElse(Double.NaN);
 
-            Pose2d target_pose = getTargetPose(width, height, (int)(maxX + minX)/2, camera_transform);
+            Pose2d target_pose = getTargetPose(width, height, (int)(min_x + max_x)/2, camera_transform);
             // Keep track of whether current target has been matched with existing object
             boolean matched = false; 
 

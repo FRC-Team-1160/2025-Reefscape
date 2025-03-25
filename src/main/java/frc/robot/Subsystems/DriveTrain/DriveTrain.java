@@ -1,15 +1,19 @@
 package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name to be uppercase this year, oh well :P
 
 import java.io.IOException;
+import java.util.Arrays;
+import java.util.List;
 
 import org.json.simple.parser.ParseException;
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.pathplanner.lib.config.RobotConfig;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
@@ -21,9 +25,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Robot;
+import frc.robot.SubsystemManager;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
+import frc.robot.SubsystemManager.RobotState.DriveStates;
 
 /** The drive subsystem. */
 public abstract class DriveTrain extends SubsystemBase {
@@ -42,22 +48,17 @@ public abstract class DriveTrain extends SubsystemBase {
 
     /** Creates a new DriveTrain. */
     protected DriveTrain() {
-        kinematics = new SwerveDriveKinematics(
-                new Translation2d(SwerveConstants.OFFSET, SwerveConstants.OFFSET), // front left
-                new Translation2d(SwerveConstants.OFFSET, -SwerveConstants.OFFSET), // front right
-                new Translation2d(-SwerveConstants.OFFSET, SwerveConstants.OFFSET), // back left
-                new Translation2d(-SwerveConstants.OFFSET, -SwerveConstants.OFFSET) // back right
-        );
 
-        modules = new SwerveModule[4];
-        modules[0] = initializeModule(PortConstants.DRIVE_MOTOR_FRONT_LEFT, PortConstants.STEER_MOTOR_FRONT_LEFT,
-            PortConstants.FRONT_LEFT_CODER);
-        modules[1] = initializeModule(PortConstants.DRIVE_MOTOR_FRONT_RIGHT, PortConstants.STEER_MOTOR_FRONT_RIGHT,
-                PortConstants.FRONT_RIGHT_CODER);
-        modules[2] = initializeModule(PortConstants.DRIVE_MOTOR_BACK_LEFT, PortConstants.STEER_MOTOR_BACK_LEFT,
-                PortConstants.BACK_LEFT_CODER);
-        modules[3] = initializeModule(PortConstants.DRIVE_MOTOR_BACK_RIGHT, PortConstants.STEER_MOTOR_BACK_RIGHT,
-                PortConstants.BACK_RIGHT_CODER);
+        modules = new SwerveModule[] {
+            initializeModule(PortConstants.DRIVE_MOTOR_FRONT_LEFT, PortConstants.STEER_MOTOR_FRONT_LEFT,
+                PortConstants.FRONT_LEFT_CODER, new Translation2d(SwerveConstants.OFFSET, SwerveConstants.OFFSET)),
+            initializeModule(PortConstants.DRIVE_MOTOR_FRONT_RIGHT, PortConstants.STEER_MOTOR_FRONT_RIGHT,
+                PortConstants.FRONT_RIGHT_CODER, new Translation2d(SwerveConstants.OFFSET, -SwerveConstants.OFFSET)),
+            initializeModule(PortConstants.DRIVE_MOTOR_BACK_LEFT, PortConstants.STEER_MOTOR_BACK_LEFT,
+                PortConstants.BACK_LEFT_CODER, new Translation2d(-SwerveConstants.OFFSET, SwerveConstants.OFFSET)),
+            initializeModule(PortConstants.DRIVE_MOTOR_BACK_RIGHT, PortConstants.STEER_MOTOR_BACK_RIGHT,
+                PortConstants.BACK_RIGHT_CODER, new Translation2d(-SwerveConstants.OFFSET, -SwerveConstants.OFFSET))
+        };
 
         module_states = new SwerveModuleState[] {
                 new SwerveModuleState(),
@@ -65,6 +66,13 @@ public abstract class DriveTrain extends SubsystemBase {
                 new SwerveModuleState(),
                 new SwerveModuleState()
         };
+
+        kinematics = new SwerveDriveKinematics(
+            modules[0].offset, // front left
+            modules[1].offset, // front right
+            modules[2].offset, // back left
+            modules[3].offset // back right
+        );
 
         try {
             config = RobotConfig.fromGUISettings();
@@ -95,6 +103,16 @@ public abstract class DriveTrain extends SubsystemBase {
         setSwerveDrive(chassis_speeds, true);
     }
 
+    public boolean optimizeState(SwerveModuleState state, Rotation2d currentAngle) {
+        var delta = state.angle.minus(currentAngle);
+        if (Math.abs(delta.getDegrees()) > 90.0) {
+            state.speedMetersPerSecond *= -1;
+            state.angle = state.angle.rotateBy(Rotation2d.kPi);
+            return true;
+        }
+        return false;
+    }
+
     /**
      * Calculates and sends inputs to swerve modules given robot-relative speeds.
      * @param chassis_speeds The desired robot-relative chassis speeds.
@@ -110,7 +128,10 @@ public abstract class DriveTrain extends SubsystemBase {
 
         // change target wheel directions if the wheel has to rotate more than 90*
         for (int i = 0; i < module_states.length; i++) {
-            module_states[i].optimize(modules[i].getAngle());
+            if (optimizeState(module_states[i], modules[i].getAngle()) 
+                && SubsystemManager.instance.m_robot_state.drive_state == DriveStates.PATHPLANNER_CONTROL)
+                modules[i].acceleration_ff *= -1;
+            module_states[i].cosineScale(modules[i].getAngle());
         }
 
         // normalize wheel speeds of any are greater than max speed
@@ -154,11 +175,8 @@ public abstract class DriveTrain extends SubsystemBase {
      * @return The measured swerve module positions.
      */
     public SwerveModulePosition[] getModulePositions() {
-        var positions = new SwerveModulePosition[modules.length];
-        for (int i = 0; i < modules.length; i++) {
-            positions[i] = modules[i].getModulePosition();
-        }
-        return positions;
+        return Arrays.stream(modules).map(module -> ((SwerveModule) module).getModulePosition())
+            .toArray(SwerveModulePosition[]::new);
     }
 
     /**
@@ -167,11 +185,8 @@ public abstract class DriveTrain extends SubsystemBase {
      */
     @AutoLogOutput
     public SwerveModuleState[] getModuleStates() {
-        var states = new SwerveModuleState[modules.length];
-        for (int i = 0; i < modules.length; i++) {
-            states[i] = modules[i].getModuleState();
-        }
-        return states;
+        return Arrays.stream(modules).map(module -> ((SwerveModule) module).getModuleState())
+            .toArray(SwerveModuleState[]::new);
     }
 
     /**
@@ -190,9 +205,21 @@ public abstract class DriveTrain extends SubsystemBase {
         return kinematics.toChassisSpeeds(module_states);
     }
 
+    public double[] calculateAccelerationFeedforwards(Transform2d acceleration) {
+        double mag = acceleration.getTranslation().getNorm();
+        Rotation2d ang = acceleration.getTranslation().getAngle();
+        double rot = acceleration.getRotation().getRotations();
+        return Arrays.stream(modules).mapToDouble(
+                module -> mag * ang.minus(module.getModuleState().angle).getCos()
+                     + rot * ang.minus(module.offset.getAngle().plus(Rotation2d.kPi)).getCos()
+                ).toArray();
+    }
+
     public void setAccelerationFeedforwards(double[] feedforwards) {
         for (int i = 0; i < modules.length; i++) modules[i].acceleration_ff = feedforwards[i];
     }
+
+    public abstract List<TalonFX> getTalons();
 
     /**
      * One-time method to instantiate NT publishers for AdvantageScope and Elastic.
@@ -288,15 +315,14 @@ public abstract class DriveTrain extends SubsystemBase {
      * @param drive_port    The port number of the drive motor.
      * @param steer_port    The port number of the steer motor.
      * @param sensor_port   The port number of the module's CANcoder.
+     * @param offset        The offset of the module from the robot center.
      * @return The constructed SwerveModule object.
      */
-    protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port);
+    protected abstract SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port, Translation2d offset);
 
     @Override
     public void periodic() {
-        for (SwerveModule module : modules) {
-            module.update();
-        }
+        for (SwerveModule module : modules) module.update();
     }
     
 }

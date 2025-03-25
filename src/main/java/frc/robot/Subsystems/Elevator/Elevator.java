@@ -1,9 +1,11 @@
 package frc.robot.Subsystems.Elevator;
 
+import java.util.List;
 import java.util.function.Supplier;
 
 import org.littletonrobotics.junction.AutoLogOutput;
-import org.littletonrobotics.junction.Logger;
+
+import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -24,18 +26,19 @@ abstract public class Elevator extends SubsystemBase {
 
     public static final Elevator instance = Robot.isReal() ? new ElevatorRealIO() : new ElevatorSimIO();
 
+    @AutoLogOutput(key = "Elevator/Current State")
     public TargetState m_current_state;
 
     // An enum to represent different target states for the elevator, containing elevator and wrist setpoints
     public enum TargetState {
-        kStow(ElevatorSetpoints.kStow, true, AlignCommand.kNone), 
+        kStow(ElevatorSetpoints.kStow, false, AlignCommand.kNone), 
         kSource(ElevatorSetpoints.kSource, null, AlignCommand.kSource),
         kL1(ElevatorSetpoints.kL1, null, AlignCommand.kReefCoral), 
         kL2(ElevatorSetpoints.kL2, null, AlignCommand.kReefCoral), 
         kL3(ElevatorSetpoints.kL3, null, AlignCommand.kReefCoral), 
         kL4(ElevatorSetpoints.kL4, null, AlignCommand.kReefCoral),
-        kL2Algae(ElevatorSetpoints.kL2Algae, false, AlignCommand.kReefAlgae),
-        kL3Algae(ElevatorSetpoints.kL3Algae, false, AlignCommand.kReefAlgae);
+        kL2Algae(ElevatorSetpoints.kL2Algae, true, AlignCommand.kReefAlgae),
+        kL3Algae(ElevatorSetpoints.kL3Algae, true, AlignCommand.kReefAlgae);
 
 
         public final Double elevator_setpoint;
@@ -50,12 +53,9 @@ abstract public class Elevator extends SubsystemBase {
 
         public enum AlignCommand {
             kNone(() -> Commands.none()),
-            kProcessor(() -> Commands.none()),
-            kSource(() -> SubsystemManager.instance.commands.alignSource(false)),
+            kSource(() -> SubsystemManager.instance.commands.alignSource()),
             kReefCoral(() -> SubsystemManager.instance.commands.alignReef()),
-            kReefCoralL4(() -> SubsystemManager.instance.commands.alignReefClose()),
-            kReefAlgae(() -> SubsystemManager.instance.commands.alignReefAlgae()),
-            kGround(() -> SubsystemManager.instance.commands.trackAlgae());
+            kReefAlgae(() -> SubsystemManager.instance.commands.alignReefAlgae());
 
             public final Supplier<Command> command_supplier;
 
@@ -89,17 +89,17 @@ abstract public class Elevator extends SubsystemBase {
     }
 
     public Command setStateCmd(TargetState state) {
-        return new WaitUntilCommand(() -> m_current_state != state || atTarget())
+        return new WaitUntilCommand(() -> m_current_state != state || atSetpoint())
             .beforeStarting(() -> setState(state));
     }
 
     @AutoLogOutput
-    public boolean atTarget() {
-        return atTarget(m_current_state);
+    public boolean atSetpoint() {
+        return atSetpoint(m_current_state.elevator_setpoint);
     }
 
-    public boolean atTarget(TargetState state) {
-        return Math.abs(Math.max(0, getElevatorHeight()) - Math.max(0, state.elevator_setpoint)) < 0.03;
+    public boolean atSetpoint(double setpoint) {
+        return Math.abs(Math.max(0, getElevatorHeight()) - Math.max(0, setpoint)) < 0.03;
     }
 
     // VoltageOut() methods
@@ -115,11 +115,13 @@ abstract public class Elevator extends SubsystemBase {
     public void setWrist(Boolean up) {
         if (up != null) CommandScheduler.getInstance().schedule(setWristCmd(up));
     }
+
     public abstract Command setWristCmd(boolean up);
 
-    // Spark set methods
+    // Flywheel set methods
     public abstract void runAlgae(double speed);
     public abstract void runShooter(double speed);
+
     // Getters
     @AutoLogOutput
     public abstract double getElevatorHeight();
@@ -144,12 +146,11 @@ abstract public class Elevator extends SubsystemBase {
     public abstract boolean getCoralStored();
     @AutoLogOutput
     public abstract boolean getElevatorZeroed();
-    @AutoLogOutput
-    public abstract boolean atSetpoint();
+
+    public abstract List<TalonFX> getTalons();
 
     @Override
     public void periodic() {
-        Logger.recordOutput("Elevator/State", m_current_state.toString());
 
     }
 

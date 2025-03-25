@@ -1,12 +1,13 @@
 package frc.robot.Subsystems.DriveTrain;
 
-import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.studica.frc.AHRS;
 
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 
 public class DriveTrainRealIO extends DriveTrain {
 
@@ -16,8 +17,8 @@ public class DriveTrainRealIO extends DriveTrain {
         gyro = new AHRS(AHRS.NavXComType.kMXP_SPI);
     }
 
-    public SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port){
-        return new SwerveModuleRealIO(drive_port, steer_port, sensor_port);
+    public SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port, Translation2d offset) {
+        return new SwerveModuleRealIO(drive_port, steer_port, sensor_port, offset);
     }
 
     public Rotation2d getGyroAngle() {
@@ -44,11 +45,7 @@ public class DriveTrainRealIO extends DriveTrain {
     }
 
     public List<TalonFX> getTalons() {
-        List<TalonFX> talons = new ArrayList<TalonFX>();
-        for (SwerveModule module : modules) {
-            talons.addAll(((SwerveModuleRealIO) module).getTalons());
-        }
-        return talons;
+        return Arrays.stream(modules).map(module -> module.getTalons()).flatMap(List::stream).toList();
     }
 
     @Override

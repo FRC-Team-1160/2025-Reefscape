@@ -1,7 +1,12 @@
 package frc.robot.Subsystems.DriveTrain;
 
+import java.util.List;
+
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
@@ -14,13 +19,15 @@ public class SwerveModuleSimIO extends SwerveModule {
     public PIDController sim_angle_pid;
     public PIDController sim_velocity_pid;
 
-    protected SwerveModuleSimIO() {
+    protected SwerveModuleSimIO(Translation2d offset) {
         angle = new Rotation2d();
         speed = 0;
 
-        sim_angle_pid = new PIDController(1, 0, 0); //tune to actual swerve
+        this.offset = offset;
+
+        sim_angle_pid = new PIDController(0.1, 0, 0); //tune to actual swerve
         sim_angle_pid.enableContinuousInput(-0.5, 0.5);
-        sim_velocity_pid = new PIDController(0.5, 0, 0); //tune to actual swerve
+        sim_velocity_pid = new PIDController(0.4, 0, 0); //tune to actual swerve
     }
 
     public void setAngle(Rotation2d angle) {
@@ -52,5 +59,8 @@ public class SwerveModuleSimIO extends SwerveModule {
     public SwerveModulePosition getModulePosition() {
         return new SwerveModulePosition(getPosition(), getAngle());
     }
+
+    public List<TalonFX> getTalons() { return null; }
+
     
 }

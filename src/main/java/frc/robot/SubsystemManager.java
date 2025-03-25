@@ -23,16 +23,14 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
 import edu.wpi.first.wpilibj2.command.FunctionalCommand;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.VisionConstants.AlgaeParams;
 import frc.robot.RobotContainer.JoystickInputs;
 import frc.robot.RobotUtils.ArticulatedPose;
 import frc.robot.SubsystemManager.RobotState.DriveStates;
+import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
-import frc.robot.Subsystems.DriveTrain.DriveTrainRealIO;
 import frc.robot.Subsystems.Elevator.Elevator;
-import frc.robot.Subsystems.Elevator.ElevatorRealIO;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.VisionTarget;
@@ -45,7 +43,7 @@ public class SubsystemManager {
     public static final SubsystemManager instance = new SubsystemManager();
 
     public class RobotState {
-        enum DriveStates {
+        public enum DriveStates {
             DRIVER_CONTROL,
             PID_TRACKING,
             PID_ALIGNING,
@@ -132,6 +130,7 @@ public class SubsystemManager {
             case PATHPLANNER_CONTROL:
                 DriveTrain.instance.setSwerveDrive(m_pathplanner_speeds.chassis_speeds, false);
                 DriveTrain.instance.setAccelerationFeedforwards(m_pathplanner_speeds.acceleration_feedforwards);
+                Logger.recordOutput("DriveTrain/FFs", m_pathplanner_speeds.acceleration_feedforwards);
                 break;
 
             case PID_ALIGNING:
@@ -172,6 +171,9 @@ public class SubsystemManager {
         Logger.recordOutput("SubsystemManager/DriveState", m_robot_state.drive_state.toString());
     }
 
+    /**
+     * Clears and refills the orchestra to play MIDI sequences. Each track is assigned one motor.
+     */
     public void setupOrchestra() {
         setupOrchestra(Integer.MAX_VALUE);
     }
@@ -188,16 +190,9 @@ public class SubsystemManager {
 
         List<TalonFX> instruments = new ArrayList<TalonFX>();
 
-        try {
-            instruments.addAll(((DriveTrainRealIO) DriveTrain.instance).getTalons());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        try {
-            instruments.addAll(((ElevatorRealIO) Elevator.instance).getTalons());
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        instruments.addAll(DriveTrain.instance.getTalons());
+        instruments.addAll(Elevator.instance.getTalons());
+        instruments.addAll(Climber.instance.getTalons());
 
         // Increment track number by 1 when adding; reset when max tracks reached
         for (int i = 0; i < instruments.size(); i++) { 
@@ -216,8 +211,7 @@ public class SubsystemManager {
          */
         public Command selectCommand() {
             return new DeferredCommand(
-                () -> Elevator.instance.m_current_state.target_position.command_supplier.get(),
-                new HashSet<Subsystem>());
+                () -> Elevator.instance.m_current_state.target_position.command_supplier.get(), new HashSet<>());
         }
 
         public Command alignReef(Integer index, double distance) {
@@ -241,18 +235,12 @@ public class SubsystemManager {
                 () -> SwervePIDController.instance.getNearestReefPose(0), 0.15, null);
         }
 
-        public Command alignSource(boolean with_elevator) {
+        public Command alignSource() {
             return getAlignCommand( 
                 SwervePIDController.instance::getNearestSourcePose, 
                 0.05, 
                 Rotation2d.kPi
             ).withName("Align Source");
-        }
-
-        public Command alignProcessor(boolean with_elevator) {
-            return getAlignCommand(
-                SwervePIDController.instance::getProcessorPose, 
-                0.5);
         }
 
         public Command getAlignCommand(Supplier<Pose2d> target_pose, double target_distance) {
@@ -274,8 +262,6 @@ public class SubsystemManager {
                 () -> {},
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
-                    // Vision.instance.setCameraPipelines(Vision.CameraMode.kDefault);
-                    // SwervePIDController.instance.done = false;
                 },
                 () -> SwervePIDController.instance.done
             );

@@ -75,7 +75,10 @@ public final class Constants {
         /**Height of the camera stream in pixels. */
         public static final int SCREEN_HEIGHT = 600;
         /**Horizontal FOV of the cameras in radians. */
-        public final static double CAMERA_X_FOV = Units.degreesToRadians(70);
+        public static final double CAMERA_X_FOV = Units.degreesToRadians(70);
+
+        public static final double TAG_MIN_DIST = 0.5;
+        public static final double TAG_MAX_DIST = 2.5;
 
         /** Algae object detection parameters. */
         public class AlgaeParams {

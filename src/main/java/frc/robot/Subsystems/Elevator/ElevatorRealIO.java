@@ -1,9 +1,7 @@
 package frc.robot.Subsystems.Elevator;
 
-import java.util.Arrays;
 import java.util.List;
 
-import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
 
 import com.ctre.phoenix6.configs.MotionMagicConfigs;
@@ -114,19 +112,14 @@ public class ElevatorRealIO extends Elevator {
         return ele_motor.getPosition().getValueAsDouble();
     }
 
-    public boolean atSetpoint() {
-        return Math.abs(ele_motor.getClosedLoopError().getValueAsDouble()) < 0.02;
-    }
-
     public List<TalonFX> getTalons() {
-        return Arrays.asList(ele_motor);
+        return List.of(ele_motor);
     }
 
     public boolean getCoralStored() {
         return !coral_switch.get();
     }
 
-    @AutoLogOutput
     public boolean getElevatorZeroed() {
         return !elevator_switch.get();
     }
@@ -147,9 +140,9 @@ public class ElevatorRealIO extends Elevator {
             update_zero = true;
         }
 
-        if (ele_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled
+        if (ele_motor.getMotionMagicIsRunning().getValue() == MotionMagicIsRunningValue.Enabled && atSetpoint()
                 && Math.abs(ele_motor.getMotorVoltage().getValueAsDouble() - 0.55) < 0.1
-                && atSetpoint()) {
+                ) {
             count++;
             if (count >= 5) stopElevator();
         } else {

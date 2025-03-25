@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.DoubleStream;
 
 import org.littletonrobotics.junction.AutoLogOutput;
 import org.littletonrobotics.junction.Logger;
@@ -157,12 +158,11 @@ public class Vision {
                 frame_tags.add(result.getBestTarget().fiducialId);
             }
 
-            double max_dist = Arrays.stream(frame_tags.toArray())
-                .mapToDouble(id -> apriltags_map[(int)id].getTranslation().getNorm())
-                .max()
-                .orElse(Double.NaN); 
+            DoubleStream dists = Arrays.stream(frame_tags.toArray())
+                .mapToDouble(id -> apriltags_map[(int)id].getTranslation().getNorm());
 
-            if (max_dist < 0.4) break;
+            if (dists.min().orElse(Double.NaN) < VisionConstants.TAG_MIN_DIST 
+                || dists.max().orElse(Double.NaN) > VisionConstants.TAG_MAX_DIST) break;
 
             EstimatedRobotPose estimate = opt_pose.get();
             pose = estimate.estimatedPose.toPose2d();
@@ -194,12 +194,11 @@ public class Vision {
         if (mt2_estimate.tagCount == 0) return Optional.empty();
 
         // Check if AprilTag is within a distance, if not then we won't use it
-        double max_dist = Arrays.stream(mt2_estimate.rawFiducials)
-                                .mapToDouble(fiducial -> fiducial.distToCamera)
-                                .max()
-                                .orElse(Double.NaN); 
-        // Only use pose estimate when distance is less than 0.5 meters
-        if (max_dist > 2.5) return Optional.empty();
+        DoubleStream dists = Arrays.stream(mt2_estimate.rawFiducials)
+                                .mapToDouble(fiducial -> fiducial.distToCamera);
+
+        if (dists.min().orElse(Double.NaN) < VisionConstants.TAG_MIN_DIST 
+            || dists.max().orElse(Double.NaN) > VisionConstants.TAG_MAX_DIST) return Optional.empty();
         
         Pose2d pose = mt2_estimate.pose;
         pose_cache_limelight.addPose(

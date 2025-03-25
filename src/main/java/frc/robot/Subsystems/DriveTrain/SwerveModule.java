@@ -1,6 +1,11 @@
 package frc.robot.Subsystems.DriveTrain;
 
+import java.util.List;
+
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
@@ -9,6 +14,7 @@ public abstract class SwerveModule {
 
     public SwerveModuleState target_state;
     public double acceleration_ff;
+    public Translation2d offset;
 
     /** Class constructor. */
     protected SwerveModule() {
@@ -40,4 +46,6 @@ public abstract class SwerveModule {
     
     protected abstract void setSpeed(double speed);
     protected abstract void setAngle(Rotation2d angle);
+
+    public abstract List<TalonFX> getTalons();
 }

@@ -191,12 +191,7 @@ public class RobotContainer {
 
                 new JoystickButton(driver_controller, 5)
                     .whileTrue(SubsystemManager.instance.commands.alignReef());
-
-                // new JoystickButton(driver_controller, 7).onTrue(
-                //     new InstantCommand(() -> DriveTrain.instance.setGyroAngle(90)));
-
-                // new JoystickButton(driver_controller, 7).whileTrue(
-                //     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
+                    
                 break;
             case kSimple:
                 new JoystickButton(simp_stick, 8).onTrue(

@@ -1,10 +1,15 @@
 package frc.robot.Subsystems.Elevator;
 
+import java.util.List;
+
+import com.ctre.phoenix6.hardware.TalonFX;
+
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.RobotConstants;
+import frc.robot.Constants.ElevatorConstants.ElevatorMotionMagic;
 
 public class ElevatorSimIO extends Elevator {
 
@@ -30,7 +35,7 @@ public class ElevatorSimIO extends Elevator {
         if (ele_setpoint == setpoint) return;
         ele_setpoint = setpoint;
         if (Math.abs(ele_pos - setpoint) > 0.1) {
-            ele_speed = 4 * (setpoint > ele_pos ? 1 : -1);
+            ele_speed = ElevatorMotionMagic.VELOCITY * (setpoint > ele_pos ? 1 : -1);
         } else {
             ele_speed = 0;
         }
@@ -50,9 +55,7 @@ public class ElevatorSimIO extends Elevator {
 
     public boolean getElevatorZeroed() { return ele_pos == 0; }
 
-    public boolean atSetpoint() {
-        return Math.abs(ele_setpoint - ele_pos) < 0.02;
-    }
+    public List<TalonFX> getTalons() { return null; }
 
     @Override
     public void periodic() {
@@ -68,6 +71,6 @@ public class ElevatorSimIO extends Elevator {
             if (ele_speed < 0) ele_speed = 0;
         }
 
-        if (ele_pid && atTarget()) ele_speed = 0;
+        if (ele_pid && atSetpoint()) ele_speed = 0;
     }
 }

@@ -1,5 +1,7 @@
 package frc.robot.Subsystems.Climber;
 
+import java.util.List;
+
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 
@@ -16,10 +18,13 @@ public class ClimberRealIO extends Climber {
         return speed;
     }
 
+    public List<TalonFX> getTalons() {
+        return List.of(climber_motor);
+    }
+
     @Override
     public void periodic() {
         super.periodic();
-
     }
     
 }

@@ -1,7 +1,11 @@
 package frc.robot.Subsystems.DriveTrain;
 
-import edu.wpi.first.math.geometry.Rotation2d;
+import java.util.List;
 
+import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import frc.robot.Constants.RobotConstants;
 
 public class DriveTrainSimIO extends DriveTrain {
@@ -30,9 +34,11 @@ public class DriveTrainSimIO extends DriveTrain {
         angle = new Rotation2d();
     }
 
-    public SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port){
-        return new SwerveModuleSimIO();
+    public SwerveModule initializeModule(int drive_port, int steer_port, int sensor_port, Translation2d offset){
+        return new SwerveModuleSimIO(offset);
     }
+
+    public List<TalonFX> getTalons() { return null; }
 
     @Override
     public void periodic() {

@@ -1,6 +1,5 @@
 package frc.robot.Subsystems.DriveTrain;
 
-import java.util.Arrays;
 import java.util.List;
 
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -14,6 +13,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
@@ -28,10 +28,12 @@ public class SwerveModuleRealIO extends SwerveModule {
 
     private CANcoder steer_sensor;
 
-    protected SwerveModuleRealIO(int drive_port, int steer_port, int sensor_port) {
+    protected SwerveModuleRealIO(int drive_port, int steer_port, int sensor_port, Translation2d offset) {
         drive_motor = new TalonFX(drive_port, "CANivore");
         steer_motor = new TalonFX(steer_port, "CANivore");
         steer_sensor = new CANcoder(sensor_port, "CANivore");
+
+        this.offset = offset;
         
         TalonFXConfiguration drive_configs = new TalonFXConfiguration();
 
@@ -101,10 +103,9 @@ public class SwerveModuleRealIO extends SwerveModule {
     }
 
     protected void setSpeed(double speed) {
-        if (acceleration_ff == 0) drive_motor.setControl(new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER));
-        else drive_motor.setControl(
+        drive_motor.setControl(
             new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER)
-                .withAcceleration(Math.signum(speed) * acceleration_ff));
+                .withAcceleration(acceleration_ff));
         
         acceleration_ff = 0;
     }
@@ -114,7 +115,7 @@ public class SwerveModuleRealIO extends SwerveModule {
     }
 
     public List<TalonFX> getTalons() {
-        return Arrays.asList(drive_motor, steer_motor);
+        return List.of(drive_motor, steer_motor);
     }
 
 }
