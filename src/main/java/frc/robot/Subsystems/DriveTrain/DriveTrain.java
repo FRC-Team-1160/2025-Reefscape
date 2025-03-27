@@ -150,24 +150,28 @@ public abstract class DriveTrain extends SubsystemBase {
         }
     }
 
-    // Thanks to Team 4738 for modified discretization code
     /**
      * Accounts for drift while simultaneously translating and rotating through discretization.
      * @param speeds The desired chassis speeds.
+     * @param multiplier The number of time loops to discretize over.
      * @return The adjusted chassis speeds.
      */
-    public ChassisSpeeds discretize_chassis_speeds(ChassisSpeeds speeds) {
+    public ChassisSpeeds discretize_chassis_speeds(ChassisSpeeds speeds, double multiplier) {
         double dt = RobotConstants.LOOP_TIME_SECONDS;
         // Makes a Pose2d for the target delta over one time loop
         var desired_delta_pose = new Pose2d(
                 speeds.vxMetersPerSecond * dt,
                 speeds.vyMetersPerSecond * dt,
-                new Rotation2d(speeds.omegaRadiansPerSecond * dt * 1) // tunable
+                new Rotation2d(speeds.omegaRadiansPerSecond * dt * multiplier) // tunable
         );
         // Makes a Twist2d object that maps new pose to delta pose
         var twist = new Pose2d().log(desired_delta_pose);
 
         return new ChassisSpeeds((twist.dx / dt), (twist.dy / dt), (speeds.omegaRadiansPerSecond));
+    }
+
+    public ChassisSpeeds discretize_chassis_speeds(ChassisSpeeds speeds) {
+        return discretize_chassis_speeds(speeds, 1);
     }
 
     /**
@@ -209,10 +213,11 @@ public abstract class DriveTrain extends SubsystemBase {
         double mag = acceleration.getTranslation().getNorm();
         Rotation2d ang = acceleration.getTranslation().getAngle();
         double rot = acceleration.getRotation().getRotations();
+
         return Arrays.stream(modules).mapToDouble(
-                module -> mag * ang.minus(module.getModuleState().angle).getCos()
+                module -> mag * ang.minus(module.getAngle()).getCos()
                      + rot * ang.minus(module.offset.getAngle().plus(Rotation2d.kPi)).getCos()
-                ).toArray();
+            ).toArray();
     }
 
     public void setAccelerationFeedforwards(double[] feedforwards) {
@@ -222,7 +227,7 @@ public abstract class DriveTrain extends SubsystemBase {
     public abstract List<TalonFX> getTalons();
 
     /**
-     * One-time method to instantiate NT publishers for AdvantageScope and Elastic.
+     * One-time method to instantiate NT publishers for Elastic.
      */
     private void setupDashboard() {
 

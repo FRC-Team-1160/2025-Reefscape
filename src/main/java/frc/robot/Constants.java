@@ -191,10 +191,10 @@ public final class Constants {
         public static final double GEAR_RATIO = 5.01;
         public static final double OFFSET = 0.31;
 
-        public static final double MAX_SPEED = 7;
+        public static final double MAX_SPEED = 5;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 1.5 : 3.0;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.25 : 3.0;
         public static final double TURN_SPEED = 3;
 
         /** Constraints and settings for automatic alignment. */

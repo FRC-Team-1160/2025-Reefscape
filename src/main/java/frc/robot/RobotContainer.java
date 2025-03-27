@@ -72,8 +72,8 @@ public class RobotContainer {
             kXBox,
             kSimple
         }
-        public final Drive driver = Drive.kSimple;
-        public final Codrive codriver = Codrive.kSimple;
+        public final Drive driver = Robot.isSimulation() ? Drive.kSimple : Drive.kXBox;
+        public final Codrive codriver = Robot.isSimulation() ? Codrive.kSimple : Codrive.kXBox;
     }
 
     public DriveMode drive_mode = new DriveMode();
@@ -99,9 +99,9 @@ public class RobotContainer {
             commands_map.put("Reef" + String.valueOf(i * 2) + "R2",
                 SubsystemManager.instance.commands.alignReef(face + 2));
             commands_map.put("Reef" + String.valueOf(i * 2) + "L4",
-                SubsystemManager.instance.commands.alignReefClose(face));
+                SubsystemManager.instance.commands.alignReef(face));
             commands_map.put("Reef" + String.valueOf(i * 2) + "R4",
-                SubsystemManager.instance.commands.alignReefClose(face + 2));
+                SubsystemManager.instance.commands.alignReef(face + 2));
         }
 
         NamedCommands.registerCommands(commands_map);
@@ -155,9 +155,9 @@ public class RobotContainer {
                 break;
             case kXBox:
                 SubsystemManager.instance.update(new JoystickInputs(
-                    driver_controller.getRawAxis(1) * (driver_controller.getRawButton(6) ? 0.5 : 1), 
-                    driver_controller.getRawAxis(0) * (driver_controller.getRawButton(6) ? 0.5 : 1), 
-                    driver_controller.getRawAxis(4) * (driver_controller.getRawButton(6) ? 0.7 : 1)));
+                    driver_controller.getRawAxis(1) * (driver_controller.getRawButton(6) ? 0.4 : 1), 
+                    driver_controller.getRawAxis(0) * (driver_controller.getRawButton(6) ? 0.4 : 1), 
+                    driver_controller.getRawAxis(4) * (driver_controller.getRawButton(6) ? 0.5 : 1)));
                 break;
             case kSimple:
                 SubsystemManager.instance.update(new JoystickInputs(
@@ -190,9 +190,22 @@ public class RobotContainer {
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
 
                 new JoystickButton(driver_controller, 5)
-                    .whileTrue(SubsystemManager.instance.commands.alignReef());
-                    
+                    .whileTrue(SubsystemManager.instance.commands.alignSource());
+
+                new Trigger(() -> driver_controller.getRawAxis(2) > 0.8).whileTrue(
+                    SubsystemManager.instance.commands.alignReef().beforeStarting(
+                        () -> SwervePIDController.instance.align_right = false
+                    )
+                );
+
+                new Trigger(() -> driver_controller.getRawAxis(3) > 0.8).whileTrue(
+                    SubsystemManager.instance.commands.alignReef().beforeStarting(
+                        () -> SwervePIDController.instance.align_right = true
+                    )
+                );
+
                 break;
+
             case kSimple:
                 new JoystickButton(simp_stick, 8).onTrue(
                     new InstantCommand(DriveTrain.instance::resetGyroAngle));
@@ -201,7 +214,7 @@ public class RobotContainer {
                     .whileTrue(SubsystemManager.instance.commands.alignReef());
 
                 new JoystickButton(simp_stick, 6).whileTrue(
-                    Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<Subsystem>()));
+                    Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<>()));
 
                 break;
         }
@@ -258,19 +271,22 @@ public class RobotContainer {
                     Commands.either(
                         RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.2),
                         RobotUtils.decorateCommandFeedback(
-                            Elevator.instance.intakeCoralCmd(),
+                            Elevator.instance.intakeCoralCmd()
+                                .beforeStarting(Elevator.instance.setStateCmd(TargetState.kSource)),
                             this::rumble),
                         Elevator.instance::getCoralStored),
                     () -> codriver_controller.getRawButton(8)));
 
                 // Climber
-                new Trigger(() -> codriver_controller.getPOV() == 0).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(4), 
-                    () -> Climber.instance.runClimber(0)));
-
-                new Trigger(() -> codriver_controller.getPOV() == 180).whileTrue(new StartEndCommand(
-                    () -> Climber.instance.runClimber(-2),
-                    () -> Climber.instance.runClimber(0)));
+                new Trigger(() -> codriver_controller.getPOV() % 180 == 0).whileTrue(
+                    new DeferredCommand(
+                        () -> RobotUtils.onOffCommand(
+                            Climber.instance::runClimber, 
+                            codriver_controller.getRawButton(8) ? 4 : 10
+                             * codriver_controller.getPOV() == 0 ? 1 : -1), 
+                        new HashSet<>()
+                    )
+                );
 
                 new JoystickButton(codriver_controller, 7).whileTrue(Commands.either(
                     new StartEndCommand(

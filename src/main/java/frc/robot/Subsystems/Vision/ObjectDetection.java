@@ -269,16 +269,13 @@ public class ObjectDetection {
             else t.timeout = 0;
         }
 
-        if (camera_left.getPipelineIndex() == 1) {
-            for (PhotonPipelineResult result : camera_left.getAllUnreadResults()) {
+        if (camera_left.getPipelineIndex() == 1)
+            for (PhotonPipelineResult result : camera_left.getAllUnreadResults())
                 updateTrackedObjects(result, camera_transform_left);
-            }
-        }
-        if (camera_right.getPipelineIndex() == 1){
-            for(PhotonPipelineResult result : camera_right.getAllUnreadResults()){
+        
+        if (camera_right.getPipelineIndex() == 1)
+            for (PhotonPipelineResult result : camera_right.getAllUnreadResults())
                 updateTrackedObjects(result, camera_transform_right);
-            }
-        }
 
         // If any target was expected in fov and not seen, or has not been seen in too long, stop tracking it
         tracked_targets.removeIf(target -> 

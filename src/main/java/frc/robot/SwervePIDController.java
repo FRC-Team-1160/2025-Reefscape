@@ -137,7 +137,8 @@ public class SwervePIDController {
         // Clamp angular velocity to maximum angular speed
         double target_ang_vel = RobotUtils.clampAbs(target_speeds.omegaRadiansPerSecond, Tracking.MAX_ANG_SPEED);
         // Calculate new angular velocity with acceleration constraint
-        limit = (Math.abs(target_ang_vel) < Math.abs(current_speeds.omegaRadiansPerSecond)) ? Tracking.MAX_ANG_DECEL : Tracking.MAX_ANG_ACCEL;
+        limit = (Math.abs(target_ang_vel) < Math.abs(current_speeds.omegaRadiansPerSecond))
+             ? Tracking.MAX_ANG_DECEL : Tracking.MAX_ANG_ACCEL;
         double out_ang_vel = current_speeds.omegaRadiansPerSecond + 
             RobotUtils.clampAbs(target_ang_vel - current_speeds.omegaRadiansPerSecond,
                 Tracking.MAX_ANG_DECEL * RobotConstants.LOOP_TIME_SECONDS);

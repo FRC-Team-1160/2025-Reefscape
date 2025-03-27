@@ -328,8 +328,8 @@ public class FieldHandler {
                 AutoConstants.MAX_ACCEL, 
                 AutoConstants.MAX_ANG_SPEED, 
                 AutoConstants.MAX_ANG_ACCEL), 
-            new IdealStartingState(1.5, start.rotation), 
-            new GoalEndState(0, end.rotation));
+            new IdealStartingState(0, start.rotation), 
+            new GoalEndState(1.5, end.rotation));
     }
 
     public void updatePreview() {

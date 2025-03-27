@@ -134,8 +134,11 @@ public class SubsystemManager {
                 break;
 
             case PID_ALIGNING:
-                DriveTrain.instance.setSwerveDrive(SwervePIDController.instance.calculate(true));
+                DriveTrain.instance.setSwerveDrive(
+                    DriveTrain.instance.discretize_chassis_speeds(
+                        SwervePIDController.instance.calculate(true), 8));
                 break;
+
             case PID_TRACKING:
                 if (tracked_target != null && tracked_target.timeout < AlgaeParams.DETECTION_LIMIT) {
                     SwervePIDController.instance.target_pose = tracked_target.getPose();
@@ -147,6 +150,7 @@ public class SubsystemManager {
                         SwervePIDController.instance.calculate(), 
                         false);
                     break;
+
                 } else {
                     tracked_target = null;
                     // No break; control switches back to the driver if no valid target is present
