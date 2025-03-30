@@ -128,9 +128,7 @@ public abstract class DriveTrain extends SubsystemBase {
 
         // change target wheel directions if the wheel has to rotate more than 90*
         for (int i = 0; i < module_states.length; i++) {
-            if (optimizeState(module_states[i], modules[i].getAngle()) 
-                && SubsystemManager.instance.m_robot_state.drive_state == DriveStates.PATHPLANNER_CONTROL)
-                modules[i].acceleration_ff *= -1;
+            module_states[i].optimize(modules[i].getAngle());
             module_states[i].cosineScale(modules[i].getAngle());
         }
 
@@ -221,6 +219,7 @@ public abstract class DriveTrain extends SubsystemBase {
     }
 
     public void setAccelerationFeedforwards(double[] feedforwards) {
+        Logger.recordOutput("DriveTrain/Feedforwards", feedforwards);
         for (int i = 0; i < modules.length; i++) modules[i].acceleration_ff = feedforwards[i];
     }
 

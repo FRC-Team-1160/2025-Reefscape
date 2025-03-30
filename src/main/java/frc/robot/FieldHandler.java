@@ -221,8 +221,8 @@ public class FieldHandler {
                     )
                 );
             FieldPositions.reef[3*i + 1] = center;
-            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.16, Rotation2d.kZero));
-            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.18, Rotation2d.kZero));
+            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.15, Rotation2d.kZero)); //0.18
+            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.18, Rotation2d.kZero)); //-0.15
             angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
@@ -232,13 +232,13 @@ public class FieldHandler {
                 CoralStation.CENTER_X,
                 CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
-            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kZero)),
+            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0.5, Rotation2d.kZero)),
             // left source
             new Pose2d(
                 CoralStation.CENTER_X,
                 FieldConstants.WIDTH - CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(-CoralStation.ANGLE_RADIANS)
-            ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kPi))
+            ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0.5, Rotation2d.kPi))
         };
 
         FieldPositions.processor = new Pose2d(
@@ -255,20 +255,28 @@ public class FieldHandler {
 
     public void rebuildAutoMenus() {
         auto_menus.set(0, new SendableChooser<AutoPos>());
+
         for (AutoPos pos : auto_positions_start) auto_menus.get(0).addOption(pos.name, pos);
+
         auto_menus.get(0).setDefaultOption(AutoPos.kBargeMiddle.name, AutoPos.kBargeMiddle);
         auto_menus.get(0).onChange(pos -> autoMenuUpdateCallback(1));
+
         SmartDashboard.putData("Auto Start", auto_menus.get(0));
     }
 
     public void updateGenericChooser(int index) {
         auto_menus.set(index, new SendableChooser<AutoPos>());
+
         if (auto_menus.get(index - 1).getSelected() == null) return;
+
         AutoPos[] opts = auto_positions_map.get(auto_menus.get(index - 1).getSelected());
         auto_menus.get(index).setDefaultOption(AutoPos.kEnd.name, AutoPos.kEnd);
+
         for (AutoPos pos : opts) auto_menus.get(index).addOption(pos.name, pos);
+
         if (index + 1 < auto_menus.size()) auto_menus.get(index).onChange(pos -> autoMenuUpdateCallback(index + 1));
         else auto_menus.get(index).onChange(pos -> updatePreview());
+
         String key = "Auto " + (index % 2 == 0 ? "Source " : "Reef ") + String.valueOf((index + 1) / 2);
         if (!SmartDashboard.containsKey(key)) SmartDashboard.putData(key, auto_menus.get(index));
     }
@@ -338,28 +346,36 @@ public class FieldHandler {
 
         List<Pose2d> preview_poses = new ArrayList<Pose2d>(); 
         List<PathPlannerTrajectoryState> pp_states = new ArrayList<PathPlannerTrajectoryState>();
+
         for (int i = 0; i + 1 < auto_menus.size(); i++) {
+
             if (auto_menus.get(i + 1).getSelected() == AutoPos.kEnd) break;
+
             var temp = getPath(auto_menus.get(i).getSelected(), auto_menus.get(i + 1).getSelected())
                 .generateTrajectory(
                     new ChassisSpeeds(), auto_menus.get(0).getSelected().rotation, 
                     DriveTrain.instance.config
                 ).getStates();
+
             pp_states.addAll(temp);
+
             for (int d = 1; d <= AutoConstants.PREVIEW_DETAIL; d++) {
                 preview_poses.add(temp.get(temp.size() * d / (AutoConstants.PREVIEW_DETAIL + 1)).pose);
             }
+
             preview_poses.add(auto_menus.get(i + 1).getSelected().getActualPose());
         }
 
         List<Trajectory.State> traj_states = new ArrayList<Trajectory.State>();
 
-        for (PathPlannerTrajectoryState pp_state : pp_states) traj_states.add(new Trajectory.State(
+        for (PathPlannerTrajectoryState pp_state : pp_states) {
+            traj_states.add(new Trajectory.State(
                 pp_state.timeSeconds, 
                 pp_state.linearVelocity, 
                 0, 
                 pp_state.pose, 
                 0));
+        }
 
         auto_preview.close();
         auto_preview = new Field2d();
@@ -369,11 +385,14 @@ public class FieldHandler {
         if (traj_states.size() > 0) auto_preview.getObject("auto_traj").setTrajectory(new Trajectory(traj_states));
         else auto_preview.getObject("auto_traj").setTrajectory(new Trajectory());
 
-        for (int i = 0; i < auto_menus.size() * (AutoConstants.PREVIEW_DETAIL + 1); i += 8)
+        for (int i = 0; i < auto_menus.size() * (AutoConstants.PREVIEW_DETAIL + 1); i += 8) {
             auto_preview.getObject("poses_" + String.valueOf(i / 8))
                 .setPoses(i < preview_poses.size()
                      ? preview_poses.subList(i, Math.min(i + 8, preview_poses.size()))
-                     : new ArrayList<Pose2d>());
+                     : new ArrayList<Pose2d>()
+                );
+        }
+
         Logger.recordOutput("FieldHandler/pose", auto_preview.getRobotPose());
 
         SmartDashboard.putData("Auto Preview", auto_preview);
@@ -383,7 +402,7 @@ public class FieldHandler {
     public Command buildAuto() {
         // Initialize command group
         SequentialCommandGroup sequence = new SequentialCommandGroup();
-        // Pre-allocate space
+        // Pre-allocate AutoPos's
         AutoPos start;
         AutoPos end = auto_menus.get(0).getSelected();
         // Reset the pose_estimator pose to the auto starting position

@@ -57,6 +57,8 @@ public class ElevatorSimIO extends Elevator {
 
     public List<TalonFX> getTalons() { return null; }
 
+    public void setLEDs(LEDPattern pattern) {}
+
     @Override
     public void periodic() {
         super.periodic();

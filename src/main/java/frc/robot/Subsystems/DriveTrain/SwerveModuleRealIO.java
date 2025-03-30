@@ -20,6 +20,8 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.SwerveConstants.DriveMotorConfigs;
 import frc.robot.Constants.SwerveConstants.SteerMotorConfigs;
+import frc.robot.SubsystemManager;
+import frc.robot.SubsystemManager.RobotState.DriveStates;
 
 
 public class SwerveModuleRealIO extends SwerveModule {
@@ -47,6 +49,10 @@ public class SwerveModuleRealIO extends SwerveModule {
             .withKG(DriveMotorConfigs.kG);
 
         drive_configs.Feedback.SensorToMechanismRatio = 5.01; // 5.01;
+
+        drive_configs.Voltage.PeakForwardVoltage = 10;
+        drive_configs.Voltage.PeakReverseVoltage = -10;
+        drive_configs.CurrentLimits.StatorCurrentLimit = 80;
 
         drive_motor.getConfigurator().apply(drive_configs);
 
@@ -105,7 +111,9 @@ public class SwerveModuleRealIO extends SwerveModule {
     protected void setSpeed(double speed) {
         drive_motor.setControl(
             new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER)
-                .withAcceleration(acceleration_ff));
+                .withAcceleration(
+                    SubsystemManager.instance.m_robot_state.drive_state == DriveStates.PATHPLANNER_CONTROL ? 
+                        Math.signum(speed) * acceleration_ff : acceleration_ff));
         
         acceleration_ff = 0;
     }

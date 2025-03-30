@@ -78,7 +78,7 @@ public final class Constants {
         public static final double CAMERA_X_FOV = Units.degreesToRadians(70);
 
         public static final double TAG_MIN_DIST = 0.5;
-        public static final double TAG_MAX_DIST = 2.5;
+        public static final double TAG_MAX_DIST = 2.2;
 
         /** Algae object detection parameters. */
         public class AlgaeParams {
@@ -195,16 +195,16 @@ public final class Constants {
         public static final double MAX_STEER_SPEED = 2;
 
         public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.25 : 3.0;
-        public static final double TURN_SPEED = 3;
+        public static final double TURN_SPEED = 5;
 
         /** Constraints and settings for automatic alignment. */
         public static class Tracking {
-            public static final double MAX_SPEED = 3;
-            public static final double MAX_ACCEL = 5.0;
-            public static final double MAX_DECEL = 8.0;
-            public static final double MAX_ANG_SPEED = 2.5;
+            public static final double MAX_SPEED = 2.5;
+            public static final double MAX_ACCEL = 3;
+            public static final double MAX_DECEL = 5.0;
+            public static final double MAX_ANG_SPEED = 4.0;
             public static final double MAX_ANG_ACCEL = 6.0;
-            public static final double MAX_ANG_DECEL = 15.0;
+            public static final double MAX_ANG_DECEL = 9.0;
 
             public static final double DEFAULT_DISTANCE = 0.5;
 
@@ -235,8 +235,8 @@ public final class Constants {
             public static final double kI = 0;
             public static final double kD = 0.07;
             public static final double kS = 0.14;
-            public static final double kV = 0.6; 
-            public static final double kA = 0.7;
+            public static final double kV = 0.61;
+            public static final double kA = 0.6;
             public static final double kG = 0;
         }
 
@@ -273,8 +273,8 @@ public final class Constants {
 
         /** Configured Motion Magic coefficients for the elevator motor. */
         public static class ElevatorMotionMagic {
-            public static final double VELOCITY = 3.25;
-            public static final double ACCELERATION = 6;
+            public static final double VELOCITY = 4;
+            public static final double ACCELERATION = 7;
             public static final double JERK = 0;
             public static final double EXPO_kV = 0;
             public static final double EXPO_kA = 0;
@@ -315,11 +315,11 @@ public final class Constants {
 
     /** PID correction constants for PathPlanner. */
     public static class AutoConstants {
-        public static final double translation_kP = 0.2;
+        public static final double translation_kP = 0.5;
         public static final double translation_kI = 0d;
         public static final double translation_kD = 0d;
         
-        public static final double rotation_kP = 0.1;
+        public static final double rotation_kP = 0.5;
         public static final double rotation_kI = 0d;
         public static final double rotation_kD = 0d;
 

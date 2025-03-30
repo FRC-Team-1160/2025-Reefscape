@@ -19,8 +19,11 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj2.command.Command;
-
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
+import edu.wpi.first.wpilibj2.command.WaitUntilCommand;
 import frc.robot.RobotUtils;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorConfigs;
@@ -32,6 +35,8 @@ public class ElevatorRealIO extends Elevator {
     protected TalonFX ele_motor;
 
     private SparkMax algae_motor, wrist_motor, shooter_motor;
+
+    private Spark blinkin;
 
     private DigitalInput elevator_switch, coral_switch;
 
@@ -73,6 +78,8 @@ public class ElevatorRealIO extends Elevator {
 
         ele_motor.getConfigurator().apply(ele_configs);
 
+        blinkin = new Spark(2);
+
         update_zero = true;
         count = 0;
     }
@@ -89,7 +96,11 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public Command setWristCmd(boolean up) {
-        return RobotUtils.onOffCommand(this::runWrist, up ? 2 : -1.5, up ? 0 : 0).withTimeout(0.5);
+        return new InstantCommand(() -> runWrist(up ? 4 : -3))
+            .andThen(new WaitCommand(0.5))
+            .andThen(new WaitUntilCommand(() -> wrist_motor.getOutputCurrent() > 10))
+            .withTimeout(3)
+            .finallyDo(() -> runWrist(0));
     }
 
     protected void runEleMotionMagic(double setpoint){
@@ -122,6 +133,12 @@ public class ElevatorRealIO extends Elevator {
 
     public boolean getElevatorZeroed() {
         return !elevator_switch.get();
+    }
+
+    public void setLEDs(LEDPattern pattern) {
+        System.out.println("cibes");
+        Logger.recordOutput("Elevator/LED val", pattern.value);
+        blinkin.set(pattern.value);
     }
 
     @Override

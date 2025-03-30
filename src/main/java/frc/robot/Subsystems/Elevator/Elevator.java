@@ -29,16 +29,28 @@ abstract public class Elevator extends SubsystemBase {
     @AutoLogOutput(key = "Elevator/Current State")
     public TargetState m_current_state;
 
+    public enum LEDPattern {
+        kBlue(0.85),
+        kBlueFlash(-0.09),
+        kWhite(0.93),
+        kWhiteFlash(-0.05);
+
+        public final double value;
+        private LEDPattern(double value) {
+            this.value = value;
+        }
+    }
+
     // An enum to represent different target states for the elevator, containing elevator and wrist setpoints
     public enum TargetState {
-        kStow(ElevatorSetpoints.kStow, false, AlignCommand.kNone), 
+        kStow(ElevatorSetpoints.kStow, null, AlignCommand.kNone), 
         kSource(ElevatorSetpoints.kSource, null, AlignCommand.kSource),
         kL1(ElevatorSetpoints.kL1, null, AlignCommand.kReefCoral), 
         kL2(ElevatorSetpoints.kL2, null, AlignCommand.kReefCoral), 
         kL3(ElevatorSetpoints.kL3, null, AlignCommand.kReefCoral), 
         kL4(ElevatorSetpoints.kL4, null, AlignCommand.kReefCoral),
-        kL2Algae(ElevatorSetpoints.kL2Algae, true, AlignCommand.kReefAlgae),
-        kL3Algae(ElevatorSetpoints.kL3Algae, true, AlignCommand.kReefAlgae);
+        kL2Algae(ElevatorSetpoints.kL2Algae, null, AlignCommand.kReefAlgae),
+        kL3Algae(ElevatorSetpoints.kL3Algae, null, AlignCommand.kReefAlgae);
 
 
         public final Double elevator_setpoint;
@@ -146,6 +158,8 @@ abstract public class Elevator extends SubsystemBase {
     public abstract boolean getCoralStored();
     @AutoLogOutput
     public abstract boolean getElevatorZeroed();
+
+    public abstract void setLEDs(LEDPattern pattern);
 
     public abstract List<TalonFX> getTalons();
 

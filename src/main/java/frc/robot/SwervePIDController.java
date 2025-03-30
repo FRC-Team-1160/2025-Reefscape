@@ -20,6 +20,7 @@ import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants.Tracking;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Angle;
 import frc.robot.Constants.SwerveConstants.Tracking.PIDConstants.Distance;
+import frc.robot.Subsystems.DriveTrain.DriveTrain;
 
 /** Controls automatic alignment for driver assistance. */
 public class SwervePIDController {
@@ -133,15 +134,34 @@ public class SwervePIDController {
         accel_vector = accel_vector.times(
             Math.min(1, limit * RobotConstants.LOOP_TIME_SECONDS / accel_vector.getNorm()));
         Translation2d out_speeds_vector = current_speeds_vector.plus(accel_vector);
+        Logger.recordOutput("SwervePIDController/Requested acceleration", accel_vector.getNorm());
+        Logger.recordOutput("SwervePIDController/limit", limit);
 
         // Clamp angular velocity to maximum angular speed
         double target_ang_vel = RobotUtils.clampAbs(target_speeds.omegaRadiansPerSecond, Tracking.MAX_ANG_SPEED);
         // Calculate new angular velocity with acceleration constraint
         limit = (Math.abs(target_ang_vel) < Math.abs(current_speeds.omegaRadiansPerSecond))
              ? Tracking.MAX_ANG_DECEL : Tracking.MAX_ANG_ACCEL;
-        double out_ang_vel = current_speeds.omegaRadiansPerSecond + 
-            RobotUtils.clampAbs(target_ang_vel - current_speeds.omegaRadiansPerSecond,
-                Tracking.MAX_ANG_DECEL * RobotConstants.LOOP_TIME_SECONDS);
+        double ang_accel = RobotUtils.clampAbs(
+            target_ang_vel - current_speeds.omegaRadiansPerSecond,
+            limit * RobotConstants.LOOP_TIME_SECONDS);
+        double out_ang_vel = current_speeds.omegaRadiansPerSecond + ang_accel;
+            
+        Logger.recordOutput(
+            "SwervePIDController/Generated FFs", 
+            DriveTrain.instance.calculateAccelerationFeedforwards(
+                new Transform2d(
+                    accel_vector.div(RobotConstants.LOOP_TIME_SECONDS), 
+                    Rotation2d.fromRadians(ang_accel / RobotConstants.LOOP_TIME_SECONDS))));
+
+        if (accel_vector.getNorm() / RobotConstants.LOOP_TIME_SECONDS > 2) {
+            DriveTrain.instance.setAccelerationFeedforwards(
+                DriveTrain.instance.calculateAccelerationFeedforwards(
+                    new Transform2d(
+                        accel_vector.div(RobotConstants.LOOP_TIME_SECONDS * 2), 
+                        Rotation2d.fromRadians(ang_accel / (RobotConstants.LOOP_TIME_SECONDS * 2))))
+            );
+        }
 
         return new ChassisSpeeds(out_speeds_vector.getX(), out_speeds_vector.getY(), out_ang_vel);
     }
@@ -177,7 +197,7 @@ public class SwervePIDController {
 
         Translation2d target_relative_off = goal_pose.getTranslation().minus(robot_pose.getTranslation())
             .rotateBy(goal_pose.getRotation().unaryMinus());
-        double h_spacing = Math.min(0.5, Math.abs(target_relative_off.getY()));
+        double h_spacing = Math.min(0.5, Math.abs(target_relative_off.getY() / 2));
 
         double a_spacing = Math.abs(MathUtil.applyDeadband(
             // Multiply by two because the maximum error, facing backwards, is 0.5 rotations
@@ -189,7 +209,7 @@ public class SwervePIDController {
            Add extra space for turning to goal distance if robot is not pointing towards target,
            with a small amount of tolerance */
         goal_pose = goal_pose.transformBy(new Transform2d(
-                -(target_distance + Math.min(MathUtil.applyDeadband(h_spacing, 0.3, 0.5) + a_spacing, 0.6)),
+                -(target_distance + Math.min(MathUtil.applyDeadband(h_spacing, 0.2, 0.4) + a_spacing, 0.5)),
                 0,
                 // Apply the rotational offset
                 rotation_offset

@@ -5,6 +5,8 @@ import org.littletonrobotics.junction.Logger;
 import org.littletonrobotics.junction.networktables.NT4Publisher;
 import org.littletonrobotics.junction.wpilog.WPILOGWriter;
 
+import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -20,15 +22,20 @@ import frc.robot.Subsystems.Vision.Vision.CameraMode;
 public class Robot extends LoggedRobot {
     private Command autonomous_command;
 
+    private final PowerDistribution pdh;
+
     private final RobotContainer m_robot_container;
 
     public Robot() {
-        Logger.recordMetadata("Titanium1160", "S[Ti]ngray"); // Set a metadata value
+        Logger.recordMetadata("Titanium1160", "Stingray"); // Set a metadata value
 
         if (isReal()) {
             Logger.addDataReceiver(new WPILOGWriter("/home/lvuser/logs")); // Log to a USB stick ("/U/logs")
             Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
+            pdh = new PowerDistribution(1, ModuleType.kRev);
+            SmartDashboard.putData("PDH", pdh);
         } else {
+            pdh = null;
             Logger.addDataReceiver(new NT4Publisher()); // Publish data to NetworkTables
         }
 

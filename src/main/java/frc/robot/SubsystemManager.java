@@ -242,7 +242,7 @@ public class SubsystemManager {
         public Command alignSource() {
             return getAlignCommand( 
                 SwervePIDController.instance::getNearestSourcePose, 
-                0.05, 
+                0.05,
                 Rotation2d.kPi
             ).withName("Align Source");
         }
@@ -298,7 +298,10 @@ public class SubsystemManager {
         }
 
         public Command decorateAutoCmd(Supplier<Command> cmd) {
-            return Commands.deferredProxy(cmd)          
+            return Commands.deferredProxy(cmd)
+                .beforeStarting(() -> {
+                    m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
+                })
                 .andThen(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     m_pathplanner_speeds = PathplannerSpeeds.kZero;

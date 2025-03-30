@@ -6,6 +6,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
 import java.util.stream.DoubleStream;
 
 import org.littletonrobotics.junction.AutoLogOutput;
@@ -158,11 +159,13 @@ public class Vision {
                 frame_tags.add(result.getBestTarget().fiducialId);
             }
 
-            DoubleStream dists = Arrays.stream(frame_tags.toArray())
-                .mapToDouble(id -> apriltags_map[(int)id].getTranslation().getNorm());
+            Supplier<DoubleStream> dists = () -> Arrays.stream(frame_tags.toArray())
+                .mapToDouble(id -> robot_pose.getTranslation().minus(apriltags_map[(int)id].getTranslation().toTranslation2d()).getNorm());
 
-            if (dists.min().orElse(Double.NaN) < VisionConstants.TAG_MIN_DIST 
-                || dists.max().orElse(Double.NaN) > VisionConstants.TAG_MAX_DIST) break;
+            if (dists.get().max().orElse(0) < VisionConstants.TAG_MIN_DIST 
+                || dists.get().min().orElse(0) > VisionConstants.TAG_MAX_DIST) break;
+
+            fiducials.addAll(frame_tags);
 
             EstimatedRobotPose estimate = opt_pose.get();
             pose = estimate.estimatedPose.toPose2d();
@@ -194,11 +197,11 @@ public class Vision {
         if (mt2_estimate.tagCount == 0) return Optional.empty();
 
         // Check if AprilTag is within a distance, if not then we won't use it
-        DoubleStream dists = Arrays.stream(mt2_estimate.rawFiducials)
+        Supplier<DoubleStream> dists = () -> Arrays.stream(mt2_estimate.rawFiducials)
                                 .mapToDouble(fiducial -> fiducial.distToCamera);
 
-        if (dists.min().orElse(Double.NaN) < VisionConstants.TAG_MIN_DIST 
-            || dists.max().orElse(Double.NaN) > VisionConstants.TAG_MAX_DIST) return Optional.empty();
+        if (dists.get().min().orElse(0) < VisionConstants.TAG_MIN_DIST 
+            || dists.get().max().orElse(0) > VisionConstants.TAG_MAX_DIST) return Optional.empty();
         
         Pose2d pose = mt2_estimate.pose;
         pose_cache_limelight.addPose(

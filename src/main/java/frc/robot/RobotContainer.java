@@ -31,6 +31,7 @@ import frc.robot.SubsystemManager.PathplannerSpeeds;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
+import frc.robot.Subsystems.Elevator.Elevator.LEDPattern;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
@@ -216,6 +217,13 @@ public class RobotContainer {
                 new JoystickButton(simp_stick, 6).whileTrue(
                     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<>()));
 
+                new JoystickButton(simp_stick, 7).whileTrue(new StartEndCommand(
+                    () -> {
+                        Elevator.instance.setLEDs(LEDPattern.kBlue);
+                        System.out.println("SOMETHING");
+                    },
+                    () -> Elevator.instance.setLEDs(LEDPattern.kWhite)));
+
                 break;
         }
 
@@ -223,7 +231,7 @@ public class RobotContainer {
             case kXBox:
                 // Reef setpoints
                 new JoystickButton(codriver_controller, 3).onTrue(
-                    Elevator.instance.setStateCmd(TargetState.kL1));
+                    Elevator.instance.setStateCmd(TargetState.kStow));
 
                 new JoystickButton(codriver_controller, 1).onTrue(Commands.either(
                     Elevator.instance.setStateCmd(TargetState.kL2Algae),
@@ -245,11 +253,12 @@ public class RobotContainer {
                 
                 // Wrist manual
                 new Trigger(() -> Math.abs(codriver_controller.getRawAxis(5)) > 0.2).whileTrue(
-                    Commands.either(new RunCommand(() ->
+                    Commands.either(
+                        new RunCommand(() ->
                             Elevator.instance.runWrist(
                                 -3 * MathUtil.applyDeadband(codriver_controller.getRawAxis(5), 0.2))
                         ).finallyDo(() -> Elevator.instance.runWrist(0)),
-                    Elevator.instance.setWristCmd(codriver_controller.getRawAxis(5) < 0),
+                    Commands.defer(() -> Elevator.instance.setWristCmd(codriver_controller.getRawAxis(5) > 0), new HashSet<>()),
                     () -> codriver_controller.getRawButton(8)));
 
                 // Algae
@@ -282,8 +291,8 @@ public class RobotContainer {
                     new DeferredCommand(
                         () -> RobotUtils.onOffCommand(
                             Climber.instance::runClimber, 
-                            codriver_controller.getRawButton(8) ? 4 : 10
-                             * codriver_controller.getPOV() == 0 ? 1 : -1), 
+                            (codriver_controller.getRawButton(8) ? 9 : 4)
+                             * (codriver_controller.getPOV() == 0 ? 1 : -1)), 
                         new HashSet<>()
                     )
                 );
