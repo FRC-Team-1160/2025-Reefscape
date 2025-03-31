@@ -155,11 +155,12 @@ public class SwervePIDController {
                     Rotation2d.fromRadians(ang_accel / RobotConstants.LOOP_TIME_SECONDS))));
 
         if (accel_vector.getNorm() / RobotConstants.LOOP_TIME_SECONDS > 2) {
-            DriveTrain.instance.setAccelerationFeedforwards(
+            DriveTrain.instance.acceptFeedforwards(
                 DriveTrain.instance.calculateAccelerationFeedforwards(
                     new Transform2d(
                         accel_vector.div(RobotConstants.LOOP_TIME_SECONDS * 2), 
-                        Rotation2d.fromRadians(ang_accel / (RobotConstants.LOOP_TIME_SECONDS * 2))))
+                        Rotation2d.fromRadians(ang_accel / (RobotConstants.LOOP_TIME_SECONDS * 2)))),
+                false
             );
         }
 

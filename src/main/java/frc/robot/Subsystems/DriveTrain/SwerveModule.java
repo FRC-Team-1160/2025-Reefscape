@@ -12,14 +12,20 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 /** Represents a single swerve module. */
 public abstract class SwerveModule {
 
-    public SwerveModuleState target_state;
-    public double acceleration_ff;
+    public record FullModuleState(SwerveModuleState state, double acceleration) {
+        public static FullModuleState kZero = new FullModuleState(new SwerveModuleState());
+
+        public FullModuleState(SwerveModuleState state) {
+            this(state, 0);
+        }
+    }
+
+    public FullModuleState target_state;
     public Translation2d offset;
 
     /** Class constructor. */
     protected SwerveModule() {
-        target_state = new SwerveModuleState();
-        acceleration_ff = 0;
+        target_state = FullModuleState.kZero;
     }
 
     /** 
@@ -27,6 +33,14 @@ public abstract class SwerveModule {
      * @param state The new target state.
      */
     public void setState(SwerveModuleState state) {
+        setState(new FullModuleState(state));
+    }
+
+    /**
+     * Sets the target state for this module, including acceleration.
+     * @param state The new target state.
+     */
+    public void setState(FullModuleState state) {
         target_state = state;
     }
 
@@ -34,8 +48,20 @@ public abstract class SwerveModule {
      * Resends input to the motors.
      */
     public void update() {
-        setSpeed(target_state.speedMetersPerSecond);
-        setAngle(target_state.angle);
+        applyState(target_state);
+    }
+
+    public void setSpeed(double speed) {
+        setSpeed(speed, 0);
+    }
+
+    public void applyState(SwerveModuleState state) {
+        applyState(new FullModuleState(state));
+    }
+
+    public void applyState(FullModuleState state) {
+        setSpeed(state.state.speedMetersPerSecond, state.acceleration);
+        setAngle(state.state.angle);
     }
 
     abstract double getSpeed();
@@ -43,8 +69,8 @@ public abstract class SwerveModule {
     abstract Rotation2d getAngle();
     abstract SwerveModuleState getModuleState();
     abstract SwerveModulePosition getModulePosition();
-    
-    protected abstract void setSpeed(double speed);
+
+    protected abstract void setSpeed(double speed, double acceleration);
     protected abstract void setAngle(Rotation2d angle);
 
     public abstract List<TalonFX> getTalons();

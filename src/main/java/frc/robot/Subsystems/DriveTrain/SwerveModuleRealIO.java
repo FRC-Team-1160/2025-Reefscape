@@ -20,8 +20,6 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import frc.robot.Constants.SwerveConstants;
 import frc.robot.Constants.SwerveConstants.DriveMotorConfigs;
 import frc.robot.Constants.SwerveConstants.SteerMotorConfigs;
-import frc.robot.SubsystemManager;
-import frc.robot.SubsystemManager.RobotState.DriveStates;
 
 
 public class SwerveModuleRealIO extends SwerveModule {
@@ -108,14 +106,10 @@ public class SwerveModuleRealIO extends SwerveModule {
         return new SwerveModulePosition(getPosition(), getAngle());
     }
 
-    protected void setSpeed(double speed) {
+    protected void setSpeed(double speed, double acceleration) {
         drive_motor.setControl(
             new VelocityVoltage(speed / SwerveConstants.WHEEL_DIAMETER)
-                .withAcceleration(
-                    SubsystemManager.instance.m_robot_state.drive_state == DriveStates.PATHPLANNER_CONTROL ? 
-                        Math.signum(speed) * acceleration_ff : acceleration_ff));
-        
-        acceleration_ff = 0;
+                .withAcceleration(acceleration));
     }
 
     protected void setAngle(Rotation2d angle) {

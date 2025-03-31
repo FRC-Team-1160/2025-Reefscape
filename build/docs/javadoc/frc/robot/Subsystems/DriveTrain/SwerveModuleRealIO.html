@@ -89,7 +89,7 @@ loadScripts(document, 'script');</script>
 <h2>Field Summary</h2>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-frc.robot.Subsystems.DriveTrain.SwerveModule">Fields inherited from class&nbsp;frc.robot.Subsystems.DriveTrain.<a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></h3>
-<code><a href="SwerveModule.html#acceleration_ff">acceleration_ff</a>, <a href="SwerveModule.html#target_state">target_state</a></code></div>
+<code><a href="SwerveModule.html#acceleration_ff">acceleration_ff</a>, <a href="SwerveModule.html#offset">offset</a>, <a href="SwerveModule.html#target_state">target_state</a></code></div>
 </section>
 </li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
@@ -102,9 +102,10 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Constructor</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>protected </code></div>
-<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(int,int,int)" class="member-name-link">SwerveModuleRealIO</a><wbr>(int&nbsp;drive_port,
+<div class="col-constructor-name even-row-color"><code><a href="#%3Cinit%3E(int,int,int,edu.wpi.first.math.geometry.Translation2d)" class="member-name-link">SwerveModuleRealIO</a><wbr>(int&nbsp;drive_port,
  int&nbsp;steer_port,
- int&nbsp;sensor_port)</code></div>
+ int&nbsp;sensor_port,
+ edu.wpi.first.math.geometry.Translation2d&nbsp;offset)</code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
@@ -165,11 +166,12 @@ loadScripts(document, 'script');</script>
 <h2>Constructor Details</h2>
 <ul class="member-list">
 <li>
-<section class="detail" id="&lt;init&gt;(int,int,int)">
+<section class="detail" id="&lt;init&gt;(int,int,int,edu.wpi.first.math.geometry.Translation2d)">
 <h3>SwerveModuleRealIO</h3>
 <div class="member-signature"><span class="modifiers">protected</span>&nbsp;<span class="element-name">SwerveModuleRealIO</span><wbr><span class="parameters">(int&nbsp;drive_port,
  int&nbsp;steer_port,
- int&nbsp;sensor_port)</span></div>
+ int&nbsp;sensor_port,
+ edu.wpi.first.math.geometry.Translation2d&nbsp;offset)</span></div>
 </section>
 </li>
 </ul>
@@ -234,6 +236,10 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="getTalons()">
 <h3>getTalons</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</span>&nbsp;<span class="element-name">getTalons</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="SwerveModule.html#getTalons()">getTalons</a></code>&nbsp;in class&nbsp;<code><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></code></dd>
+</dl>
 </section>
 </li>
 </ul>

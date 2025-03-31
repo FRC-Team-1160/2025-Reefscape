@@ -91,15 +91,15 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>class&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="SubsystemManager.Commands.html" class="type-name-link" title="class in frc.robot">SubsystemManager.Commands</a></code></div>
+<div class="col-first even-row-color"><code>static final record&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="SubsystemManager.PathplannerSpeeds.html" class="type-name-link" title="class in frc.robot">SubsystemManager.PathplannerSpeeds</a></code></div>
 <div class="col-last even-row-color">
-<div class="block">A class separating all of the command getters.</div>
-</div>
-<div class="col-first odd-row-color"><code>static final record&nbsp;</code></div>
-<div class="col-second odd-row-color"><code><a href="SubsystemManager.PathplannerSpeeds.html" class="type-name-link" title="class in frc.robot">SubsystemManager.PathplannerSpeeds</a></code></div>
-<div class="col-last odd-row-color">
 <div class="block">Stores a set of chassis speeds and acceleration feedforwards to accept PathPlanner output.</div>
+</div>
+<div class="col-first odd-row-color"><code>class&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="SubsystemManager.RobotCommands.html" class="type-name-link" title="class in frc.robot">SubsystemManager.RobotCommands</a></code></div>
+<div class="col-last odd-row-color">
+<div class="block">A class separating all of the command getters.</div>
 </div>
 <div class="col-first even-row-color"><code>class&nbsp;</code></div>
 <div class="col-second even-row-color"><code><a href="SubsystemManager.RobotState.html" class="type-name-link" title="class in frc.robot">SubsystemManager.RobotState</a></code></div>
@@ -116,7 +116,7 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>final <a href="SubsystemManager.Commands.html" title="class in frc.robot">SubsystemManager.Commands</a></code></div>
+<div class="col-first even-row-color"><code>final <a href="SubsystemManager.RobotCommands.html" title="class in frc.robot">SubsystemManager.RobotCommands</a></code></div>
 <div class="col-second even-row-color"><code><a href="#commands" class="member-name-link">commands</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code>static final <a href="SubsystemManager.html" title="class in frc.robot">SubsystemManager</a></code></div>
@@ -166,7 +166,9 @@ loadScripts(document, 'script');</script>
 </div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setupOrchestra()" class="member-name-link">setupOrchestra</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="block">Clears and refills the orchestra to play MIDI sequences.</div>
+</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setupOrchestra(int)" class="member-name-link">setupOrchestra</a><wbr>(int&nbsp;tracks)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
@@ -207,7 +209,7 @@ loadScripts(document, 'script');</script>
 <li>
 <section class="detail" id="commands">
 <h3>commands</h3>
-<div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="SubsystemManager.Commands.html" title="class in frc.robot">SubsystemManager.Commands</a></span>&nbsp;<span class="element-name">commands</span></div>
+<div class="member-signature"><span class="modifiers">public final</span>&nbsp;<span class="return-type"><a href="SubsystemManager.RobotCommands.html" title="class in frc.robot">SubsystemManager.RobotCommands</a></span>&nbsp;<span class="element-name">commands</span></div>
 </section>
 </li>
 <li>
@@ -280,6 +282,7 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="setupOrchestra()">
 <h3>setupOrchestra</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setupOrchestra</span>()</div>
+<div class="block">Clears and refills the orchestra to play MIDI sequences. Each track is assigned one motor.</div>
 </section>
 </li>
 <li>

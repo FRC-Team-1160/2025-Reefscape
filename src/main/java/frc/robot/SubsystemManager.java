@@ -129,7 +129,7 @@ public class SubsystemManager {
 
             case PATHPLANNER_CONTROL:
                 DriveTrain.instance.setSwerveDrive(m_pathplanner_speeds.chassis_speeds, false);
-                DriveTrain.instance.setAccelerationFeedforwards(m_pathplanner_speeds.acceleration_feedforwards);
+                DriveTrain.instance.acceptFeedforwards(m_pathplanner_speeds.acceleration_feedforwards, true);
                 Logger.recordOutput("DriveTrain/FFs", m_pathplanner_speeds.acceleration_feedforwards);
                 break;
 

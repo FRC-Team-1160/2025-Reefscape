@@ -98,9 +98,12 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color"><code>double</code></div>
 <div class="col-second even-row-color"><code><a href="#acceleration_ff" class="member-name-link">acceleration_ff</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>edu.wpi.first.math.kinematics.SwerveModuleState</code></div>
-<div class="col-second odd-row-color"><code><a href="#target_state" class="member-name-link">target_state</a></code></div>
+<div class="col-first odd-row-color"><code>edu.wpi.first.math.geometry.Translation2d</code></div>
+<div class="col-second odd-row-color"><code><a href="#offset" class="member-name-link">offset</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>edu.wpi.first.math.kinematics.SwerveModuleState</code></div>
+<div class="col-second even-row-color"><code><a href="#target_state" class="member-name-link">target_state</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -132,20 +135,23 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setAngle(edu.wpi.first.math.geometry.Rotation2d)" class="member-name-link">setAngle</a><wbr>(edu.wpi.first.math.geometry.Rotation2d&nbsp;angle)</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTalons()" class="member-name-link">getTalons</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setSpeed(double)" class="member-name-link">setSpeed</a><wbr>(double&nbsp;speed)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setAngle(edu.wpi.first.math.geometry.Rotation2d)" class="member-name-link">setAngle</a><wbr>(edu.wpi.first.math.geometry.Rotation2d&nbsp;angle)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setState(edu.wpi.first.math.kinematics.SwerveModuleState)" class="member-name-link">setState</a><wbr>(edu.wpi.first.math.kinematics.SwerveModuleState&nbsp;state)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setSpeed(double)" class="member-name-link">setSpeed</a><wbr>(double&nbsp;speed)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setState(edu.wpi.first.math.kinematics.SwerveModuleState)" class="member-name-link">setState</a><wbr>(edu.wpi.first.math.kinematics.SwerveModuleState&nbsp;state)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Sets the target state for this module.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#update()" class="member-name-link">update</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#update()" class="member-name-link">update</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Resends input to the motors.</div>
 </div>
 </div>
@@ -175,6 +181,12 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="acceleration_ff">
 <h3>acceleration_ff</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">acceleration_ff</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="offset">
+<h3>offset</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.math.geometry.Translation2d</span>&nbsp;<span class="element-name">offset</span></div>
 </section>
 </li>
 </ul>
@@ -228,6 +240,12 @@ loadScripts(document, 'script');</script>
 <section class="detail" id="setAngle(edu.wpi.first.math.geometry.Rotation2d)">
 <h3>setAngle</h3>
 <div class="member-signature"><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setAngle</span><wbr><span class="parameters">(edu.wpi.first.math.geometry.Rotation2d&nbsp;angle)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="getTalons()">
+<h3>getTalons</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</span>&nbsp;<span class="element-name">getTalons</span>()</div>
 </section>
 </li>
 </ul>

@@ -101,17 +101,20 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color"><code>static final <a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></code></div>
-<div class="col-second even-row-color"><code><a href="#instance" class="member-name-link">instance</a></code></div>
+<div class="col-first even-row-color"><code>com.pathplanner.lib.config.RobotConfig</code></div>
+<div class="col-second even-row-color"><code><a href="#config" class="member-name-link">config</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
-<div class="col-first odd-row-color"><code>edu.wpi.first.math.kinematics.SwerveModuleState[]</code></div>
-<div class="col-second odd-row-color"><code><a href="#module_states" class="member-name-link">module_states</a></code></div>
-<div class="col-last odd-row-color">
+<div class="col-first odd-row-color"><code>static final <a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#instance" class="member-name-link">instance</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>edu.wpi.first.math.kinematics.SwerveModuleState[]</code></div>
+<div class="col-second even-row-color"><code><a href="#module_states" class="member-name-link">module_states</a></code></div>
+<div class="col-last even-row-color">
 <div class="block">The desired module states.</div>
 </div>
-<div class="col-first even-row-color"><code><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a>[]</code></div>
-<div class="col-second even-row-color"><code><a href="#modules" class="member-name-link">modules</a></code></div>
-<div class="col-last even-row-color">
+<div class="col-first odd-row-color"><code><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a>[]</code></div>
+<div class="col-second odd-row-color"><code><a href="#modules" class="member-name-link">modules</a></code></div>
+<div class="col-last odd-row-color">
 <div class="block">The drive train's SwerveModule objects.</div>
 </div>
 </div>
@@ -145,8 +148,15 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>double[]</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#calculateAccelerationFeedforwards(edu.wpi.first.math.geometry.Transform2d)" class="member-name-link">calculateAccelerationFeedforwards</a><wbr>(edu.wpi.first.math.geometry.Transform2d&nbsp;acceleration)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>edu.wpi.first.math.kinematics.ChassisSpeeds</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds)" class="member-name-link">discretize_chassis_speeds</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;speeds)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>edu.wpi.first.math.kinematics.ChassisSpeeds</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds)" class="member-name-link">discretize_chassis_speeds</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;speeds)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds,double)" class="member-name-link">discretize_chassis_speeds</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;speeds,
+ double&nbsp;multiplier)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Accounts for drift while simultaneously translating and rotating through discretization.</div>
 </div>
@@ -176,18 +186,26 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Calculates current speeds using SwerveDriveKinematics odometry.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>edu.wpi.first.math.kinematics.ChassisSpeeds</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTargetOdomSpeeds()" class="member-name-link">getTargetOdomSpeeds</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTalons()" class="member-name-link">getTalons</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>edu.wpi.first.math.kinematics.ChassisSpeeds</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTargetOdomSpeeds()" class="member-name-link">getTargetOdomSpeeds</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Calculates current target speeds using SwerveDriveKinematics odometry and target states.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#initializeModule(int,int,int)" class="member-name-link">initializeModule</a><wbr>(int&nbsp;drive_port,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract <a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#initializeModule(int,int,int,edu.wpi.first.math.geometry.Translation2d)" class="member-name-link">initializeModule</a><wbr>(int&nbsp;drive_port,
  int&nbsp;steer_port,
- int&nbsp;sensor_port)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
+ int&nbsp;sensor_port,
+ edu.wpi.first.math.geometry.Translation2d&nbsp;offset)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">
 <div class="block">Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#optimizeState(edu.wpi.first.math.kinematics.SwerveModuleState,edu.wpi.first.math.geometry.Rotation2d)" class="member-name-link">optimizeState</a><wbr>(edu.wpi.first.math.kinematics.SwerveModuleState&nbsp;state,
+ edu.wpi.first.math.geometry.Rotation2d&nbsp;currentAngle)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#periodic()" class="member-name-link">periodic</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
@@ -199,27 +217,30 @@ loadScripts(document, 'script');</script>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setAccelerationFeedforwards(double%5B%5D)" class="member-name-link">setAccelerationFeedforwards</a><wbr>(double[]&nbsp;feedforwards)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setModules(edu.wpi.first.math.kinematics.SwerveModuleState%5B%5D)" class="member-name-link">setModules</a><wbr>(edu.wpi.first.math.kinematics.SwerveModuleState[]&nbsp;module_states)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setGyroAngle(double)" class="member-name-link">setGyroAngle</a><wbr>(double&nbsp;angle)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setModules(edu.wpi.first.math.kinematics.SwerveModuleState%5B%5D)" class="member-name-link">setModules</a><wbr>(edu.wpi.first.math.kinematics.SwerveModuleState[]&nbsp;module_states)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Sends calculated inputs to swerve modules.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setSwerveDrive(double,double,double)" class="member-name-link">setSwerveDrive</a><wbr>(double&nbsp;x_speed,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setSwerveDrive(double,double,double)" class="member-name-link">setSwerveDrive</a><wbr>(double&nbsp;x_speed,
  double&nbsp;y_speed,
  double&nbsp;a_speed)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Calculates and sends inputs to swerve modules given field-relative speeds.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds)" class="member-name-link">setSwerveDrive</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;chassis_speeds)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds)" class="member-name-link">setSwerveDrive</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;chassis_speeds)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Calculates and sends inputs to swerve modules given robot-relative speeds.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds,boolean)" class="member-name-link">setSwerveDrive</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;chassis_speeds,
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds,boolean)" class="member-name-link">setSwerveDrive</a><wbr>(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;chassis_speeds,
  boolean&nbsp;discretize)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Calculates and sends inputs to swerve modules given robot-relative speeds.</div>
 </div>
 </div>
@@ -263,6 +284,12 @@ loadScripts(document, 'script');</script>
 <h3>module_states</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.math.kinematics.SwerveModuleState[]</span>&nbsp;<span class="element-name">module_states</span></div>
 <div class="block">The desired module states.</div>
+</section>
+</li>
+<li>
+<section class="detail" id="config">
+<h3>config</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">com.pathplanner.lib.config.RobotConfig</span>&nbsp;<span class="element-name">config</span></div>
 </section>
 </li>
 </ul>
@@ -315,6 +342,13 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="optimizeState(edu.wpi.first.math.kinematics.SwerveModuleState,edu.wpi.first.math.geometry.Rotation2d)">
+<h3>optimizeState</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">optimizeState</span><wbr><span class="parameters">(edu.wpi.first.math.kinematics.SwerveModuleState&nbsp;state,
+ edu.wpi.first.math.geometry.Rotation2d&nbsp;currentAngle)</span></div>
+</section>
+</li>
+<li>
 <section class="detail" id="setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds,boolean)">
 <h3>setSwerveDrive</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setSwerveDrive</span><wbr><span class="parameters">(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;chassis_speeds,
@@ -339,16 +373,24 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds)">
+<section class="detail" id="discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds,double)">
 <h3>discretize_chassis_speeds</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.math.kinematics.ChassisSpeeds</span>&nbsp;<span class="element-name">discretize_chassis_speeds</span><wbr><span class="parameters">(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;speeds)</span></div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.math.kinematics.ChassisSpeeds</span>&nbsp;<span class="element-name">discretize_chassis_speeds</span><wbr><span class="parameters">(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;speeds,
+ double&nbsp;multiplier)</span></div>
 <div class="block">Accounts for drift while simultaneously translating and rotating through discretization.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>speeds</code> - The desired chassis speeds.</dd>
+<dd><code>multiplier</code> - The number of time loops to discretize over.</dd>
 <dt>Returns:</dt>
 <dd>The adjusted chassis speeds.</dd>
 </dl>
+</section>
+</li>
+<li>
+<section class="detail" id="discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds)">
+<h3>discretize_chassis_speeds</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.math.kinematics.ChassisSpeeds</span>&nbsp;<span class="element-name">discretize_chassis_speeds</span><wbr><span class="parameters">(edu.wpi.first.math.kinematics.ChassisSpeeds&nbsp;speeds)</span></div>
 </section>
 </li>
 <li>
@@ -396,9 +438,21 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="calculateAccelerationFeedforwards(edu.wpi.first.math.geometry.Transform2d)">
+<h3>calculateAccelerationFeedforwards</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">double[]</span>&nbsp;<span class="element-name">calculateAccelerationFeedforwards</span><wbr><span class="parameters">(edu.wpi.first.math.geometry.Transform2d&nbsp;acceleration)</span></div>
+</section>
+</li>
+<li>
 <section class="detail" id="setAccelerationFeedforwards(double[])">
 <h3>setAccelerationFeedforwards</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setAccelerationFeedforwards</span><wbr><span class="parameters">(double[]&nbsp;feedforwards)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="getTalons()">
+<h3>getTalons</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</span>&nbsp;<span class="element-name">getTalons</span>()</div>
 </section>
 </li>
 <li>
@@ -433,17 +487,25 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="initializeModule(int,int,int)">
+<section class="detail" id="setGyroAngle(double)">
+<h3>setGyroAngle</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setGyroAngle</span><wbr><span class="parameters">(double&nbsp;angle)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="initializeModule(int,int,int,edu.wpi.first.math.geometry.Translation2d)">
 <h3>initializeModule</h3>
 <div class="member-signature"><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type"><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></span>&nbsp;<span class="element-name">initializeModule</span><wbr><span class="parameters">(int&nbsp;drive_port,
  int&nbsp;steer_port,
- int&nbsp;sensor_port)</span></div>
+ int&nbsp;sensor_port,
+ edu.wpi.first.math.geometry.Translation2d&nbsp;offset)</span></div>
 <div class="block">Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.</div>
 <dl class="notes">
 <dt>Parameters:</dt>
 <dd><code>drive_port</code> - The port number of the drive motor.</dd>
 <dd><code>steer_port</code> - The port number of the steer motor.</dd>
 <dd><code>sensor_port</code> - The port number of the module's CANcoder.</dd>
+<dd><code>offset</code> - The offset of the module from the robot center.</dd>
 <dt>Returns:</dt>
 <dd>The constructed SwerveModule object.</dd>
 </dl>

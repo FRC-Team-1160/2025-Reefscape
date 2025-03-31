@@ -95,7 +95,7 @@ loadScripts(document, 'script');</script>
 <h2>Field Summary</h2>
 <div class="inherited-list">
 <h3 id="fields-inherited-from-class-frc.robot.Subsystems.DriveTrain.DriveTrain">Fields inherited from class&nbsp;frc.robot.Subsystems.DriveTrain.<a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></h3>
-<code><a href="DriveTrain.html#instance">instance</a>, <a href="DriveTrain.html#module_states">module_states</a>, <a href="DriveTrain.html#modules">modules</a></code></div>
+<code><a href="DriveTrain.html#config">config</a>, <a href="DriveTrain.html#instance">instance</a>, <a href="DriveTrain.html#module_states">module_states</a>, <a href="DriveTrain.html#modules">modules</a></code></div>
 </section>
 </li>
 <!-- ======== CONSTRUCTOR SUMMARY ======== -->
@@ -135,27 +135,34 @@ loadScripts(document, 'script');</script>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Returns the rate at which the gyro is spinning.</div>
 </div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#initializeModule(int,int,int)" class="member-name-link">initializeModule</a><wbr>(int&nbsp;drive_port,
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#getTalons()" class="member-name-link">getTalons</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#initializeModule(int,int,int,edu.wpi.first.math.geometry.Translation2d)" class="member-name-link">initializeModule</a><wbr>(int&nbsp;drive_port,
  int&nbsp;steer_port,
- int&nbsp;sensor_port)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+ int&nbsp;sensor_port,
+ edu.wpi.first.math.geometry.Translation2d&nbsp;offset)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.</div>
 </div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#periodic()" class="member-name-link">periodic</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resetGyroAngle()" class="member-name-link">resetGyroAngle</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#periodic()" class="member-name-link">periodic</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#resetGyroAngle()" class="member-name-link">resetGyroAngle</a>()</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Resets the gyroscope angle to 0.</div>
 </div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setGyroAngle(double)" class="member-name-link">setGyroAngle</a><wbr>(double&nbsp;angle)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 </div>
 </div>
 </div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-frc.robot.Subsystems.DriveTrain.DriveTrain">Methods inherited from class&nbsp;frc.robot.Subsystems.DriveTrain.<a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></h3>
-<code><a href="DriveTrain.html#discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds)">discretize_chassis_speeds</a>, <a href="DriveTrain.html#getModulePositions()">getModulePositions</a>, <a href="DriveTrain.html#getModuleStates()">getModuleStates</a>, <a href="DriveTrain.html#getOdomSpeeds()">getOdomSpeeds</a>, <a href="DriveTrain.html#getTargetOdomSpeeds()">getTargetOdomSpeeds</a>, <a href="DriveTrain.html#setAccelerationFeedforwards(double%5B%5D)">setAccelerationFeedforwards</a>, <a href="DriveTrain.html#setModules(edu.wpi.first.math.kinematics.SwerveModuleState%5B%5D)">setModules</a>, <a href="DriveTrain.html#setSwerveDrive(double,double,double)">setSwerveDrive</a>, <a href="DriveTrain.html#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds)">setSwerveDrive</a>, <a href="DriveTrain.html#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds,boolean)">setSwerveDrive</a></code></div>
+<code><a href="DriveTrain.html#calculateAccelerationFeedforwards(edu.wpi.first.math.geometry.Transform2d)">calculateAccelerationFeedforwards</a>, <a href="DriveTrain.html#discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds)">discretize_chassis_speeds</a>, <a href="DriveTrain.html#discretize_chassis_speeds(edu.wpi.first.math.kinematics.ChassisSpeeds,double)">discretize_chassis_speeds</a>, <a href="DriveTrain.html#getModulePositions()">getModulePositions</a>, <a href="DriveTrain.html#getModuleStates()">getModuleStates</a>, <a href="DriveTrain.html#getOdomSpeeds()">getOdomSpeeds</a>, <a href="DriveTrain.html#getTargetOdomSpeeds()">getTargetOdomSpeeds</a>, <a href="DriveTrain.html#optimizeState(edu.wpi.first.math.kinematics.SwerveModuleState,edu.wpi.first.math.geometry.Rotation2d)">optimizeState</a>, <a href="DriveTrain.html#setAccelerationFeedforwards(double%5B%5D)">setAccelerationFeedforwards</a>, <a href="DriveTrain.html#setModules(edu.wpi.first.math.kinematics.SwerveModuleState%5B%5D)">setModules</a>, <a href="DriveTrain.html#setSwerveDrive(double,double,double)">setSwerveDrive</a>, <a href="DriveTrain.html#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds)">setSwerveDrive</a>, <a href="DriveTrain.html#setSwerveDrive(edu.wpi.first.math.kinematics.ChassisSpeeds,boolean)">setSwerveDrive</a></code></div>
 <div class="inherited-list">
 <h3 id="methods-inherited-from-class-edu.wpi.first.wpilibj2.command.SubsystemBase">Methods inherited from class&nbsp;edu.wpi.first.wpilibj2.command.SubsystemBase</h3>
 <code>addChild, getName, getSubsystem, initSendable, setName, setSubsystem</code></div>
@@ -221,6 +228,16 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
+<section class="detail" id="setGyroAngle(double)">
+<h3>setGyroAngle</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setGyroAngle</span><wbr><span class="parameters">(double&nbsp;angle)</span></div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="DriveTrain.html#setGyroAngle(double)">setGyroAngle</a></code>&nbsp;in class&nbsp;<code><a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></code></dd>
+</dl>
+</section>
+</li>
+<li>
 <section class="detail" id="resetGyroAngle()">
 <h3>resetGyroAngle</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">resetGyroAngle</span>()</div>
@@ -233,22 +250,34 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="initializeModule(int,int,int)">
+<section class="detail" id="initializeModule(int,int,int,edu.wpi.first.math.geometry.Translation2d)">
 <h3>initializeModule</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="SwerveModule.html" title="class in frc.robot.Subsystems.DriveTrain">SwerveModule</a></span>&nbsp;<span class="element-name">initializeModule</span><wbr><span class="parameters">(int&nbsp;drive_port,
  int&nbsp;steer_port,
- int&nbsp;sensor_port)</span></div>
-<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="DriveTrain.html#initializeModule(int,int,int)">DriveTrain</a></code></span></div>
+ int&nbsp;sensor_port,
+ edu.wpi.first.math.geometry.Translation2d&nbsp;offset)</span></div>
+<div class="block"><span class="descfrm-type-label">Description copied from class:&nbsp;<code><a href="DriveTrain.html#initializeModule(int,int,int,edu.wpi.first.math.geometry.Translation2d)">DriveTrain</a></code></span></div>
 <div class="block">Creates either a SwerveModuleRealIO or SwerveModuleSimIO object.</div>
 <dl class="notes">
 <dt>Specified by:</dt>
-<dd><code><a href="DriveTrain.html#initializeModule(int,int,int)">initializeModule</a></code>&nbsp;in class&nbsp;<code><a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></code></dd>
+<dd><code><a href="DriveTrain.html#initializeModule(int,int,int,edu.wpi.first.math.geometry.Translation2d)">initializeModule</a></code>&nbsp;in class&nbsp;<code><a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></code></dd>
 <dt>Parameters:</dt>
 <dd><code>drive_port</code> - The port number of the drive motor.</dd>
 <dd><code>steer_port</code> - The port number of the steer motor.</dd>
 <dd><code>sensor_port</code> - The port number of the module's CANcoder.</dd>
+<dd><code>offset</code> - The offset of the module from the robot center.</dd>
 <dt>Returns:</dt>
 <dd>The constructed SwerveModule object.</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="getTalons()">
+<h3>getTalons</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</span>&nbsp;<span class="element-name">getTalons</span>()</div>
+<dl class="notes">
+<dt>Specified by:</dt>
+<dd><code><a href="DriveTrain.html#getTalons()">getTalons</a></code>&nbsp;in class&nbsp;<code><a href="DriveTrain.html" title="class in frc.robot.Subsystems.DriveTrain">DriveTrain</a></code></dd>
 </dl>
 </section>
 </li>

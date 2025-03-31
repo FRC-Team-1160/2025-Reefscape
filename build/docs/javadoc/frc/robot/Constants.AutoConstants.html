@@ -40,7 +40,7 @@ loadScripts(document, 'script');</script>
 <div>
 <ul class="sub-nav-list">
 <li>Summary:&nbsp;</li>
-<li>Nested&nbsp;|&nbsp;</li>
+<li><a href="#nested-class-summary">Nested</a>&nbsp;|&nbsp;</li>
 <li><a href="#field-summary">Field</a>&nbsp;|&nbsp;</li>
 <li><a href="#constructor-summary">Constr</a>&nbsp;|&nbsp;</li>
 <li><a href="#method-summary">Method</a></li>
@@ -82,6 +82,21 @@ loadScripts(document, 'script');</script>
 </section>
 <section class="summary">
 <ul class="summary-list">
+<!-- ======== NESTED CLASS SUMMARY ======== -->
+<li>
+<section class="nested-class-summary" id="nested-class-summary">
+<h2>Nested Class Summary</h2>
+<div class="caption"><span>Nested Classes</span></div>
+<div class="summary-table three-column-summary">
+<div class="table-header col-first">Modifier and Type</div>
+<div class="table-header col-second">Class</div>
+<div class="table-header col-last">Description</div>
+<div class="col-first even-row-color"><code>static class&nbsp;</code></div>
+<div class="col-second even-row-color"><code><a href="Constants.AutoConstants.Paths.html" class="type-name-link" title="class in frc.robot">Constants.AutoConstants.Paths</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+</div>
+</section>
+</li>
 <!-- =========== FIELD SUMMARY =========== -->
 <li>
 <section class="field-summary" id="field-summary">
@@ -92,23 +107,38 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Field</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static final double</code></div>
-<div class="col-second even-row-color"><code><a href="#rotation_kD" class="member-name-link">rotation_kD</a></code></div>
+<div class="col-second even-row-color"><code><a href="#MAX_ACCEL" class="member-name-link">MAX_ACCEL</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code>static final double</code></div>
-<div class="col-second odd-row-color"><code><a href="#rotation_kI" class="member-name-link">rotation_kI</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#MAX_ANG_ACCEL" class="member-name-link">MAX_ANG_ACCEL</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code>static final double</code></div>
-<div class="col-second even-row-color"><code><a href="#rotation_kP" class="member-name-link">rotation_kP</a></code></div>
+<div class="col-second even-row-color"><code><a href="#MAX_ANG_SPEED" class="member-name-link">MAX_ANG_SPEED</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code>static final double</code></div>
-<div class="col-second odd-row-color"><code><a href="#translation_kD" class="member-name-link">translation_kD</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#MAX_SPEED" class="member-name-link">MAX_SPEED</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final int</code></div>
+<div class="col-second even-row-color"><code><a href="#PREVIEW_DETAIL" class="member-name-link">PREVIEW_DETAIL</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final double</code></div>
+<div class="col-second odd-row-color"><code><a href="#rotation_kD" class="member-name-link">rotation_kD</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
 <div class="col-first even-row-color"><code>static final double</code></div>
-<div class="col-second even-row-color"><code><a href="#translation_kI" class="member-name-link">translation_kI</a></code></div>
+<div class="col-second even-row-color"><code><a href="#rotation_kI" class="member-name-link">rotation_kI</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
 <div class="col-first odd-row-color"><code>static final double</code></div>
-<div class="col-second odd-row-color"><code><a href="#translation_kP" class="member-name-link">translation_kP</a></code></div>
+<div class="col-second odd-row-color"><code><a href="#rotation_kP" class="member-name-link">rotation_kP</a></code></div>
 <div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final double</code></div>
+<div class="col-second even-row-color"><code><a href="#translation_kD" class="member-name-link">translation_kD</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static final double</code></div>
+<div class="col-second odd-row-color"><code><a href="#translation_kI" class="member-name-link">translation_kI</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
+<div class="col-first even-row-color"><code>static final double</code></div>
+<div class="col-second even-row-color"><code><a href="#translation_kP" class="member-name-link">translation_kP</a></code></div>
+<div class="col-last even-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -222,6 +252,76 @@ loadScripts(document, 'script');</script>
 <dd>
 <ul class="see-list">
 <li><a href="../../constant-values.html#frc.robot.Constants.AutoConstants.rotation_kD">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="MAX_SPEED">
+<h3>MAX_SPEED</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">MAX_SPEED</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="see-list">
+<li><a href="../../constant-values.html#frc.robot.Constants.AutoConstants.MAX_SPEED">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="MAX_ACCEL">
+<h3>MAX_ACCEL</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">MAX_ACCEL</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="see-list">
+<li><a href="../../constant-values.html#frc.robot.Constants.AutoConstants.MAX_ACCEL">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="MAX_ANG_SPEED">
+<h3>MAX_ANG_SPEED</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">MAX_ANG_SPEED</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="see-list">
+<li><a href="../../constant-values.html#frc.robot.Constants.AutoConstants.MAX_ANG_SPEED">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="MAX_ANG_ACCEL">
+<h3>MAX_ANG_ACCEL</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">double</span>&nbsp;<span class="element-name">MAX_ANG_ACCEL</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="see-list">
+<li><a href="../../constant-values.html#frc.robot.Constants.AutoConstants.MAX_ANG_ACCEL">Constant Field Values</a></li>
+</ul>
+</dd>
+</dl>
+</section>
+</li>
+<li>
+<section class="detail" id="PREVIEW_DETAIL">
+<h3>PREVIEW_DETAIL</h3>
+<div class="member-signature"><span class="modifiers">public static final</span>&nbsp;<span class="return-type">int</span>&nbsp;<span class="element-name">PREVIEW_DETAIL</span></div>
+<dl class="notes">
+<dt>See Also:</dt>
+<dd>
+<ul class="see-list">
+<li><a href="../../constant-values.html#frc.robot.Constants.AutoConstants.PREVIEW_DETAIL">Constant Field Values</a></li>
 </ul>
 </dd>
 </dl>

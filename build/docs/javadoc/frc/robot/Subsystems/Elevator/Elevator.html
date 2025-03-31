@@ -101,8 +101,11 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-second">Class</div>
 <div class="table-header col-last">Description</div>
 <div class="col-first even-row-color"><code>static enum&nbsp;</code></div>
-<div class="col-second even-row-color"><code><a href="Elevator.TargetState.html" class="type-name-link" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a></code></div>
+<div class="col-second even-row-color"><code><a href="Elevator.LEDPattern.html" class="type-name-link" title="enum class in frc.robot.Subsystems.Elevator">Elevator.LEDPattern</a></code></div>
 <div class="col-last even-row-color">&nbsp;</div>
+<div class="col-first odd-row-color"><code>static enum&nbsp;</code></div>
+<div class="col-second odd-row-color"><code><a href="Elevator.TargetState.html" class="type-name-link" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a></code></div>
+<div class="col-last odd-row-color">&nbsp;</div>
 </div>
 </section>
 </li>
@@ -150,47 +153,41 @@ loadScripts(document, 'script');</script>
 <div class="table-header col-first">Modifier and Type</div>
 <div class="table-header col-second">Method</div>
 <div class="table-header col-last">Description</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#atSetpoint()" class="member-name-link">atSetpoint</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#atTarget()" class="member-name-link">atTarget</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#atTarget(frc.robot.Subsystems.Elevator.Elevator.TargetState)" class="member-name-link">atTarget</a><wbr>(<a href="Elevator.TargetState.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a>&nbsp;state)</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#atSetpoint()" class="member-name-link">atSetpoint</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getCoralStored()" class="member-name-link">getCoralStored</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getElevatorHeight()" class="member-name-link">getElevatorHeight</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>boolean</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#atSetpoint(double)" class="member-name-link">atSetpoint</a><wbr>(double&nbsp;setpoint)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getCoralStored()" class="member-name-link">getCoralStored</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getElevatorZeroed()" class="member-name-link">getElevatorZeroed</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract double</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getElevatorHeight()" class="member-name-link">getElevatorHeight</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract edu.wpi.first.math.geometry.Rotation2d</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getWristAngle()" class="member-name-link">getWristAngle</a>()</code></div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract boolean</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getElevatorZeroed()" class="member-name-link">getElevatorZeroed</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract edu.wpi.first.wpilibj2.command.Command</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#intakeAlgaeCmd()" class="member-name-link">intakeAlgaeCmd</a>()</code></div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract <a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#getTalons()" class="member-name-link">getTalons</a>()</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract edu.wpi.first.wpilibj2.command.Command</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#intakeCoralCmd()" class="member-name-link">intakeCoralCmd</a>()</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract edu.wpi.first.wpilibj2.command.Command</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#intakeCoralSequence()" class="member-name-link">intakeCoralSequence</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>edu.wpi.first.wpilibj2.command.Command</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#intakeCoralCmd()" class="member-name-link">intakeCoralCmd</a>()</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>edu.wpi.first.wpilibj2.command.Command</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#intakeCoralCmd(boolean)" class="member-name-link">intakeCoralCmd</a><wbr>(boolean&nbsp;exit_early)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#periodic()" class="member-name-link">periodic</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runEleMotionMagic(double)" class="member-name-link">runEleMotionMagic</a><wbr>(double&nbsp;setpoint)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract double</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runElevator(double)" class="member-name-link">runElevator</a><wbr>(double&nbsp;speed)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runIntake(double)" class="member-name-link">runIntake</a><wbr>(double&nbsp;speed)</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runAlgae(double)" class="member-name-link">runAlgae</a><wbr>(double&nbsp;speed)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runEleMotionMagic(double)" class="member-name-link">runEleMotionMagic</a><wbr>(double&nbsp;setpoint)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract double</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runElevator(double)" class="member-name-link">runElevator</a><wbr>(double&nbsp;speed)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runShooter(double)" class="member-name-link">runShooter</a><wbr>(double&nbsp;speed)</code></div>
@@ -198,14 +195,14 @@ loadScripts(document, 'script');</script>
 <div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract double</code></div>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runWrist(double)" class="member-name-link">runWrist</a><wbr>(double&nbsp;speed)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>protected abstract void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#runWristMotionMagic(double)" class="member-name-link">runWristMotionMagic</a><wbr>(double&nbsp;setpoint)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setElevatorSetpoint(double)" class="member-name-link">setElevatorSetpoint</a><wbr>(double&nbsp;setpoint)</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
+<div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setElevatorSetpoint(double)" class="member-name-link">setElevatorSetpoint</a><wbr>(double&nbsp;setpoint)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
 <div class="block">Sets the target setpoint for internal elevator PID</div>
 </div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setLEDs(frc.robot.Subsystems.Elevator.Elevator.LEDPattern)" class="member-name-link">setLEDs</a><wbr>(<a href="Elevator.LEDPattern.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.LEDPattern</a>&nbsp;pattern)</code></div>
+<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
 <div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setState(frc.robot.Subsystems.Elevator.Elevator.TargetState)" class="member-name-link">setState</a><wbr>(<a href="Elevator.TargetState.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a>&nbsp;state)</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
@@ -215,19 +212,14 @@ loadScripts(document, 'script');</script>
 <div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setStateCmd(frc.robot.Subsystems.Elevator.Elevator.TargetState)" class="member-name-link">setStateCmd</a><wbr>(<a href="Elevator.TargetState.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a>&nbsp;state)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code>void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setWristSetpoint(double)" class="member-name-link">setWristSetpoint</a><wbr>(double&nbsp;setpoint)</code></div>
-<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">
-<div class="block">Sets the target setpoint for internal wrist PID</div>
-</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#stopElevator()" class="member-name-link">stopElevator</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4"><code><a href="#setWrist(java.lang.Boolean)" class="member-name-link">setWrist</a><wbr>(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&nbsp;up)</code></div>
+<div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab4">&nbsp;</div>
+<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract edu.wpi.first.wpilibj2.command.Command</code></div>
+<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#setWristCmd(boolean)" class="member-name-link">setWristCmd</a><wbr>(boolean&nbsp;up)</code></div>
 <div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 <div class="col-first even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
-<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#stopWrist()" class="member-name-link">stopWrist</a>()</code></div>
+<div class="col-second even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#stopElevator()" class="member-name-link">stopElevator</a>()</code></div>
 <div class="col-last even-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
-<div class="col-first odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code>abstract void</code></div>
-<div class="col-second odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3"><code><a href="#zeroWrist()" class="member-name-link">zeroWrist</a>()</code></div>
-<div class="col-last odd-row-color method-summary-table method-summary-table-tab2 method-summary-table-tab3">&nbsp;</div>
 </div>
 </div>
 </div>
@@ -308,32 +300,21 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="setWristSetpoint(double)">
-<h3>setWristSetpoint</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setWristSetpoint</span><wbr><span class="parameters">(double&nbsp;setpoint)</span></div>
-<div class="block">Sets the target setpoint for internal wrist PID</div>
-<dl class="notes">
-<dt>Parameters:</dt>
-<dd><code>setpoint</code> - The setpoint in meters. 0 is the lowest elevator height.</dd>
-</dl>
-</section>
-</li>
-<li>
 <section class="detail" id="setStateCmd(frc.robot.Subsystems.Elevator.Elevator.TargetState)">
 <h3>setStateCmd</h3>
 <div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">setStateCmd</span><wbr><span class="parameters">(<a href="Elevator.TargetState.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a>&nbsp;state)</span></div>
 </section>
 </li>
 <li>
-<section class="detail" id="atTarget()">
-<h3>atTarget</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">atTarget</span>()</div>
+<section class="detail" id="atSetpoint()">
+<h3>atSetpoint</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">atSetpoint</span>()</div>
 </section>
 </li>
 <li>
-<section class="detail" id="atTarget(frc.robot.Subsystems.Elevator.Elevator.TargetState)">
-<h3>atTarget</h3>
-<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">atTarget</span><wbr><span class="parameters">(<a href="Elevator.TargetState.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.TargetState</a>&nbsp;state)</span></div>
+<section class="detail" id="atSetpoint(double)">
+<h3>atSetpoint</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">atSetpoint</span><wbr><span class="parameters">(double&nbsp;setpoint)</span></div>
 </section>
 </li>
 <li>
@@ -355,27 +336,27 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="runWristMotionMagic(double)">
-<h3>runWristMotionMagic</h3>
-<div class="member-signature"><span class="modifiers">protected abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">runWristMotionMagic</span><wbr><span class="parameters">(double&nbsp;setpoint)</span></div>
-</section>
-</li>
-<li>
 <section class="detail" id="stopElevator()">
 <h3>stopElevator</h3>
 <div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">stopElevator</span>()</div>
 </section>
 </li>
 <li>
-<section class="detail" id="stopWrist()">
-<h3>stopWrist</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">stopWrist</span>()</div>
+<section class="detail" id="setWrist(java.lang.Boolean)">
+<h3>setWrist</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setWrist</span><wbr><span class="parameters">(<a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/lang/Boolean.html" title="class or interface in java.lang" class="external-link">Boolean</a>&nbsp;up)</span></div>
 </section>
 </li>
 <li>
-<section class="detail" id="runIntake(double)">
-<h3>runIntake</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">runIntake</span><wbr><span class="parameters">(double&nbsp;speed)</span></div>
+<section class="detail" id="setWristCmd(boolean)">
+<h3>setWristCmd</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">setWristCmd</span><wbr><span class="parameters">(boolean&nbsp;up)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="runAlgae(double)">
+<h3>runAlgae</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">runAlgae</span><wbr><span class="parameters">(double&nbsp;speed)</span></div>
 </section>
 </li>
 <li>
@@ -391,33 +372,15 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="getWristAngle()">
-<h3>getWristAngle</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">edu.wpi.first.math.geometry.Rotation2d</span>&nbsp;<span class="element-name">getWristAngle</span>()</div>
+<section class="detail" id="intakeCoralCmd(boolean)">
+<h3>intakeCoralCmd</h3>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">intakeCoralCmd</span><wbr><span class="parameters">(boolean&nbsp;exit_early)</span></div>
 </section>
 </li>
 <li>
 <section class="detail" id="intakeCoralCmd()">
 <h3>intakeCoralCmd</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">intakeCoralCmd</span>()</div>
-</section>
-</li>
-<li>
-<section class="detail" id="intakeCoralSequence()">
-<h3>intakeCoralSequence</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">intakeCoralSequence</span>()</div>
-</section>
-</li>
-<li>
-<section class="detail" id="intakeAlgaeCmd()">
-<h3>intakeAlgaeCmd</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">intakeAlgaeCmd</span>()</div>
-</section>
-</li>
-<li>
-<section class="detail" id="zeroWrist()">
-<h3>zeroWrist</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">zeroWrist</span>()</div>
+<div class="member-signature"><span class="modifiers">public</span>&nbsp;<span class="return-type">edu.wpi.first.wpilibj2.command.Command</span>&nbsp;<span class="element-name">intakeCoralCmd</span>()</div>
 </section>
 </li>
 <li>
@@ -433,9 +396,15 @@ loadScripts(document, 'script');</script>
 </section>
 </li>
 <li>
-<section class="detail" id="atSetpoint()">
-<h3>atSetpoint</h3>
-<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">boolean</span>&nbsp;<span class="element-name">atSetpoint</span>()</div>
+<section class="detail" id="setLEDs(frc.robot.Subsystems.Elevator.Elevator.LEDPattern)">
+<h3>setLEDs</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type">void</span>&nbsp;<span class="element-name">setLEDs</span><wbr><span class="parameters">(<a href="Elevator.LEDPattern.html" title="enum class in frc.robot.Subsystems.Elevator">Elevator.LEDPattern</a>&nbsp;pattern)</span></div>
+</section>
+</li>
+<li>
+<section class="detail" id="getTalons()">
+<h3>getTalons</h3>
+<div class="member-signature"><span class="modifiers">public abstract</span>&nbsp;<span class="return-type"><a href="https://docs.oracle.com/en/java/javase/17/docs/api/java.base/java/util/List.html" title="class or interface in java.util" class="external-link">List</a>&lt;com.ctre.phoenix6.hardware.TalonFX&gt;</span>&nbsp;<span class="element-name">getTalons</span>()</div>
 </section>
 </li>
 <li>

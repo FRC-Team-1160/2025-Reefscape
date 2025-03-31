@@ -34,7 +34,7 @@ public class SwerveModuleSimIO extends SwerveModule {
         sim_angle_pid.setSetpoint(angle.getRotations());
     }
 
-    public void setSpeed(double speed) {
+    public void setSpeed(double speed, double acceleration) {
         sim_velocity_pid.setSetpoint(speed);
     }
 

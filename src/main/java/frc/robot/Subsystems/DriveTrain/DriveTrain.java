@@ -2,6 +2,7 @@ package frc.robot.Subsystems.DriveTrain; //Accidentally changed the folder name 
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import org.json.simple.parser.ParseException;
@@ -25,11 +26,10 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import frc.robot.Robot;
-import frc.robot.SubsystemManager;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.SubsystemManager.RobotState.DriveStates;
+import frc.robot.Subsystems.DriveTrain.SwerveModule.FullModuleState;
 
 /** The drive subsystem. */
 public abstract class DriveTrain extends SubsystemBase {
@@ -43,6 +43,12 @@ public abstract class DriveTrain extends SubsystemBase {
     /** The desired module states. */
     @AutoLogOutput
     public SwerveModuleState[] module_states;
+
+    public record AccelerationFeedforward(double acceleration, boolean adjust) {
+        public static AccelerationFeedforward kZero = new AccelerationFeedforward(0, false);
+    }
+
+    public AccelerationFeedforward[] accel_feedforwards;
 
     public RobotConfig config;
 
@@ -60,12 +66,7 @@ public abstract class DriveTrain extends SubsystemBase {
                 PortConstants.BACK_RIGHT_CODER, new Translation2d(-SwerveConstants.OFFSET, -SwerveConstants.OFFSET))
         };
 
-        module_states = new SwerveModuleState[] {
-                new SwerveModuleState(),
-                new SwerveModuleState(),
-                new SwerveModuleState(),
-                new SwerveModuleState()
-        };
+        module_states = Collections.nCopies(4, new SwerveModuleState()).toArray(SwerveModuleState[]::new);
 
         kinematics = new SwerveDriveKinematics(
             modules[0].offset, // front left
@@ -73,6 +74,9 @@ public abstract class DriveTrain extends SubsystemBase {
             modules[2].offset, // back left
             modules[3].offset // back right
         );
+
+        accel_feedforwards = Collections.nCopies(4, AccelerationFeedforward.kZero)
+            .toArray(AccelerationFeedforward[]::new);
 
         try {
             config = RobotConfig.fromGUISettings();
@@ -124,6 +128,8 @@ public abstract class DriveTrain extends SubsystemBase {
 
         if (discretize) chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
+        FullModuleState[] full_module_states = new FullModuleState[modules.length];
+
         module_states = kinematics.toSwerveModuleStates(chassis_speeds);
 
         // change target wheel directions if the wheel has to rotate more than 90*
@@ -134,8 +140,17 @@ public abstract class DriveTrain extends SubsystemBase {
 
         // normalize wheel speeds of any are greater than max speed
         SwerveDriveKinematics.desaturateWheelSpeeds(module_states, SwerveConstants.MAX_SPEED);
+
+        for (int i = 0; i < module_states.length; i++) {
+            full_module_states[i] = new FullModuleState(
+                module_states[i], 
+                accel_feedforwards[i].adjust ? 
+                    accel_feedforwards[i].acceleration * Math.signum(module_states[i].speedMetersPerSecond)
+                    : accel_feedforwards[i].acceleration);
+            accel_feedforwards[i] = AccelerationFeedforward.kZero;
+        }
         
-        setModules(module_states);
+        setModules(full_module_states);
     }
 
     /**
@@ -143,6 +158,12 @@ public abstract class DriveTrain extends SubsystemBase {
      * @param module_states The desired module states.
      */
     public void setModules(SwerveModuleState[] module_states) {
+        for (int i = 0; i < modules.length; i++) {
+            modules[i].setState(module_states[i]);
+        }
+    }
+
+    public void setModules(FullModuleState[] module_states) {
         for (int i = 0; i < modules.length; i++) {
             modules[i].setState(module_states[i]);
         }
@@ -218,9 +239,11 @@ public abstract class DriveTrain extends SubsystemBase {
             ).toArray();
     }
 
-    public void setAccelerationFeedforwards(double[] feedforwards) {
+    public void acceptFeedforwards(double[] feedforwards, boolean adjustSign) {
         Logger.recordOutput("DriveTrain/Feedforwards", feedforwards);
-        for (int i = 0; i < modules.length; i++) modules[i].acceleration_ff = feedforwards[i];
+        for (int i = 0; i < modules.length; i++) {
+            accel_feedforwards[i] = new AccelerationFeedforward(feedforwards[i], adjustSign);
+        }
     }
 
     public abstract List<TalonFX> getTalons();
