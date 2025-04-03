@@ -70,8 +70,8 @@ public class SwerveModuleRealIO extends SwerveModule {
 
         steer_configs.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        steer_configs.Voltage.PeakForwardVoltage = 3.5;
-        steer_configs.Voltage.PeakReverseVoltage = -3.5;
+        steer_configs.Voltage.PeakForwardVoltage = 5;
+        steer_configs.Voltage.PeakReverseVoltage = -5;
 
         steer_configs.ClosedLoopGeneral.ContinuousWrap = true;
 
@@ -112,8 +112,8 @@ public class SwerveModuleRealIO extends SwerveModule {
                 .withAcceleration(acceleration));
     }
 
-    protected void setAngle(Rotation2d angle) {
-        steer_motor.setControl(new PositionVoltage(angle.getRotations())); 
+    protected void setAngle(Rotation2d angle, double velocity) {
+        steer_motor.setControl(new PositionVoltage(angle.getRotations()).withVelocity(velocity)); 
     }
 
     public List<TalonFX> getTalons() {

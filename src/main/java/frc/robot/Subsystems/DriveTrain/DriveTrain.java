@@ -29,7 +29,6 @@ import frc.robot.Robot;
 import frc.robot.Constants.PortConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.SwerveConstants;
-import frc.robot.Subsystems.DriveTrain.SwerveModule.FullModuleState;
 
 /** The drive subsystem. */
 public abstract class DriveTrain extends SubsystemBase {
@@ -43,6 +42,8 @@ public abstract class DriveTrain extends SubsystemBase {
     /** The desired module states. */
     @AutoLogOutput
     public SwerveModuleState[] module_states;
+
+    public FullModuleState[] full_module_states;
 
     public record AccelerationFeedforward(double acceleration, boolean adjust) {
         public static AccelerationFeedforward kZero = new AccelerationFeedforward(0, false);
@@ -67,6 +68,7 @@ public abstract class DriveTrain extends SubsystemBase {
         };
 
         module_states = Collections.nCopies(4, new SwerveModuleState()).toArray(SwerveModuleState[]::new);
+        full_module_states = Collections.nCopies(4, new FullModuleState()).toArray(FullModuleState[]::new);
 
         kinematics = new SwerveDriveKinematics(
             modules[0].offset, // front left
@@ -107,16 +109,6 @@ public abstract class DriveTrain extends SubsystemBase {
         setSwerveDrive(chassis_speeds, true);
     }
 
-    public boolean optimizeState(SwerveModuleState state, Rotation2d currentAngle) {
-        var delta = state.angle.minus(currentAngle);
-        if (Math.abs(delta.getDegrees()) > 90.0) {
-            state.speedMetersPerSecond *= -1;
-            state.angle = state.angle.rotateBy(Rotation2d.kPi);
-            return true;
-        }
-        return false;
-    }
-
     /**
      * Calculates and sends inputs to swerve modules given robot-relative speeds.
      * @param chassis_speeds The desired robot-relative chassis speeds.
@@ -128,45 +120,42 @@ public abstract class DriveTrain extends SubsystemBase {
 
         if (discretize) chassis_speeds = discretize_chassis_speeds(chassis_speeds);
 
-        FullModuleState[] full_module_states = new FullModuleState[modules.length];
-
         module_states = kinematics.toSwerveModuleStates(chassis_speeds);
 
         // change target wheel directions if the wheel has to rotate more than 90*
         for (int i = 0; i < module_states.length; i++) {
             module_states[i].optimize(modules[i].getAngle());
-            module_states[i].cosineScale(modules[i].getAngle());
         }
 
         // normalize wheel speeds of any are greater than max speed
         SwerveDriveKinematics.desaturateWheelSpeeds(module_states, SwerveConstants.MAX_SPEED);
-
-        for (int i = 0; i < module_states.length; i++) {
-            full_module_states[i] = new FullModuleState(
-                module_states[i], 
-                accel_feedforwards[i].adjust ? 
-                    accel_feedforwards[i].acceleration * Math.signum(module_states[i].speedMetersPerSecond)
-                    : accel_feedforwards[i].acceleration);
-            accel_feedforwards[i] = AccelerationFeedforward.kZero;
-        }
         
-        setModules(full_module_states);
+        for (int i = 0; i < module_states.length; i++) {
+            full_module_states[i].withState(module_states[i]).optimize(modules[i].getAngle());
+        }
+
+        setModules(module_states);
     }
 
     /**
      * Sends calculated inputs to swerve modules.
      * @param module_states The desired module states.
      */
-    public void setModules(SwerveModuleState[] module_states) {
+    public void setModules(SwerveModuleState[] states) {
         for (int i = 0; i < modules.length; i++) {
-            modules[i].setState(module_states[i]);
+            modules[i].setState(states[i]);
         }
     }
 
-    public void setModules(FullModuleState[] module_states) {
+    public void setModules(FullModuleState[] states) {
         for (int i = 0; i < modules.length; i++) {
-            modules[i].setState(module_states[i]);
+            modules[i].setState(states[i]);
         }
+    }
+
+    public void setModules(boolean reset) {
+        setModules(full_module_states);
+        full_module_states = Collections.nCopies(4, new FullModuleState()).toArray(FullModuleState[]::new);
     }
 
     /**
@@ -239,10 +228,27 @@ public abstract class DriveTrain extends SubsystemBase {
             ).toArray();
     }
 
-    public void acceptFeedforwards(double[] feedforwards, boolean adjustSign) {
+    public double[] calculateSteerFeedforwards(ChassisSpeeds desired_speeds) {
+        SwerveModuleState[] target_states = kinematics.toSwerveModuleStates(desired_speeds);
+        double[] out_feedforwards = new double[modules.length];
+        for (int i = 0; i < modules.length; i++) {
+            out_feedforwards[i] = target_states[i].angle.minus(modules[i].getAngle())
+                .div(RobotConstants.LOOP_TIME_SECONDS).getRotations();
+        }
+        return out_feedforwards;
+    }
+
+    public void setFeedforwards(double[] feedforwards, boolean adjustSign) {
         Logger.recordOutput("DriveTrain/Feedforwards", feedforwards);
         for (int i = 0; i < modules.length; i++) {
-            accel_feedforwards[i] = new AccelerationFeedforward(feedforwards[i], adjustSign);
+            full_module_states[i].withAcceleration(feedforwards[i], adjustSign);
+        }
+    }
+
+    public void setSteerFeedforwards(double[] feedforwards) {
+        Logger.recordOutput("DriveTrain/Steer Feedforwards", feedforwards);
+        for (int i = 0; i < modules.length; i++) {
+            full_module_states[i].withAngularSpeed(feedforwards[i]);
         }
     }
 

@@ -159,11 +159,11 @@ public class Vision {
                 frame_tags.add(result.getBestTarget().fiducialId);
             }
 
-            Supplier<DoubleStream> dists = () -> Arrays.stream(frame_tags.toArray())
-                .mapToDouble(id -> robot_pose.getTranslation().minus(apriltags_map[(int)id].getTranslation().toTranslation2d()).getNorm());
+            // Supplier<DoubleStream> dists = () -> Arrays.stream(frame_tags.toArray())
+            //     .mapToDouble(id -> robot_pose.getTranslation().minus(apriltags_map[(int)id].getTranslation().toTranslation2d()).getNorm());
 
-            if (dists.get().max().orElse(0) < VisionConstants.TAG_MIN_DIST 
-                || dists.get().min().orElse(0) > VisionConstants.TAG_MAX_DIST) break;
+            // if (dists.get().max().orElse(0) < VisionConstants.TAG_MIN_DIST 
+            //     || dists.get().min().orElse(0) > VisionConstants.TAG_MAX_DIST) break;
 
             fiducials.addAll(frame_tags);
 

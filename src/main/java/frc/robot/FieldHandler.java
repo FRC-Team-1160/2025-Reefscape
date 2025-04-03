@@ -221,8 +221,8 @@ public class FieldHandler {
                     )
                 );
             FieldPositions.reef[3*i + 1] = center;
-            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.15, Rotation2d.kZero)); //0.18
-            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.18, Rotation2d.kZero)); //-0.15
+            FieldPositions.reef[3*i] = center.plus(new Transform2d(0, 0.14, Rotation2d.kZero)); //0.15
+            FieldPositions.reef[3*i + 2] = center.plus(new Transform2d(0, -0.17, Rotation2d.kZero)); //-0.18
             angle = angle.plus(Rotation2d.fromRotations(1.0 / Reef.NUM_SIDES));
         }
 
@@ -337,7 +337,7 @@ public class FieldHandler {
                 AutoConstants.MAX_ANG_SPEED, 
                 AutoConstants.MAX_ANG_ACCEL), 
             new IdealStartingState(0, start.rotation), 
-            new GoalEndState(1.5, end.rotation));
+            new GoalEndState(1.0, end.rotation)).flipPath();
     }
 
     public void updatePreview() {

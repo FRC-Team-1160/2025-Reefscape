@@ -29,15 +29,42 @@ abstract public class Elevator extends SubsystemBase {
     @AutoLogOutput(key = "Elevator/Current State")
     public TargetState m_current_state;
 
+    @AutoLogOutput(key = "Elevator/LED Pattern")
+    public LEDPattern m_led_pattern;
+
+    public enum LEDColor {
+        kBlue, kWhite;
+    }
+
+    public enum LEDSequence {
+        kSolid, kFlash;
+    }
+
     public enum LEDPattern {
-        kBlue(0.85),
-        kBlueFlash(-0.09),
-        kWhite(0.93),
-        kWhiteFlash(-0.05);
+        kBlueSolid(0.85, LEDColor.kBlue, LEDSequence.kSolid),
+        kBlueFlash(-0.09, LEDColor.kBlue, LEDSequence.kFlash),
+        kWhiteSolid(0.93, LEDColor.kWhite, LEDSequence.kSolid),
+        kWhiteFlash(-0.05, LEDColor.kWhite, LEDSequence.kFlash);
 
         public final double value;
-        private LEDPattern(double value) {
+        public final LEDColor color;
+        public final LEDSequence sequence;
+        private LEDPattern(double value, LEDColor color, LEDSequence sequence) {
             this.value = value;
+            this.color = color;
+            this.sequence = sequence;
+        }
+
+        public LEDPattern getPattern(LEDColor color, LEDSequence sequence) {
+            return LEDPattern.valueOf(color.name() + sequence.name().substring(1));
+        }
+
+        public LEDPattern withColor(LEDColor color) {
+            return getPattern(color, this.sequence);
+        }
+
+        public LEDPattern withSequence(LEDSequence sequence) {
+            return getPattern(this.color, sequence);
         }
     }
 
@@ -124,11 +151,11 @@ abstract public class Elevator extends SubsystemBase {
 
     public abstract void stopElevator();
 
-    public void setWrist(Boolean up) {
-        if (up != null) CommandScheduler.getInstance().schedule(setWristCmd(up));
+    public void setWrist(Boolean out) {
+        if (out != null) CommandScheduler.getInstance().schedule(setWristCmd(out));
     }
 
-    public abstract Command setWristCmd(boolean up);
+    public abstract Command setWristCmd(boolean out);
 
     // Flywheel set methods
     public abstract void runAlgae(double speed);
@@ -159,13 +186,26 @@ abstract public class Elevator extends SubsystemBase {
     @AutoLogOutput
     public abstract boolean getElevatorZeroed();
 
-    public abstract void setLEDs(LEDPattern pattern);
+    public void setLEDColor(LEDColor color) {
+        setLEDPattern(m_led_pattern.withColor(color));
+    }
+
+    public void setLEDSequence(LEDSequence sequence) {
+        setLEDPattern(m_led_pattern.withSequence(sequence));
+    }
+
+    public void setLEDPattern(LEDPattern pattern) {
+        m_led_pattern = pattern;
+        setLEDs(pattern);
+    }
+
+    protected abstract void setLEDs(LEDPattern pattern);
 
     public abstract List<TalonFX> getTalons();
 
     @Override
     public void periodic() {
-
+        setLEDPattern(m_led_pattern.withColor(getCoralStored() ? LEDColor.kWhite : LEDColor.kBlue));
     }
 
 }

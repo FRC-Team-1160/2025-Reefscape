@@ -358,7 +358,8 @@ public final class Constants {
         public static class CoralStation {
             public static final double CENTER_X = RobotUtils.allianceFlipX(Units.inchesToMeters(33.51));
             public static final double CENTER_Y = Units.inchesToMeters(25.8);
-            public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Units.degreesToRadians(54));
+            public static final double ANGLE_RADIANS = RobotUtils.allianceNegate(Units.degreesToRadians(54))
+                 + (RobotUtils.isRedAlliance() ? Math.PI : 0);
         }
 
         /** Dimensions of the Algae Processor */

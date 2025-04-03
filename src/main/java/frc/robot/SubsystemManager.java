@@ -19,6 +19,7 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.Tracer;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.DeferredCommand;
@@ -31,6 +32,7 @@ import frc.robot.SubsystemManager.RobotState.DriveStates;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
+import frc.robot.Subsystems.Elevator.Elevator.LEDSequence;
 import frc.robot.Subsystems.Vision.Vision;
 import frc.robot.Subsystems.Vision.ObjectDetection;
 import frc.robot.Subsystems.Vision.VisionTarget;
@@ -60,6 +62,8 @@ public class SubsystemManager {
     public VisionTarget tracked_target;
 
     public Orchestra orchestra;
+
+    public Tracer tracer;
 
     /** Stores a set of chassis speeds and acceleration feedforwards to accept PathPlanner output. */
     public record PathplannerSpeeds(ChassisSpeeds chassis_speeds, double[] acceleration_feedforwards) {
@@ -117,7 +121,8 @@ public class SubsystemManager {
             SwervePIDController.instance.reset_speeds = false;
             return DriveTrain.instance.getOdomSpeeds();
         } else {
-            return DriveTrain.instance.getTargetOdomSpeeds().plus(DriveTrain.instance.getOdomSpeeds()).div(2);
+            return DriveTrain.instance.getOdomSpeeds();
+            // return DriveTrain.instance.getTargetOdomSpeeds().plus(DriveTrain.instance.getOdomSpeeds()).div(2);
         }
     }
 
@@ -129,7 +134,7 @@ public class SubsystemManager {
 
             case PATHPLANNER_CONTROL:
                 DriveTrain.instance.setSwerveDrive(m_pathplanner_speeds.chassis_speeds, false);
-                DriveTrain.instance.acceptFeedforwards(m_pathplanner_speeds.acceleration_feedforwards, true);
+                DriveTrain.instance.setFeedforwards(m_pathplanner_speeds.acceleration_feedforwards, true);
                 Logger.recordOutput("DriveTrain/FFs", m_pathplanner_speeds.acceleration_feedforwards);
                 break;
 
@@ -261,11 +266,13 @@ public class SubsystemManager {
                     SwervePIDController.instance.reset_speeds = true;
                     SwervePIDController.instance.done = false;
                     SwervePIDController.instance.configure(target_pose.get(), target_distance, offset);
+                    Elevator.instance.setLEDSequence(LEDSequence.kFlash);
                     // Vision.instance.setCameraPipelines(Vision.CameraMode.kStereoAprilTag);
                 },
                 () -> {},
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
+                    Elevator.instance.setLEDSequence(LEDSequence.kSolid);
                 },
                 () -> SwervePIDController.instance.done
             );

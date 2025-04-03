@@ -78,6 +78,7 @@ public class ElevatorRealIO extends Elevator {
         ele_motor.getConfigurator().apply(ele_configs);
 
         blinkin = new Spark(2);
+        setLEDPattern(LEDPattern.kBlueSolid);
 
         update_zero = true;
         count = 0;
@@ -94,8 +95,8 @@ public class ElevatorRealIO extends Elevator {
         return speed;
     }
 
-    public Command setWristCmd(boolean up) {
-        return new InstantCommand(() -> runWrist(up ? 4 : -3))
+    public Command setWristCmd(boolean out) {
+        return new InstantCommand(() -> runWrist(out ? -5 : 6))
             .andThen(new WaitCommand(0.5))
             .andThen(new WaitUntilCommand(() -> wrist_motor.getOutputCurrent() > 10))
             .withTimeout(3)
@@ -135,7 +136,6 @@ public class ElevatorRealIO extends Elevator {
     }
 
     public void setLEDs(LEDPattern pattern) {
-        System.out.println("cibes");
         Logger.recordOutput("Elevator/LED val", pattern.value);
         blinkin.set(pattern.value);
     }

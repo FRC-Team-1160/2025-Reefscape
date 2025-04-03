@@ -12,20 +12,12 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 /** Represents a single swerve module. */
 public abstract class SwerveModule {
 
-    public record FullModuleState(SwerveModuleState state, double acceleration) {
-        public static FullModuleState kZero = new FullModuleState(new SwerveModuleState());
-
-        public FullModuleState(SwerveModuleState state) {
-            this(state, 0);
-        }
-    }
-
     public FullModuleState target_state;
     public Translation2d offset;
 
     /** Class constructor. */
     protected SwerveModule() {
-        target_state = FullModuleState.kZero;
+        target_state = new FullModuleState();
     }
 
     /** 
@@ -55,13 +47,17 @@ public abstract class SwerveModule {
         setSpeed(speed, 0);
     }
 
+    public void setAngle(Rotation2d angle) {
+        setAngle(angle, 0);
+    }
+
     public void applyState(SwerveModuleState state) {
         applyState(new FullModuleState(state));
     }
 
     public void applyState(FullModuleState state) {
-        setSpeed(state.state.speedMetersPerSecond, state.acceleration);
-        setAngle(state.state.angle);
+        setSpeed(state.base_state.speedMetersPerSecond, state.getAcceleration());
+        setAngle(state.base_state.angle, state.angular_speed);
     }
 
     abstract double getSpeed();
@@ -71,7 +67,7 @@ public abstract class SwerveModule {
     abstract SwerveModulePosition getModulePosition();
 
     protected abstract void setSpeed(double speed, double acceleration);
-    protected abstract void setAngle(Rotation2d angle);
+    protected abstract void setAngle(Rotation2d angle, double velocity);
 
     public abstract List<TalonFX> getTalons();
 }

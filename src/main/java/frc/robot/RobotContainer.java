@@ -31,7 +31,7 @@ import frc.robot.SubsystemManager.PathplannerSpeeds;
 import frc.robot.Subsystems.Climber.Climber;
 import frc.robot.Subsystems.DriveTrain.DriveTrain;
 import frc.robot.Subsystems.Elevator.Elevator;
-import frc.robot.Subsystems.Elevator.Elevator.LEDPattern;
+import frc.robot.Subsystems.Elevator.Elevator.LEDColor;
 import frc.robot.Subsystems.Elevator.Elevator.TargetState;
 import frc.robot.Subsystems.Funnel.Funnel;
 import frc.robot.Subsystems.Funnel.Funnel.FunnelState;
@@ -218,11 +218,8 @@ public class RobotContainer {
                     Commands.defer(SubsystemManager.instance.commands::selectCommand, new HashSet<>()));
 
                 new JoystickButton(simp_stick, 7).whileTrue(new StartEndCommand(
-                    () -> {
-                        Elevator.instance.setLEDs(LEDPattern.kBlue);
-                        System.out.println("SOMETHING");
-                    },
-                    () -> Elevator.instance.setLEDs(LEDPattern.kWhite)));
+                    () -> Elevator.instance.setLEDColor(LEDColor.kWhite),
+                    () -> Elevator.instance.setLEDColor(LEDColor.kBlue)));
 
                 break;
         }
