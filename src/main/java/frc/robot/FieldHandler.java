@@ -241,13 +241,13 @@ public class FieldHandler {
                 CoralStation.CENTER_X,
                 CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(CoralStation.ANGLE_RADIANS).plus(Rotation2d.kPi)
-            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0.5, Rotation2d.kZero)),
+            ).plus(new Transform2d(-RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kZero)), // 0.5
             // left source
             new Pose2d(
                 CoralStation.CENTER_X,
                 FieldConstants.WIDTH - CoralStation.CENTER_Y,
                 Rotation2d.fromRadians(-CoralStation.ANGLE_RADIANS)
-            ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0.5, Rotation2d.kPi))
+            ).plus(new Transform2d(RobotConstants.BASE_WIDTH / 2, 0, Rotation2d.kPi))
         };
 
         FieldPositions.processor = new Pose2d(
@@ -346,7 +346,7 @@ public class FieldHandler {
                 AutoConstants.MAX_ANG_SPEED, 
                 AutoConstants.MAX_ANG_ACCEL), 
             new IdealStartingState(0, start.rotation), 
-            new GoalEndState(1.0, end.rotation));
+            new GoalEndState(0.7, end.rotation));
     }
 
     public void updatePreview() {

@@ -232,7 +232,7 @@ public class SwervePIDController {
             .rotateBy(robot_pose.getRotation().unaryMinus());
 
         double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
-        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.15;
+        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.2;
         goal_off = goal_off.times(speed / goal_off.getNorm());
 
         Logger.recordOutput("SwervePIDController/Distance Error", dist_pid_controller.getError());

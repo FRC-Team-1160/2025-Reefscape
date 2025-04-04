@@ -200,8 +200,8 @@ public final class Constants {
         /** Constraints and settings for automatic alignment. */
         public static class Tracking {
             public static final double MAX_SPEED = 2.5;
-            public static final double MAX_ACCEL = 3;
-            public static final double MAX_DECEL = 5.0;
+            public static final double MAX_ACCEL = 5;
+            public static final double MAX_DECEL = 7.0;
             public static final double MAX_ANG_SPEED = 4.0;
             public static final double MAX_ANG_ACCEL = 6.0;
             public static final double MAX_ANG_DECEL = 9.0;
@@ -307,7 +307,7 @@ public final class Constants {
             public static final double kL3 = 2.7; //TUNE
             public static final double kL4 = 5.12; //TUNE
             public static final double kL2Algae = 0.7; //TUNE
-            public static final double kL3Algae = 1.7; //TUNE
+            public static final double kL3Algae = 1.5; //TUNE
             public static final double kStow = -0.05;
             public static final double kSource = -0.05;
         }
@@ -315,7 +315,7 @@ public final class Constants {
 
     /** PID correction constants for PathPlanner. */
     public static class AutoConstants {
-        public static final double translation_kP = 0.5;
+        public static final double translation_kP = 2d;
         public static final double translation_kI = 0d;
         public static final double translation_kD = 0d;
         
