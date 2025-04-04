@@ -156,8 +156,8 @@ public class RobotContainer {
                 break;
             case kXBox:
                 SubsystemManager.instance.update(new JoystickInputs(
-                    driver_controller.getRawAxis(1) * (driver_controller.getRawButton(6) ? 0.4 : 1), 
-                    driver_controller.getRawAxis(0) * (driver_controller.getRawButton(6) ? 0.4 : 1), 
+                    driver_controller.getRawAxis(1) * (driver_controller.getRawButton(6) ? 0.5 : 1), 
+                    driver_controller.getRawAxis(0) * (driver_controller.getRawButton(6) ? 0.5 : 1), 
                     driver_controller.getRawAxis(4) * (driver_controller.getRawButton(6) ? 0.5 : 1)));
                 break;
             case kSimple:
@@ -288,7 +288,7 @@ public class RobotContainer {
                     new DeferredCommand(
                         () -> RobotUtils.onOffCommand(
                             Climber.instance::runClimber, 
-                            (codriver_controller.getRawButton(8) ? 9 : 4)
+                            (codriver_controller.getRawButton(8) ? 5 : 10)
                              * (codriver_controller.getPOV() == 0 ? 1 : -1)), 
                         new HashSet<>()
                     )

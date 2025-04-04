@@ -28,7 +28,10 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
+import edu.wpi.first.wpilibj2.command.ParallelRaceGroup;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -61,20 +64,20 @@ public class FieldHandler {
     public enum AutoPos {
         kEnd("End", () -> Pose2d.kZero, Rotation2d.kZero, 0),
 
-        kCage1("Cage 1", () -> new Pose2d(Paths.START_X, Barge.CAGE_1, Rotation2d.kPi),
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
-        kCage2("Cage 2", () -> new Pose2d(Paths.START_X, Barge.CAGE_2, Rotation2d.kPi),
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
-        kCage3("Cage 3", () -> new Pose2d(Paths.START_X, Barge.CAGE_3, Rotation2d.kPi), 
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
-        kBargeMiddle("Barge Middle", () -> new Pose2d(Paths.START_X, Barge.MIDDLE, Rotation2d.kPi), 
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
-        kCage4("Cage 4", () -> new Pose2d(Paths.START_X, Barge.CAGE_4, Rotation2d.kPi), 
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
-        kCage5("Cage 5", () -> new Pose2d(Paths.START_X, Barge.CAGE_5, Rotation2d.kPi), 
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
-        kCage6("Cage 6", () -> new Pose2d(Paths.START_X, Barge.CAGE_6, Rotation2d.kPi), 
-            Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kCage1("Cage 1", () -> new Pose2d(Barge.START_X, Barge.CAGE_1, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi),
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kCage2("Cage 2", () -> new Pose2d(Barge.START_X, Barge.CAGE_2, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi),
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kCage3("Cage 3", () -> new Pose2d(Barge.START_X, Barge.CAGE_3, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi), 
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kBargeMiddle("Barge Middle", () -> new Pose2d(Barge.START_X, Barge.MIDDLE, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi), 
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kCage4("Cage 4", () -> new Pose2d(Barge.START_X, Barge.CAGE_4, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi), 
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kCage5("Cage 5", () -> new Pose2d(Barge.START_X, Barge.CAGE_5, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi), 
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
+        kCage6("Cage 6", () -> new Pose2d(Barge.START_X, Barge.CAGE_6, RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi), 
+            RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi, Paths.BARGE_CONTROL),
 
         kReef2L("2 Left", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 15 : 6], 
             Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 120 : -60), Paths.REEF_CONTROL_CLOSE),
@@ -169,9 +172,11 @@ public class FieldHandler {
 
         auto_positions_map = new HashMap<AutoPos, AutoPos[]>(Map.of(
             AutoPos.kCage1, new AutoPos[] {
-                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R, AutoPos.kReef6L, AutoPos.kReef6R },
+                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R, AutoPos.kReef6L, AutoPos.kReef6R,
+                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R },
             AutoPos.kCage2, new AutoPos[] {
-                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R },
+                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R,
+                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R },
             AutoPos.kCage3, new AutoPos[] {
                 AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef12R },
             AutoPos.kBargeMiddle, new AutoPos[] {
@@ -179,9 +184,13 @@ public class FieldHandler {
             AutoPos.kCage4, new AutoPos[] {
                 AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef12L },
             AutoPos.kCage5, new AutoPos[] {
-                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R },
+                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R ,
+                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R
+            },
             AutoPos.kCage6, new AutoPos[] {
-                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R, AutoPos.kReef6L, AutoPos.kReef6R },
+                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R, AutoPos.kReef6L, AutoPos.kReef6R,
+                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R
+            },
 
             AutoPos.kReef12L, new AutoPos[] {},
             AutoPos.kReef12R, new AutoPos[] {},
@@ -337,7 +346,7 @@ public class FieldHandler {
                 AutoConstants.MAX_ANG_SPEED, 
                 AutoConstants.MAX_ANG_ACCEL), 
             new IdealStartingState(0, start.rotation), 
-            new GoalEndState(1.0, end.rotation)).flipPath();
+            new GoalEndState(1.0, end.rotation));
     }
 
     public void updatePreview() {
@@ -417,31 +426,80 @@ public class FieldHandler {
             // Generate the path between two anchor points
             PathPlannerPath path = getPath(start, end);
 
+            if (RobotUtils.isRedAlliance()) path = path.flipPath();
+
             TargetState target = end.name().contains("Reef") ? TargetState.kL4 : TargetState.kSource;
 
-            sequence.addCommands(
-                // Run two command sequences in parallel
-                new ParallelCommandGroup(
-                    // Sequence 1: Following a PathPlanner curve into automatic alignment
-                    new SequentialCommandGroup(
-                        SubsystemManager.instance.commands.decoratePathplannerCmd(AutoBuilder.followPath(path)),
-                        // Select alignment target based on elevator state
-                        SubsystemManager.instance.commands.selectCommand(),
-                        new WaitCommand(0.5)),
-                    // Sequence 2: Wait for some time, then move the elevator to desired position
-                    new SequentialCommandGroup(
-                        // Wait longer if elevator is low, bring down quickly if elevator is high
-                        new WaitCommand(target != TargetState.kL4 ? 0.5 : 
-                            path.generateTrajectory(
-                                new ChassisSpeeds(), 
-                                start.rotation, 
-                                DriveTrain.instance.config
-                            ).getTotalTimeSeconds() - 1.5),
-                        Elevator.instance.setStateCmd(target))),
-                // Post-path command, intaking or shooting depending on elevator state
-                target == TargetState.kSource ? Elevator.instance.intakeCoralCmd()
-                     : RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3).withTimeout(1)
-            );
+            if (target == TargetState.kL4) {
+                sequence.addCommands(
+                    // Run two command sequences in parallel
+                    new ParallelCommandGroup(
+                        // Sequence 1: Following a PathPlanner curve into automatic alignment
+                        new SequentialCommandGroup(
+                            SubsystemManager.instance.commands.decoratePathplannerCmd(AutoBuilder.followPath(path)),
+                            // Select alignment target based on elevator state
+                            SubsystemManager.instance.commands.selectCommand(),
+                            new WaitCommand(0.5)),
+                        // Sequence 2: Wait for some time, then move the elevator to desired position
+                        new SequentialCommandGroup(
+                            // Wait longer if elevator is low, bring down quickly if elevator is high
+                            new WaitCommand( 
+                                path.generateTrajectory(
+                                    new ChassisSpeeds(), 
+                                    start.rotation, 
+                                    DriveTrain.instance.config
+                                ).getTotalTimeSeconds() - 1.5),
+                            Elevator.instance.setStateCmd(TargetState.kL4)
+                        )),
+                    // Post-path command, intaking or shooting depending on elevator state
+                    RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3).withTimeout(1)
+                );
+            } else {
+
+                sequence.addCommands(
+                    // Run two command sequences in parallel
+                    new ParallelDeadlineGroup(
+                        new SequentialCommandGroup(
+                            // Wait longer if elevator is low, bring down quickly if elevator is high
+                            new WaitCommand(0.5),
+                            Elevator.instance.setStateCmd(TargetState.kSource),
+                            Elevator.instance.intakeCoralCmd()),
+                        new SequentialCommandGroup(
+                            SubsystemManager.instance.commands.decoratePathplannerCmd(AutoBuilder.followPath(path)),
+                            // Select alignment target based on elevator state
+                            SubsystemManager.instance.commands.selectCommand()
+                        )
+                    )
+                );
+    
+            }
+
+            // sequence.addCommands(
+            //     // Run two command sequences in parallel
+            //     new ParallelCommandGroup(
+            //         // Sequence 1: Following a PathPlanner curve into automatic alignment
+            //         new SequentialCommandGroup(
+            //             SubsystemManager.instance.commands.decoratePathplannerCmd(AutoBuilder.followPath(path)),
+            //             // Select alignment target based on elevator state
+            //             SubsystemManager.instance.commands.selectCommand(),
+            //             new WaitCommand(0.5))
+            //                 .onlyWhile(() -> target == TargetState.kL4 || !Elevator.instance.getCoralStored()),
+            //         // Sequence 2: Wait for some time, then move the elevator to desired position
+            //         new SequentialCommandGroup(
+            //             // Wait longer if elevator is low, bring down quickly if elevator is high
+            //             new WaitCommand(target != TargetState.kL4 ? 0.5 : 
+            //                 path.generateTrajectory(
+            //                     new ChassisSpeeds(), 
+            //                     start.rotation, 
+            //                     DriveTrain.instance.config
+            //                 ).getTotalTimeSeconds() - 1.5),
+            //             Elevator.instance.setStateCmd(target),
+            //             Elevator.instance.intakeCoralCmd()
+            //         )),
+            //     // Post-path command, intaking or shooting depending on elevator state
+            //     target == TargetState.kSource ? Commands.none()
+            //          : RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3).withTimeout(1)
+            // );
         }
         sequence.addCommands(Elevator.instance.setStateCmd(TargetState.kSource));
         return sequence;

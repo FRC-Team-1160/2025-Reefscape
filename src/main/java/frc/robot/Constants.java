@@ -194,7 +194,7 @@ public final class Constants {
         public static final double MAX_SPEED = 5;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.25 : 3.0;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.5 : 3.0;
         public static final double TURN_SPEED = 5;
 
         /** Constraints and settings for automatic alignment. */
@@ -306,8 +306,8 @@ public final class Constants {
             public static final double kL2 = 1.3; //TUNE
             public static final double kL3 = 2.7; //TUNE
             public static final double kL4 = 5.12; //TUNE
-            public static final double kL2Algae = 0.4; //TUNE
-            public static final double kL3Algae = 1.4; //TUNE
+            public static final double kL2Algae = 0.5; //TUNE
+            public static final double kL3Algae = 1.5; //TUNE
             public static final double kStow = -0.05;
             public static final double kSource = -0.05;
         }
@@ -329,7 +329,6 @@ public final class Constants {
         public static final double MAX_ANG_ACCEL = Math.PI * 2;
         
         public static class Paths {
-            public static final double START_X = FieldConstants.LENGTH / 2 - 1;
             public static final double ALIGN_DISTANCE = 0.5;
             public static final double BARGE_CONTROL = 0.3;
             public static final double REEF_CONTROL_CLOSE = 0.5;
@@ -370,6 +369,7 @@ public final class Constants {
         }
 
         public static class Barge {
+            public static final double START_X = RobotUtils.allianceFlipX(FieldConstants.LENGTH / 2 - 1.3);
             public static final double CENTER_X = FieldConstants.LENGTH / 2;
             public static final double CAGE_1 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(127.375);
             public static final double CAGE_2 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(84.375);

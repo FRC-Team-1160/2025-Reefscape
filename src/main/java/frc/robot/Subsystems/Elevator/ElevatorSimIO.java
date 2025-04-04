@@ -6,19 +6,21 @@ import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-
+import frc.robot.RobotUtils;
+import frc.robot.SubsystemManager;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.RobotConstants;
 import frc.robot.Constants.ElevatorConstants.ElevatorMotionMagic;
 
 public class ElevatorSimIO extends Elevator {
 
-    private double ele_pos, ele_speed, ele_setpoint;
+    private double ele_pos, ele_speed, ele_setpoint, shooter_speed;
 
     private boolean ele_pid;
 
     protected ElevatorSimIO() {
         ele_pid = false;
+        shooter_speed = 0;
     }
 
     public double runElevator(double speed) {
@@ -47,11 +49,16 @@ public class ElevatorSimIO extends Elevator {
 
     public void runAlgae(double speed) {}
 
-    public void runShooter(double speed) {}
+    public void runShooter(double speed) {
+        shooter_speed = speed;
+    }
 
     public double getElevatorHeight() { return ele_pos; }
 
-    public boolean getCoralStored() { return true; }
+    public boolean getCoralStored() { 
+        return shooter_speed != 0 
+            && RobotUtils.allianceFlipX(SubsystemManager.instance.getPoseEstimate().getX()) < 1.5; 
+    }
 
     public boolean getElevatorZeroed() { return ele_pos == 0; }
 

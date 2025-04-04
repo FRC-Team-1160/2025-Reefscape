@@ -106,6 +106,7 @@ abstract public class Elevator extends SubsystemBase {
 
     protected Elevator() {
         m_current_state = TargetState.kStow;
+        m_led_pattern = LEDPattern.kBlueSolid;
     }
 
     /**
