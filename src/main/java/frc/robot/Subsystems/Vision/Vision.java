@@ -16,6 +16,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.targeting.PhotonPipelineResult;
+import org.photonvision.targeting.PhotonTrackedTarget;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -147,6 +148,16 @@ public class Vision {
             var opt_pose = photon_pose_estimator.update(result);
             if (opt_pose.isEmpty()) continue;
 
+            // boolean exit = false;
+            // for (PhotonTrackedTarget target : result.targets) {
+            //     double dist = target.bestCameraToTarget.getTranslation().getNorm();
+            //     if (dist > VisionConstants.TAG_MAX_DIST || dist < VisionConstants.TAG_MIN_DIST) {
+            //         exit = true;
+            //         break;
+            //     }
+            // }
+            // if (exit) continue;
+
             var frame_tags = new ArrayList<Integer>();
             // Check if result has multiple tags; store ambiguity and read used apriltag IDs
             if (result.multitagResult.isPresent()) {
@@ -164,6 +175,8 @@ public class Vision {
 
             // if (dists.get().max().orElse(0) < VisionConstants.TAG_MIN_DIST 
             //     || dists.get().min().orElse(0) > VisionConstants.TAG_MAX_DIST) break;
+
+
 
             fiducials.addAll(frame_tags);
 
