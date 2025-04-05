@@ -273,6 +273,7 @@ public class SubsystemManager {
                 canceled -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     Elevator.instance.setLEDSequence(LEDSequence.kSolid);
+                    SwervePIDController.instance.resetTimeout();
                 },
                 () -> SwervePIDController.instance.done
             );

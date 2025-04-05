@@ -39,7 +39,9 @@ public class SwervePIDController {
 
     public boolean align_right;
 
-    private Timer push_timer;
+    private Timer timeout;
+    private Pose2d timeout_reference_pose;
+    private int timeout_counter;
 
     private SwervePIDController() {
         target_pose = new Pose2d();
@@ -57,7 +59,8 @@ public class SwervePIDController {
         done = false;
         align_right = true;
 
-        push_timer = new Timer();
+        timeout = new Timer();
+        timeout_counter = 0;
     }
 
     /**
@@ -131,11 +134,12 @@ public class SwervePIDController {
         // Calculate acceleration and reset requested speeds based on max acceleration
         Translation2d accel_vector = target_speeds_vector.minus(current_speeds_vector);
         double limit = (target_speeds_vector.getNorm() < current_speeds_vector.getNorm()) ? Tracking.MAX_DECEL : Tracking.MAX_ACCEL;
-        if (target_speeds_vector.getNorm() > 0.5 || current_speeds_vector.getNorm() > 0.5) {
-            accel_vector = accel_vector.times(
-                Math.min(1, limit * RobotConstants.LOOP_TIME_SECONDS / accel_vector.getNorm()));
-        }
+        // if (target_speeds_vector.getNorm() > 0.3 || current_speeds_vector.getNorm() > 0.3) {
+        accel_vector = accel_vector.times(
+            Math.min(1, limit * RobotConstants.LOOP_TIME_SECONDS / accel_vector.getNorm()));
+        // }
         Translation2d out_speeds_vector = current_speeds_vector.plus(accel_vector);
+        out_speeds_vector.rotateBy(target_speeds_vector.getAngle().minus(out_speeds_vector.getAngle()).times(0.7));
         Logger.recordOutput("SwervePIDController/Requested acceleration", accel_vector.getNorm());
         Logger.recordOutput("SwervePIDController/limit", limit);
 
@@ -160,16 +164,16 @@ public class SwervePIDController {
             DriveTrain.instance.setFeedforwards(
                 DriveTrain.instance.calculateAccelerationFeedforwards(
                     new Transform2d(
-                        accel_vector.div(RobotConstants.LOOP_TIME_SECONDS * 2), 
-                        Rotation2d.fromRadians(ang_accel / (RobotConstants.LOOP_TIME_SECONDS * 2)))),
+                        accel_vector.div(RobotConstants.LOOP_TIME_SECONDS), 
+                        Rotation2d.fromRadians(ang_accel / RobotConstants.LOOP_TIME_SECONDS))),
                 false
             );
 
-            // DriveTrain.instance.setSteerFeedforwards(
-            //     DriveTrain.instance.calculateSteerFeedforwards(
-            //         new ChassisSpeeds(out_speeds_vector.getX(), out_speeds_vector.getY(), out_ang_vel)
-            //     )
-            // );
+            DriveTrain.instance.setSteerFeedforwards(
+                DriveTrain.instance.calculateSteerFeedforwards(
+                    new ChassisSpeeds(out_speeds_vector.getX(), out_speeds_vector.getY(), out_ang_vel)
+                )
+            );
         }
 
         return new ChassisSpeeds(out_speeds_vector.getX(), out_speeds_vector.getY(), out_ang_vel);
@@ -181,6 +185,12 @@ public class SwervePIDController {
      */
     public ChassisSpeeds calculate() {
         return calculate(false);
+    }
+
+    public void resetTimeout() {
+        timeout.stop();
+        timeout.reset();
+        timeout_counter = 0;
     }
 
     /**
@@ -232,25 +242,49 @@ public class SwervePIDController {
             .rotateBy(robot_pose.getRotation().unaryMinus());
 
         double speed = dist_pid_controller.calculate(goal_off.getNorm(), 0);
-        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.2;
+        if (!dist_pid_controller.atSetpoint()) speed += Math.signum(speed) * 0.2; // 0.2
         goal_off = goal_off.times(speed / goal_off.getNorm());
 
         Logger.recordOutput("SwervePIDController/Distance Error", dist_pid_controller.getError());
         Logger.recordOutput("SwervePIDController/Angle Error", ang_pid_controller.getError());
         // Get PID forward speed and normalize
-        if (target_distance > 0) done = dist_pid_controller.atSetpoint() && ang_pid_controller.atSetpoint();
-        else if (ang_pid_controller.atSetpoint() && h_spacing < Tracking.DISTANCE_TOLERANCE 
-             && Math.abs(target_relative_off.getX()) < Math.abs(target_distance) + 0.01) {
-            if (push_timer.hasElapsed(1)) {
-                done = true;
-                push_timer.reset();
-            } else if (!push_timer.isRunning()) push_timer.restart();
-        } else push_timer.reset();
+        done = dist_pid_controller.atSetpoint() && ang_pid_controller.atSetpoint();
+
+        if (goal_off.getNorm() < 1) {
+            if (!timeout.isRunning()) {
+                timeout.restart();
+                timeout_reference_pose = robot_pose;
+            }
+
+            if (timeout.advanceIfElapsed(0.3)) {
+                if (timeout_reference_pose.getTranslation().minus(robot_pose.getTranslation()).getNorm() < 0.04) {
+                    if (++timeout_counter >= 3) done = true;
+                } else {
+                    timeout_counter = 0;
+                }
+                timeout_reference_pose = robot_pose;
+            } 
+
+        } else if (timeout.isRunning()) {
+            resetTimeout();
+        }
+
+        Logger.recordOutput("SwervePIDController/Timeout Reference Pose", timeout_reference_pose);
+
+        // if (goal_off.getNorm() < 0.5) {
+        //     return new ChassisSpeeds(
+        //         goal_off.getX() * speed,
+        //         goal_off.getY() * speed,
+        //         desired_ang_speed
+        //     );
+        // }
+
+        Logger.recordOutput("SwervePIDController/speed", -speed);
 
         return applyMovementConstraints(
             new ChassisSpeeds(
-                goal_off.getX(),
-                goal_off.getY(),
+                goal_off.getX() / goal_off.getNorm() * -speed,
+                goal_off.getY() / goal_off.getNorm() * -speed,
                 desired_ang_speed
             )
         );

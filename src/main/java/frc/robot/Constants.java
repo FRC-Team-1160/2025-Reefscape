@@ -194,14 +194,14 @@ public final class Constants {
         public static final double MAX_SPEED = 5;
         public static final double MAX_STEER_SPEED = 2;
 
-        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.5 : 3.0;
+        public static final double DRIVE_SPEED = (RobotBase.isReal()) ? 3.75 : 3.0;
         public static final double TURN_SPEED = 5;
 
         /** Constraints and settings for automatic alignment. */
         public static class Tracking {
-            public static final double MAX_SPEED = 2.5;
-            public static final double MAX_ACCEL = 5;
-            public static final double MAX_DECEL = 7.0;
+            public static final double MAX_SPEED = 3.5;
+            public static final double MAX_ACCEL = 12;
+            public static final double MAX_DECEL = 20.0;
             public static final double MAX_ANG_SPEED = 4.0;
             public static final double MAX_ANG_ACCEL = 6.0;
             public static final double MAX_ANG_DECEL = 9.0;
@@ -212,17 +212,17 @@ public final class Constants {
             public static final double ALIGN_SEPARATION_TOLERANCE = 0.15;
 
             public static final double ANGLE_TOLERANCE = Units.degreesToRadians(1.5);
-            public static final double DISTANCE_TOLERANCE = 0.015;
+            public static final double DISTANCE_TOLERANCE = 0.02;
 
             /** Coefficients for distance and angular PID controllers. */
             public static class PIDConstants {
                 public static class Distance {
-                    public static final double kP = 1.5;
+                    public static final double kP = 1.8;
                     public static final double kI = 0;
                     public static final double kD = 0;
                 }
                 public static class Angle {
-                    public static final double kP = 1.5;
+                    public static final double kP = 2.5;
                     public static final double kI = 0;
                     public static final double kD = 0;
                 }
