@@ -17,6 +17,7 @@ import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.Tracer;
@@ -247,6 +248,14 @@ public class SubsystemManager {
         public Command alignSource() {
             return getAlignCommand( 
                 SwervePIDController.instance::getNearestSourcePose, 
+                0.05,
+                Rotation2d.kPi
+            ).withName("Align Source");
+        }
+
+        public Command alignSource(double offset) {
+            return getAlignCommand( 
+                () -> SwervePIDController.instance.getNearestSourcePose().plus(new Transform2d(0, offset, Rotation2d.kZero)), 
                 0.05,
                 Rotation2d.kPi
             ).withName("Align Source");

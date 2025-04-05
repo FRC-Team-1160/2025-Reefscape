@@ -105,10 +105,10 @@ public class FieldHandler {
             Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 180 : 0), Paths.REEF_CONTROL_CLOSE),
 
         kSourceL("Source Left", () -> FieldPositions.source[RobotUtils.isRedAlliance() ? 0 : 1].transformBy(
-                new Transform2d(0, RobotUtils.isRedAlliance() ? -0.4 : 0.4, Rotation2d.kPi)),
+                new Transform2d(0, RobotUtils.isRedAlliance() ? -0.4 : -0.4, Rotation2d.kPi)),
             Rotation2d.fromRadians(RobotUtils.allianceNegate(FieldConstants.CoralStation.ANGLE_RADIANS)).unaryMinus(), Paths.SOURCE_CONTROL),      
         kSourceR("Source Right", () -> FieldPositions.source[RobotUtils.isRedAlliance() ? 1 : 0].transformBy(
-                    new Transform2d(0, RobotUtils.isRedAlliance() ? 0.4 : -0.4, Rotation2d.kPi)),
+                    new Transform2d(0, RobotUtils.isRedAlliance() ? 0.4 : 0.4, Rotation2d.kPi)),
             Rotation2d.fromRadians(RobotUtils.allianceNegate(FieldConstants.CoralStation.ANGLE_RADIANS)), Paths.SOURCE_CONTROL);
 
         public String name;
@@ -468,7 +468,8 @@ public class FieldHandler {
                         new SequentialCommandGroup(
                             SubsystemManager.instance.commands.decoratePathplannerCmd(AutoBuilder.followPath(path)),
                             // Select alignment target based on elevator state
-                            SubsystemManager.instance.commands.selectCommand()
+                            // SubsystemManager.instance.commands.selectCommand()
+                            SubsystemManager.instance.commands.alignSource(RobotUtils.allianceFlipY(end.getActualPose().getY()) < FieldConstants.WIDTH / 2 ? 0.4 : -0.4)
                         )
                     )
                 );
