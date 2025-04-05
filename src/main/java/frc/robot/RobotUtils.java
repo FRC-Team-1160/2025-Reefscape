@@ -5,6 +5,7 @@ import java.util.function.Consumer;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.StructArrayPublisher;
@@ -155,6 +156,10 @@ public final class RobotUtils {
             pose_pub.set(robot_pose);
             components_pub.set(component_poses);
         }
+    }
+
+    public static double minusAngle(Rotation2d angle1, Rotation2d angle2) {
+        return 0.5 + (angle1.minus(angle2).getRotations() - 0.5) % 1d;
     }
 
 }

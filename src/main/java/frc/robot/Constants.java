@@ -331,9 +331,9 @@ public final class Constants {
         public static class Paths {
             public static final double ALIGN_DISTANCE = 0.5;
             public static final double BARGE_CONTROL = 0.3;
-            public static final double REEF_CONTROL_CLOSE = 0.5;
-            public static final double REEF_CONTROL_FAR = 1;
-            public static final double SOURCE_CONTROL = 0.5;
+            public static final double REEF_CONTROL_CLOSE = 0.3;
+            public static final double REEF_CONTROL_FAR = 0.8;
+            public static final double SOURCE_CONTROL = 0.3;
         }
 
         public static final int PREVIEW_DETAIL = 2;
@@ -371,9 +371,9 @@ public final class Constants {
         public static class Barge {
             public static final double START_X = RobotUtils.allianceFlipX(FieldConstants.LENGTH / 2 - 1.3);
             public static final double CENTER_X = FieldConstants.LENGTH / 2;
-            public static final double CAGE_1 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(127.375);
-            public static final double CAGE_2 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(84.375);
-            public static final double CAGE_3 = FieldConstants.WIDTH / 2 + Units.inchesToMeters(41.5);
+            public static final double CAGE_1 = RobotUtils.allianceFlipY(FieldConstants.WIDTH / 2 + Units.inchesToMeters(127.375));
+            public static final double CAGE_2 = RobotUtils.allianceFlipY(FieldConstants.WIDTH / 2 + Units.inchesToMeters(84.375));
+            public static final double CAGE_3 = RobotUtils.allianceFlipY(FieldConstants.WIDTH / 2 + Units.inchesToMeters(41.5));
             public static final double MIDDLE = FieldConstants.WIDTH / 2;
             public static final double CAGE_4 = FieldConstants.WIDTH - CAGE_3;
             public static final double CAGE_5 = FieldConstants.WIDTH - CAGE_2;

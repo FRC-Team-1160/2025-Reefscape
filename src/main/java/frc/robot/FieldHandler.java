@@ -104,10 +104,12 @@ public class FieldHandler {
         kReef12R("12 Right", () -> FieldPositions.reef[RobotUtils.isRedAlliance() ? 2 : 11], 
             Rotation2d.fromDegrees(RobotUtils.isRedAlliance() ? 180 : 0), Paths.REEF_CONTROL_CLOSE),
 
-        kSourceL("Source Left", () -> FieldPositions.source[1].transformBy(new Transform2d(0, 0, Rotation2d.kPi)),
-            Rotation2d.fromRadians(FieldConstants.CoralStation.ANGLE_RADIANS).unaryMinus(), Paths.SOURCE_CONTROL),      
-        kSourceR("Source Right", () -> FieldPositions.source[0].transformBy(new Transform2d(0, 0, Rotation2d.kPi)),
-            Rotation2d.fromRadians(FieldConstants.CoralStation.ANGLE_RADIANS), Paths.SOURCE_CONTROL);
+        kSourceL("Source Left", () -> FieldPositions.source[RobotUtils.isRedAlliance() ? 0 : 1].transformBy(
+                new Transform2d(0, RobotUtils.isRedAlliance() ? -0.4 : 0.4, Rotation2d.kPi)),
+            Rotation2d.fromRadians(RobotUtils.allianceNegate(FieldConstants.CoralStation.ANGLE_RADIANS)).unaryMinus(), Paths.SOURCE_CONTROL),      
+        kSourceR("Source Right", () -> FieldPositions.source[RobotUtils.isRedAlliance() ? 1 : 0].transformBy(
+                    new Transform2d(0, RobotUtils.isRedAlliance() ? 0.4 : -0.4, Rotation2d.kPi)),
+            Rotation2d.fromRadians(RobotUtils.allianceNegate(FieldConstants.CoralStation.ANGLE_RADIANS)), Paths.SOURCE_CONTROL);
 
         public String name;
         public Pose2d pose;
@@ -132,15 +134,19 @@ public class FieldHandler {
             return new Pose2d(pose.getTranslation(), rotation);
         }
 
-        public Waypoint getWaypoint(boolean start) {
+        public Waypoint getWaypoint(boolean start, Rotation2d off) {
             return new Waypoint(
                 start ? null : pose.getTranslation().plus(
-                    new Translation2d(Paths.ALIGN_DISTANCE + control_length, 0).rotateBy(pose.getRotation())),
+                    new Translation2d(Paths.ALIGN_DISTANCE + control_length, 0).rotateBy(pose.getRotation().plus(off))),
                 pose.getTranslation().plus(
-                    new Translation2d(start ? 0 : Paths.ALIGN_DISTANCE, 0).rotateBy(pose.getRotation())), 
+                    new Translation2d(start ? 0 : Paths.ALIGN_DISTANCE, 0).rotateBy(pose.getRotation().plus(off))), 
                 start ? pose.getTranslation().plus(
-                        new Translation2d(Paths.ALIGN_DISTANCE + control_length, 0).rotateBy(pose.getRotation())) : null
+                        new Translation2d(Paths.ALIGN_DISTANCE + control_length, 0).rotateBy(pose.getRotation().plus(off))) : null
             );
+        }
+
+        public Waypoint getWaypoint(boolean start) {
+            return getWaypoint(start, Rotation2d.kZero);
         }
     }
 
@@ -172,11 +178,9 @@ public class FieldHandler {
 
         auto_positions_map = new HashMap<AutoPos, AutoPos[]>(Map.of(
             AutoPos.kCage1, new AutoPos[] {
-                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R, AutoPos.kReef6L, AutoPos.kReef6R,
-                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R },
+                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R, AutoPos.kReef6L, AutoPos.kReef6R },
             AutoPos.kCage2, new AutoPos[] {
-                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R,
-                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R },
+                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R },
             AutoPos.kCage3, new AutoPos[] {
                 AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef12R },
             AutoPos.kBargeMiddle, new AutoPos[] {
@@ -184,13 +188,9 @@ public class FieldHandler {
             AutoPos.kCage4, new AutoPos[] {
                 AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef12L },
             AutoPos.kCage5, new AutoPos[] {
-                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R ,
-                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R
-            },
+                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R },
             AutoPos.kCage6, new AutoPos[] {
-                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R, AutoPos.kReef6L, AutoPos.kReef6R,
-                AutoPos.kReef10L, AutoPos.kReef10R, AutoPos.kReef8L, AutoPos.kReef8R
-            },
+                AutoPos.kReef2L, AutoPos.kReef2R, AutoPos.kReef4L, AutoPos.kReef4R, AutoPos.kReef6L, AutoPos.kReef6R },
 
             AutoPos.kReef12L, new AutoPos[] {},
             AutoPos.kReef12R, new AutoPos[] {},
@@ -298,8 +298,9 @@ public class FieldHandler {
      */
     public PathPlannerPath getPath(AutoPos start, AutoPos end) {
         // Generate PathPlanner Waypoints
-        Waypoint start_point = start.getWaypoint(true);
-        Waypoint end_point = end.getWaypoint(false);
+        Rotation2d path_angle = end.getActualPose().getTranslation().minus(start.getActualPose().getTranslation()).getAngle();
+        Waypoint start_point = start.getWaypoint(true, Rotation2d.fromRotations(RobotUtils.clampAbs(RobotUtils.minusAngle(path_angle, start.pose.getRotation()) / 2, 1 / 6d)));
+        Waypoint end_point = end.getWaypoint(false, Rotation2d.fromRotations(RobotUtils.clampAbs(RobotUtils.minusAngle(path_angle.rotateBy(Rotation2d.kPi), end.pose.getRotation()) / 2, 1 / 6d)));
 
         Translation2d reef_center = new Translation2d(FieldConstants.Reef.CENTER_X, FieldConstants.Reef.CENTER_Y);
         // Angles the reef to each endpoint
@@ -318,7 +319,7 @@ public class FieldHandler {
                         Math.sqrt(end_point.anchor().getDistance(reef_center) * start_point.anchor().getDistance(reef_center)), 
                         0
                         // Control point bisects the angle between two points and reef center 
-                    ).rotateBy(Rotation2d.fromRotations((start_angle + end_angle) / 2.0
+                    ).rotateBy(Rotation2d.fromRotations((start_angle + end_angle) / 2d
                          + (Math.abs(end_angle - start_angle) > 0.5 ? 0.5 : 0)))),
                 // Draw control handles roughly parallel to the straight line between start and end points
                 end_point.anchor().plus(end_point.prevControl()).minus(
@@ -369,7 +370,7 @@ public class FieldHandler {
             pp_states.addAll(temp);
 
             for (int d = 1; d <= AutoConstants.PREVIEW_DETAIL; d++) {
-                preview_poses.add(temp.get(temp.size() * d / (AutoConstants.PREVIEW_DETAIL + 1)).pose);
+                preview_poses.add(temp.get(temp.size() * d / (AutoConstants.PREVIEW_DETAIL) - 1).pose);
             }
 
             preview_poses.add(auto_menus.get(i + 1).getSelected().getActualPose());
