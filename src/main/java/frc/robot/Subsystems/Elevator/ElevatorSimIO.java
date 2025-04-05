@@ -57,7 +57,7 @@ public class ElevatorSimIO extends Elevator {
 
     public boolean getCoralStored() { 
         return shooter_speed != 0 
-            && RobotUtils.allianceFlipX(SubsystemManager.instance.getPoseEstimate().getX()) < 1.5; 
+            && RobotUtils.allianceFlipX(SubsystemManager.instance.getPoseEstimate().getX()) < 0.5; 
     }
 
     public boolean getElevatorZeroed() { return ele_pos == 0; }

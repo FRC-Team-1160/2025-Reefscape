@@ -199,7 +199,7 @@ public final class Constants {
 
         /** Constraints and settings for automatic alignment. */
         public static class Tracking {
-            public static final double MAX_SPEED = 3.5;
+            public static final double MAX_SPEED = 3;
             public static final double MAX_ACCEL = 12;
             public static final double MAX_DECEL = 20.0;
             public static final double MAX_ANG_SPEED = 4.0;
@@ -217,7 +217,7 @@ public final class Constants {
             /** Coefficients for distance and angular PID controllers. */
             public static class PIDConstants {
                 public static class Distance {
-                    public static final double kP = 1.8;
+                    public static final double kP = 1.4;
                     public static final double kI = 0;
                     public static final double kD = 0;
                 }
