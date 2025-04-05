@@ -323,8 +323,8 @@ public final class Constants {
         public static final double rotation_kI = 0d;
         public static final double rotation_kD = 0d;
 
-        public static final double MAX_SPEED = 2;
-        public static final double MAX_ACCEL = 4;
+        public static final double MAX_SPEED = 1.5;
+        public static final double MAX_ACCEL = 3;
         public static final double MAX_ANG_SPEED = Math.PI;
         public static final double MAX_ANG_ACCEL = Math.PI * 2;
         

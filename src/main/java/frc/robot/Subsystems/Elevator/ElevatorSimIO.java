@@ -2,6 +2,8 @@ package frc.robot.Subsystems.Elevator;
 
 import java.util.List;
 
+import org.littletonrobotics.junction.Logger;
+
 import com.ctre.phoenix6.hardware.TalonFX;
 
 import edu.wpi.first.wpilibj2.command.Command;
@@ -50,6 +52,7 @@ public class ElevatorSimIO extends Elevator {
     public void runAlgae(double speed) {}
 
     public void runShooter(double speed) {
+        Logger.recordOutput("Elevator/Shooter speed", speed);
         shooter_speed = speed;
     }
 

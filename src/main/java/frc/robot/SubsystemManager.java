@@ -318,6 +318,7 @@ public class SubsystemManager {
             return Commands.deferredProxy(cmd)
                 .beforeStarting(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.PATHPLANNER_CONTROL;
+                    m_pathplanner_speeds = PathplannerSpeeds.kZero;
                 })
                 .andThen(() -> {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;

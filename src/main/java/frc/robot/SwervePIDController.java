@@ -256,9 +256,9 @@ public class SwervePIDController {
                 timeout_reference_pose = robot_pose;
             }
 
-            if (timeout.advanceIfElapsed(0.3)) {
+            if (timeout.advanceIfElapsed(0.5)) {
                 if (timeout_reference_pose.getTranslation().minus(robot_pose.getTranslation()).getNorm() < 0.04) {
-                    if (++timeout_counter >= 3) done = true;
+                    if (++timeout_counter >= 4) done = true;
                 } else {
                     timeout_counter = 0;
                 }

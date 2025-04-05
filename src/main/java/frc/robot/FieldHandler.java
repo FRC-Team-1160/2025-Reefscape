@@ -412,6 +412,8 @@ public class FieldHandler {
     public Command buildAuto() {
         // Initialize command group
         SequentialCommandGroup sequence = new SequentialCommandGroup();
+
+        sequence.addCommands(new WaitCommand(5));
         // Pre-allocate AutoPos's
         AutoPos start;
         AutoPos end = auto_menus.get(0).getSelected();
@@ -449,11 +451,13 @@ public class FieldHandler {
                                     new ChassisSpeeds(), 
                                     start.rotation, 
                                     DriveTrain.instance.config
-                                ).getTotalTimeSeconds() - 1.5),
+                                ).getTotalTimeSeconds() - 1),
                             Elevator.instance.setStateCmd(TargetState.kL4)
                         )),
                     // Post-path command, intaking or shooting depending on elevator state
+                    new WaitCommand(1),
                     RobotUtils.onOffCommand(Elevator.instance::runShooter, 0.3).withTimeout(1)
+
                 );
             } else {
 
