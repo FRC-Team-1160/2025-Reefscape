@@ -262,19 +262,19 @@ public final class Constants {
 
         /** Configured PID values for elevator motors. */
         public static class ElevatorConfigs {
-            public static final double kP = 8;
+            public static final double kP = 12;
             public static final double kI = 0;
-            public static final double kD = 0.25;
+            public static final double kD = 0.2;
             public static final double kS = 0.17;
             public static final double kV = 1.75;
-            public static final double kA = 0.18;
-            public static final double kG = 0.35;
+            public static final double kA = 0.14;
+            public static final double kG = 0.374;
         }
 
         /** Configured Motion Magic coefficients for the elevator motor. */
         public static class ElevatorMotionMagic {
-            public static final double VELOCITY = 4;
-            public static final double ACCELERATION = 7;
+            public static final double VELOCITY = 5;
+            public static final double ACCELERATION = 12;
             public static final double JERK = 0;
             public static final double EXPO_kV = 0;
             public static final double EXPO_kA = 0;
@@ -308,8 +308,8 @@ public final class Constants {
             public static final double kL4 = 5.12; //TUNE
             public static final double kL2Algae = 0.7; //TUNE
             public static final double kL3Algae = 1.5; //TUNE
-            public static final double kStow = -0.05;
-            public static final double kSource = -0.05;
+            public static final double kStow = -0.07;
+            public static final double kSource = -0.07;
         }
     }
 
