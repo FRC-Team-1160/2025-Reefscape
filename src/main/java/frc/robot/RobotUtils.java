@@ -59,7 +59,7 @@ public final class RobotUtils {
     public static boolean isRedAlliance() {
         if (Robot.isReal()) return false; // CHANGE THIS VALUE AND DEPLOY
 
-        if (DriverStation.getAlliance().isEmpty()) return false;
+        if (DriverStation.getAlliance().isEmpty()) return true;
         return DriverStation.getAlliance().get() == Alliance.Red;
     }
 

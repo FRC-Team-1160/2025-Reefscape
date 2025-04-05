@@ -299,8 +299,8 @@ public class FieldHandler {
     public PathPlannerPath getPath(AutoPos start, AutoPos end) {
         // Generate PathPlanner Waypoints
         Rotation2d path_angle = end.getActualPose().getTranslation().minus(start.getActualPose().getTranslation()).getAngle();
-        Waypoint start_point = start.getWaypoint(true, Rotation2d.fromRotations(RobotUtils.clampAbs(RobotUtils.minusAngle(path_angle, start.pose.getRotation()) / 2, 1 / 6d)));
-        Waypoint end_point = end.getWaypoint(false, Rotation2d.fromRotations(RobotUtils.clampAbs(RobotUtils.minusAngle(path_angle.rotateBy(Rotation2d.kPi), end.pose.getRotation()) / 2, 1 / 6d)));
+        Waypoint start_point = start.getWaypoint(true, Rotation2d.fromRotations(RobotUtils.clampAbs(RobotUtils.minusAngle(path_angle, start.pose.getRotation()) / 3, 1 / 12d)));
+        Waypoint end_point = end.getWaypoint(false, Rotation2d.fromRotations(RobotUtils.clampAbs(RobotUtils.minusAngle(path_angle.rotateBy(Rotation2d.kPi), end.pose.getRotation()) / 3, 1 / 12d)));
 
         Translation2d reef_center = new Translation2d(FieldConstants.Reef.CENTER_X, FieldConstants.Reef.CENTER_Y);
         // Angles the reef to each endpoint
@@ -347,7 +347,7 @@ public class FieldHandler {
                 AutoConstants.MAX_ANG_SPEED, 
                 AutoConstants.MAX_ANG_ACCEL), 
             new IdealStartingState(0, start.rotation), 
-            new GoalEndState(0.7, end.rotation));
+            new GoalEndState(0.4, end.rotation));
     }
 
     public void updatePreview() {

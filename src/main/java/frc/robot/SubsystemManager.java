@@ -323,7 +323,7 @@ public class SubsystemManager {
                     m_robot_state.drive_state = RobotState.DriveStates.DRIVER_CONTROL;
                     m_pathplanner_speeds = PathplannerSpeeds.kZero;
                     DriveTrain.instance.setGyroAngle(-SubsystemManager.instance.getPoseEstimate().getRotation()
-                        .plus(RobotUtils.isRedAlliance() ? Rotation2d.kPi : Rotation2d.kZero).getDegrees());
+                        .plus(RobotUtils.isRedAlliance() ? Rotation2d.kZero : Rotation2d.kPi).getDegrees());
                 });
         }
 

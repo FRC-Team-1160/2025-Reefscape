@@ -329,7 +329,7 @@ public final class Constants {
         public static final double MAX_ANG_ACCEL = Math.PI * 2;
         
         public static class Paths {
-            public static final double ALIGN_DISTANCE = 0.5;
+            public static final double ALIGN_DISTANCE = 0.7;
             public static final double BARGE_CONTROL = 0.3;
             public static final double REEF_CONTROL_CLOSE = 0.3;
             public static final double REEF_CONTROL_FAR = 0.8;
