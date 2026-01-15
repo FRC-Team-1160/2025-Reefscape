@@ -10,8 +10,8 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -55,8 +55,8 @@ public class Elevator extends SubsystemBase {
   @Override
   public void periodic() {
     // // TODO: should this be in a setSetpoint function or is this better
-    // left_motor.setControl(new PositionVoltage(-setpoint));
-    // right_motor.setControl(new PositionVoltage(setpoint));
+    left_motor.setControl(new PositionVoltage(-setpoint));
+    right_motor.setControl(new PositionVoltage(setpoint));
   }
 
   @Override

@@ -13,11 +13,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.StartEndCommand;
-import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
-import frc.robot.Commands.PIDController;
-import frc.robot.Commands.AlgaeAlignmentPID;
-import frc.robot.Subsystems.Vision.ObjectDetection;
 
 public class RobotContainer {
   private Joystick main_stick = new Joystick(Constants.IO.MAIN_PORT);
@@ -95,4 +91,3 @@ public class RobotContainer {
     return auto_chooser.getSelected();
   }
 }
-  
